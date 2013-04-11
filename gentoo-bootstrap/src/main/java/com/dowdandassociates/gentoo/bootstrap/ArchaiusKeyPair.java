@@ -1,6 +1,10 @@
 
 package com.dowdandassociates.gentoo.bootstrap;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
+
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.config.DynamicStringProperty;
 
@@ -23,7 +27,18 @@ public class ArchaiusKeyPair implements KeyPair
     {
         String timestamp = DateFormatUtils.formatUTC(System.currentTimeMillis(), "yyyyMMdd'T'HHmmss'Z'");
         name = DynamicPropertyFactory.getInstance().getStringProperty(KEY_PAIR_NAME_PROPERTY, "gentoo-bootstrap-" + timestamp);
-        filename = DynamicPropertyFactory.getInstance().getStringProperty(KEY_PAIR_FILE_PROPERTY, name.get() + ".pem");
+        try
+        {
+            filename = DynamicPropertyFactory.getInstance().getStringProperty(KEY_PAIR_FILE_PROPERTY,
+                    Files.createTempFile(name.get(),
+                                         ".pem",
+                                         PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"))).toString());
+        }
+        catch (IOException ioe)
+        {
+            log.warn("Cannot create temp file", ioe);
+            filename = DynamicPropertyFactory.getInstance().getStringProperty(KEY_PAIR_FILE_PROPERTY, name.get() + ".pem");
+        }
     }
 
     @Override

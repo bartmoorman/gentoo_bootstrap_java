@@ -17,6 +17,7 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.Filter;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ public class Bootstrapper
 {
     private static Logger log = LoggerFactory.getLogger(Bootstrapper.class);
 
+    private AmazonMachineImage bootstrapImage;
     private boolean builtKeyPair;
     private AmazonEC2 ec2Client;
     private KeyPair keyPair;
@@ -48,6 +50,12 @@ public class Bootstrapper
         this.securityGroup = securityGroup;
     }
 
+    @Inject
+    public void setBootstrapImage(@Named("Bootstrap Image") AmazonMachineImage bootstrapImage)
+    {
+        this.bootstrapImage = bootstrapImage;
+    }
+
     public void execute()
     {
         checkKeyPair();
@@ -56,14 +64,20 @@ public class Bootstrapper
 
     private void checkKeyPair()
     {
+        log.info("Checking if key pair \"" + keyPair.getName() + "\" exists");
+
         if (ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().
                 withFilters(new Filter().withName("key-name").withValues(keyPair.getName()))).getKeyPairs().isEmpty())
         {
+            log.info("Building key pair");
+
             CreateKeyPairResult createResult = ec2Client.createKeyPair(new CreateKeyPairRequest().
                     withKeyName(keyPair.getName()));
         
             try
             {
+                log.info("Saving pem file to \"" + keyPair.getFilename() + "\"");
+
                 BufferedWriter outfile = new BufferedWriter(new FileWriter(keyPair.getFilename()));
 
                 try
@@ -89,33 +103,35 @@ public class Bootstrapper
             }
 
             builtKeyPair = true;
+            log.info("Key pair built");
         }
         else
         {
             builtKeyPair = false;
+            log.info("Key pair exists");
         }
     }
 
     private void checkSecurityGroup()
     {
-        // Check if the group is setup
+        log.info("Check if security group \"" + securityGroup.getName() + "\" is set up.");
+
         if (ec2Client.describeSecurityGroups(securityGroup.getAuthorizationCheckRequest()).getSecurityGroups().isEmpty())
         {
-            // The group is not setup
-            // Check if the group exists
+            log.info("Security group is not set up. Checking if it exists.");
             if (ec2Client.describeSecurityGroups(new DescribeSecurityGroupsRequest().
                     withFilters(new Filter().withName("group-name").withValues(securityGroup.getName()))).getSecurityGroups().isEmpty())
             {
-                // The group does not exist
-                // Create group
+                log.info("Security group does not exist. Creating it.");
                 ec2Client.createSecurityGroup(new CreateSecurityGroupRequest().
                         withGroupName(securityGroup.getName()).
                         withDescription(securityGroup.getDescription()));
             }
 
-            // Setup Group
+            log.info("Setting ingress rules for security group");
             ec2Client.authorizeSecurityGroupIngress(securityGroup.getAuthorizationRequest());
         }
+        log.info("Security group set up");
     }
 }
 
