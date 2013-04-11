@@ -32,7 +32,6 @@ public class AmazonLinuxPvX8664EbsAmi implements AmazonMachineImage
                             new Filter().withName("virtualization-type").withValues("paravirtual"),
                             new Filter().withName("architecture").withValues("x86_64"),
                             new Filter().withName("root-device-type").withValues("ebs"),
-                            new Filter().withName("image-type").withValues("machine"),
                             new Filter().withName("manifest-location").withValues("amazon/amzn-ami-pv-*"));
 
         rcPattern = Pattern.compile(".*rc-.*");
