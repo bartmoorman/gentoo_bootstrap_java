@@ -13,8 +13,8 @@ public class ArchaiusKeyPair implements KeyPair
 {
     private static Logger log = LoggerFactory.getLogger(ArchaiusKeyPair.class);
 
-    private static final String KEY_PAIR_NAME_PROPERTY = "com.dowdandassociates.gentoo.bootstrap.Bootstrapper.keyPair";
-    private static final String KEY_PAIR_FILE_PROPERTY = "com.dowdandassociates.gentoo.bootstrap.Bootstrapper.keyPairFile";
+    private static final String KEY_PAIR_NAME_PROPERTY = "com.dowdandassociates.gentoo.bootstrap.KeyPair.name";
+    private static final String KEY_PAIR_FILE_PROPERTY = "com.dowdandassociates.gentoo.bootstrap.KeyPair.filename";
 
     private DynamicStringProperty name;
     private DynamicStringProperty filename;
