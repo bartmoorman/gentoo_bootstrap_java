@@ -9,8 +9,11 @@ import java.io.IOException;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
 import com.amazonaws.services.ec2.model.CreateKeyPairResult;
+import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.Filter;
 
 import com.google.inject.Inject;
@@ -22,9 +25,10 @@ public class Bootstrapper
 {
     private static Logger log = LoggerFactory.getLogger(Bootstrapper.class);
 
+    private boolean builtKeyPair;
     private AmazonEC2 ec2Client;
     private KeyPair keyPair;
-    private boolean builtKeyPair;
+    private SecurityGroup securityGroup;
 
     @Inject
     public void setEC2Client(AmazonEC2 ec2Client)
@@ -38,18 +42,22 @@ public class Bootstrapper
         this.keyPair = keyPair;
     }
 
+    @Inject
+    public void setSecurityGroup(SecurityGroup securityGroup)
+    {
+        this.securityGroup = securityGroup;
+    }
+
     public void execute()
     {
         checkKeyPair();
+        checkSecurityGroup();
     }
 
     private void checkKeyPair()
     {
-        DescribeKeyPairsResult describeResult = ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().
-                withFilters(new Filter().
-                        withName("key-name").
-                        withValues(keyPair.getName())));
-        if (describeResult.getKeyPairs().isEmpty())
+        if (ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().
+                withFilters(new Filter().withName("key-name").withValues(keyPair.getName()))).getKeyPairs().isEmpty())
         {
             CreateKeyPairResult createResult = ec2Client.createKeyPair(new CreateKeyPairRequest().
                     withKeyName(keyPair.getName()));
@@ -85,6 +93,28 @@ public class Bootstrapper
         else
         {
             builtKeyPair = false;
+        }
+    }
+
+    private void checkSecurityGroup()
+    {
+        // Check if the group is setup
+        if (ec2Client.describeSecurityGroups(securityGroup.getAuthorizationCheckRequest()).getSecurityGroups().isEmpty())
+        {
+            // The group is not setup
+            // Check if the group exists
+            if (ec2Client.describeSecurityGroups(new DescribeSecurityGroupsRequest().
+                    withFilters(new Filter().withName("group-name").withValues(securityGroup.getName()))).getSecurityGroups().isEmpty())
+            {
+                // The group does not exist
+                // Create group
+                ec2Client.createSecurityGroup(new CreateSecurityGroupRequest().
+                        withGroupName(securityGroup.getName()).
+                        withDescription(securityGroup.getDescription()));
+            }
+
+            // Setup Group
+            ec2Client.authorizeSecurityGroupIngress(securityGroup.getAuthorizationRequest());
         }
     }
 }

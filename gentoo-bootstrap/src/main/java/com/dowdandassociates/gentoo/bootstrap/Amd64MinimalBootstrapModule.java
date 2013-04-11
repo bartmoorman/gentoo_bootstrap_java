@@ -14,6 +14,7 @@ public class Amd64MinimalBootstrapModule extends AbstractModule
     {
         bind(AmazonEC2.class).toProvider(DefaultAmazonEC2Provider.class);
         bind(KeyPair.class).to(ArchaiusKeyPair.class);
+        bind(SecurityGroup.class).to(ArchaiusSecurityGroupCidr.class);
     }
 }
 
