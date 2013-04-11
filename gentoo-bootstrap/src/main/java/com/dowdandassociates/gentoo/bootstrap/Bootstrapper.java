@@ -58,8 +58,10 @@ public class Bootstrapper
 
     public void execute()
     {
-        checkKeyPair();
-        checkSecurityGroup();
+//        checkKeyPair();
+//        checkSecurityGroup();
+        String bootstrapImageId = bootstrapImage.getImageId();
+        log.info("bootstrap image id: " + bootstrapImageId);
     }
 
     private void checkKeyPair()
