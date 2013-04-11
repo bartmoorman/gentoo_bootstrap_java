@@ -49,7 +49,7 @@ public class AmazonLinuxPvX8664EbsAmi implements AmazonMachineImage
             String name = image.getName();
             if (!rcPattern.matcher(name).matches())
             {
-                imageMap.put(image.getName(), image.getImageId());
+                imageMap.put(name, image.getImageId());
             }
         }
 
