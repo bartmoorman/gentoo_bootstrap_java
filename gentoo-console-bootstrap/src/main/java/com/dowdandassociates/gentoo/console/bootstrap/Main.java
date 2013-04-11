@@ -1,6 +1,8 @@
 
 package com.dowdandassociates.gentoo.console.bootstrap;
 
+import java.util.Properties;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -18,6 +20,15 @@ public class Main
 
     public static void main(String[] args)
     {
+/*
+        Properties props = new Properties();
+        props.setProperty("log4j.rootCategory", "DEBUG,stdout");
+        props.setProperty("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
+        props.setProperty("log4j.appender.stdout.layout", "com.netflix.logging.log4jAdapter.NFPatternLayout");
+        props.setProperty("log4j.appender.stdout.layout.ConversionPattern", "%d %-5p %C:%L [%t] [%M] %m%n");
+        props.setProperty("log4j.logger.asyncAppenders", "DEBUG,stdout");
+        LoggingConfiguration.getInstance().configure(props);
+*/
         LoggingConfiguration.getInstance().configure();
 
         try
