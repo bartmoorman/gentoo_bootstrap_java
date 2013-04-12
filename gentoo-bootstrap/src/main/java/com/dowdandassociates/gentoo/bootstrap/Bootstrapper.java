@@ -65,8 +65,8 @@ public class Bootstrapper
 
     public void execute()
     {
-//        checkKeyPair();
-//        checkSecurityGroup();
+        checkKeyPair();
+        checkSecurityGroup();
         String bootstrapImageId = bootstrapImage.getImageId();
         log.info("bootstrap image id: " + bootstrapImageId);
         String kernelId = kernel.getImageId();
