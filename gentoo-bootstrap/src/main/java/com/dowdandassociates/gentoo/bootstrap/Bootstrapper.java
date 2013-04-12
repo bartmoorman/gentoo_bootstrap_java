@@ -15,6 +15,7 @@ import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.Image;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -26,17 +27,29 @@ public class Bootstrapper
 {
     private static Logger log = LoggerFactory.getLogger(Bootstrapper.class);
 
-    private AmazonMachineImage bootstrapImage;
+    private Image bootstrapImage;
     private boolean builtKeyPair;
     private AmazonEC2 ec2Client;
-    private AmazonKernelImage kernel;
+    private Image kernel;
     private KeyPair keyPair;
     private SecurityGroup securityGroup;
+
+    @Inject
+    public void setBootstrapImage(@Named("Bootstrap Image") Image bootstrapImage)
+    {
+        this.bootstrapImage = bootstrapImage;
+    }
 
     @Inject
     public void setEC2Client(AmazonEC2 ec2Client)
     {
         this.ec2Client = ec2Client;
+    }
+
+    @Inject
+    public void setKernel(@Named("Kernel Image") Image kernel)
+    {
+        this.kernel = kernel;
     }
 
     @Inject
@@ -49,18 +62,6 @@ public class Bootstrapper
     public void setSecurityGroup(SecurityGroup securityGroup)
     {
         this.securityGroup = securityGroup;
-    }
-
-    @Inject
-    public void setBootstrapImage(@Named("Bootstrap Image") AmazonMachineImage bootstrapImage)
-    {
-        this.bootstrapImage = bootstrapImage;
-    }
-
-    @Inject
-    public void setKernel(AmazonKernelImage kernel)
-    {
-        this.kernel = kernel;
     }
 
     public void execute()

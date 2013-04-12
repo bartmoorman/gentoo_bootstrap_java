@@ -11,18 +11,29 @@ import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.Image;
 
-public abstract class LastImage implements AmazonImage
-{
-    @Override
-    public String getImageId()
-    {
-        DescribeImagesResult result = getEC2Client().describeImages(getRequest());
+import com.google.inject.Provider;
 
-        Map<String, String> imageMap = new HashMap<String, String>();
+public abstract class ImageProvider implements Provider<Image>
+{
+    private AmazonEC2 ec2Client;
+    private DescribeImagesRequest request;
+
+    public ImageProvider(AmazonEC2 ec2Client, DescribeImagesRequest request)
+    {
+        this.ec2Client = ec2Client;
+        this.request = request;
+    }
+
+    @Override
+    public Image get()
+    {
+        DescribeImagesResult result = ec2Client.describeImages(request);
+
+        Map<String, Image> imageMap = new HashMap<String, Image>();
 
         for (Image image : result.getImages())
         {
-            imageMap.put(image.getImageLocation(), image.getImageId());
+            imageMap.put(image.getImageLocation(), image);
         }
 
         if (imageMap.isEmpty())
@@ -35,8 +46,5 @@ public abstract class LastImage implements AmazonImage
         String[] keys = sortedKeySet.toArray(new String[0]);
         return imageMap.get(keys[keys.length - 1]);
     }
-
-    protected abstract AmazonEC2 getEC2Client();
-    protected abstract DescribeImagesRequest getRequest();
 }
 
