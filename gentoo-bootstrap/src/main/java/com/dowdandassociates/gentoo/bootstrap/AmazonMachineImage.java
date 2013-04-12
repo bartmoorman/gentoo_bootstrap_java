@@ -1,8 +1,7 @@
 
 package com.dowdandassociates.gentoo.bootstrap;
 
-public interface AmazonMachineImage
+public interface AmazonMachineImage extends AmazonImage
 {
-    public String getImageId();
 }
 

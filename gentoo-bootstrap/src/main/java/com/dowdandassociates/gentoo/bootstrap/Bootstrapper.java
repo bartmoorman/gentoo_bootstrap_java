@@ -29,6 +29,7 @@ public class Bootstrapper
     private AmazonMachineImage bootstrapImage;
     private boolean builtKeyPair;
     private AmazonEC2 ec2Client;
+    private AmazonKernelImage kernel;
     private KeyPair keyPair;
     private SecurityGroup securityGroup;
 
@@ -56,12 +57,20 @@ public class Bootstrapper
         this.bootstrapImage = bootstrapImage;
     }
 
+    @Inject
+    public void setKernel(AmazonKernelImage kernel)
+    {
+        this.kernel = kernel;
+    }
+
     public void execute()
     {
 //        checkKeyPair();
 //        checkSecurityGroup();
         String bootstrapImageId = bootstrapImage.getImageId();
         log.info("bootstrap image id: " + bootstrapImageId);
+        String kernelId = kernel.getImageId();
+        log.info("kernel id: " + kernelId);
     }
 
     private void checkKeyPair()
