@@ -46,7 +46,7 @@ public class DefaultSecurityGroupInformation implements SecurityGroupInformation
     }
 
     @PostConstruct
-    public void setup()
+    private void setup()
     {
         log.info("Checking if security group \"" + groupName + "\" is set up.");
 
@@ -103,6 +103,5 @@ public class DefaultSecurityGroupInformation implements SecurityGroupInformation
     {
         return groupId;
     }
-
 }
 

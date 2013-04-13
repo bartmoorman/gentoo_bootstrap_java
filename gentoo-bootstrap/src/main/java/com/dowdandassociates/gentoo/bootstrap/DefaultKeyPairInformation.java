@@ -48,7 +48,7 @@ public class DefaultKeyPairInformation implements KeyPairInformation
     }
 
     @PostConstruct
-    public void setup()
+    private void setup()
     {
         boolean nameSet = (null != name);
         boolean filenameSet = (null != filename); 
@@ -131,10 +131,15 @@ public class DefaultKeyPairInformation implements KeyPairInformation
             builtKeyPair = false;
             log.info("Key pair \"" + name + "\" exists");
         }
+
+        if (filename.startsWith("~" + File.separator))
+        {
+            filename = System.getProperty("user.home") + filename.substring(1);
+        }
     }
 
     @PreDestroy
-    public void tearDown()
+    private void tearDown()
     {
         if (builtKeyPair)
         {
@@ -151,10 +156,6 @@ public class DefaultKeyPairInformation implements KeyPairInformation
     @Override
     public String getFilename()
     {
-        if (filename.startsWith("~" + File.separator))
-        {
-            filename = System.getProperty("user.home") + filename.substring(1);
-        }
         return filename;
     }
 }
