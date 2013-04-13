@@ -28,9 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @FineGrainedLazySingleton
-public class ArchaiusKeyPairInformation implements KeyPairInformation
+public class DefaultKeyPairInformation implements KeyPairInformation
 {
-    private static Logger log = LoggerFactory.getLogger(ArchaiusKeyPairInformation.class);
+    private static Logger log = LoggerFactory.getLogger(DefaultKeyPairInformation.class);
 
     private boolean builtKeyPair;
     private AmazonEC2 ec2Client;
@@ -42,7 +42,7 @@ public class ArchaiusKeyPairInformation implements KeyPairInformation
     private String name = null;
 
     @Inject
-    public ArchaiusKeyPairInformation(AmazonEC2 ec2Client)
+    public DefaultKeyPairInformation(AmazonEC2 ec2Client)
     {
         this.ec2Client = ec2Client;
     }
