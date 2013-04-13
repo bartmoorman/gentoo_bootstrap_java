@@ -2,6 +2,7 @@
 package com.dowdandassociates.gentoo.bootstrap;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -150,6 +151,10 @@ public class ArchaiusKeyPairInformation implements KeyPairInformation
     @Override
     public String getFilename()
     {
+        if (filename.startsWith("~" + File.separator))
+        {
+            filename = System.getProperty("user.home") + filename.substring(1);
+        }
         return filename;
     }
 }
