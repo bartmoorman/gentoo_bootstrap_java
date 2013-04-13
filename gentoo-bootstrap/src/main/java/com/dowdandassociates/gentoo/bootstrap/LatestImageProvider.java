@@ -13,12 +13,12 @@ import com.amazonaws.services.ec2.model.Image;
 
 import com.google.inject.Provider;
 
-public abstract class ImageProvider implements Provider<Image>
+public abstract class LatestImageProvider implements Provider<Image>
 {
     private AmazonEC2 ec2Client;
     private DescribeImagesRequest request;
 
-    public ImageProvider(AmazonEC2 ec2Client, DescribeImagesRequest request)
+    public LatestImageProvider(AmazonEC2 ec2Client, DescribeImagesRequest request)
     {
         this.ec2Client = ec2Client;
         this.request = request;

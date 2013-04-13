@@ -7,7 +7,7 @@ import com.amazonaws.services.ec2.model.Filter;
 
 import com.google.inject.Inject;
 
-public class PvGrubHd0X8664AkiProvider extends ImageProvider
+public class PvGrubHd0X8664AkiProvider extends LatestImageProvider
 {
     @Inject
     public PvGrubHd0X8664AkiProvider(AmazonEC2 ec2Client)
