@@ -72,8 +72,9 @@
     </dependencies>
 
     <build>
-        <finalName>${artifactId}</finalName>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
+<!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -85,6 +86,7 @@
                     </archive>
                 </configuration>
             </plugin>
+-->
             <plugin>
                 <groupId>org.dstovall</groupId>
                 <artifactId>onejar-maven-plugin</artifactId>
@@ -92,6 +94,9 @@
                 <executions>
                     <execution>
                         <configuration>
+
+                            <mainClass>com.dowdandassociates.gentoo.console.bootstrap.Main</mainClass>
+
                             <onejarVersion>0.97</onejarVersion>
                             <attachToBuild>true</attachToBuild>
                             <classifier>onejar</classifier>
