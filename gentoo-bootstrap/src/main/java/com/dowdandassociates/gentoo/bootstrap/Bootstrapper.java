@@ -31,8 +31,8 @@ public class Bootstrapper
     private boolean builtKeyPair;
     private AmazonEC2 ec2Client;
     private Image kernel;
-    private KeyPair keyPair;
-    private SecurityGroup securityGroup;
+    private KeyPairInformation keyPair;
+    private SecurityGroupInformation securityGroup;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Image bootstrapImage)
@@ -53,97 +53,26 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setKeyPair(KeyPair keyPair)
+    public void setKeyPair(KeyPairInformation keyPair)
     {
         this.keyPair = keyPair;
     }
 
     @Inject
-    public void setSecurityGroup(SecurityGroup securityGroup)
+    public void setSecurityGroup(SecurityGroupInformation securityGroup)
     {
         this.securityGroup = securityGroup;
     }
 
     public void execute()
     {
-        checkKeyPair();
-        checkSecurityGroup();
-        String bootstrapImageId = bootstrapImage.getImageId();
-        log.info("bootstrap image id: " + bootstrapImageId);
-        String kernelId = kernel.getImageId();
-        log.info("kernel id: " + kernelId);
+        log.info("key pair name: " + keyPair.getName());
+        log.info("key pair filename: " + keyPair.getFilename());
+        log.info("security group name: " + securityGroup.getGroupName());
+        log.info("security group id: " + securityGroup.getGroupId());
+        log.info("bootstrap image id: " + bootstrapImage.getImageId());
+        log.info("kernel id: " + kernel.getImageId());
     }
 
-    private void checkKeyPair()
-    {
-        log.info("Checking if key pair \"" + keyPair.getName() + "\" exists");
-
-        if (ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().
-                withFilters(new Filter().withName("key-name").withValues(keyPair.getName()))).getKeyPairs().isEmpty())
-        {
-            log.info("Building key pair");
-
-            CreateKeyPairResult createResult = ec2Client.createKeyPair(new CreateKeyPairRequest().
-                    withKeyName(keyPair.getName()));
-        
-            try
-            {
-                log.info("Saving pem file to \"" + keyPair.getFilename() + "\"");
-
-                BufferedWriter outfile = new BufferedWriter(new FileWriter(keyPair.getFilename()));
-
-                try
-                {
-                    outfile.write(createResult.getKeyPair().getKeyMaterial());
-                }
-                catch (IOException ioe)
-                {
-                    String message = "Error writing to file: " + keyPair.getFilename();
-                    log.error(message, ioe);
-                    throw new RuntimeException(message, ioe);
-                }
-                finally
-                {
-                    outfile.close();
-                }
-            }
-            catch (IOException ioe)
-            {
-                String message = "Error opening file: " + keyPair.getFilename();
-                log.error(message, ioe);
-                throw new RuntimeException(message, ioe);
-            }
-
-            builtKeyPair = true;
-            log.info("Key pair built");
-        }
-        else
-        {
-            builtKeyPair = false;
-            log.info("Key pair exists");
-        }
-    }
-
-    private void checkSecurityGroup()
-    {
-        log.info("Check if security group \"" + securityGroup.getName() + "\" is set up.");
-
-        if (ec2Client.describeSecurityGroups(securityGroup.getAuthorizationCheckRequest()).getSecurityGroups().isEmpty())
-        {
-            log.info("Security group is not set up. Checking if it exists.");
-            if (ec2Client.describeSecurityGroups(new DescribeSecurityGroupsRequest().
-                    withFilters(new Filter().withName("group-name").withValues(securityGroup.getName()))).getSecurityGroups().isEmpty())
-            {
-                log.info("Security group does not exist. Creating it.");
-                ec2Client.createSecurityGroup(new CreateSecurityGroupRequest().
-                        withGroupName(securityGroup.getName()).
-                        withDescription(securityGroup.getDescription()));
-            }
-
-            log.info("Setting ingress rules for security group");
-            ec2Client.authorizeSecurityGroupIngress(securityGroup.getAuthorizationRequest());
-        }
-        log.info("Security group set up");
-    }
 }
 

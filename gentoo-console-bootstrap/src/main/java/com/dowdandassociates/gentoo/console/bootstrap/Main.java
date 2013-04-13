@@ -7,6 +7,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import com.netflix.blitz4j.LoggingConfiguration;
+import com.netflix.governator.guice.LifecycleInjector;
+import com.netflix.governator.lifecycle.LifecycleManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +35,19 @@ public class Main
 
         try
         {
-            Injector injector = Guice.createInjector(new Amd64MinimalBootstrapModule());
+//            Injector injector = Guice.createInjector(new Amd64MinimalBootstrapModule());
         
+            Injector injector = LifecycleInjector.builder().withBootstrapModule(new Amd64MinimalBootstrapModule()).createInjector();
+
+            LifecycleManager manager = injector.getInstance(LifecycleManager.class);
+
+            manager.start();
+
             Bootstrapper bootstrapper = injector.getInstance(Bootstrapper.class);
 
             bootstrapper.execute();
+
+            manager.close();
         }
         catch (Throwable t)
         {
