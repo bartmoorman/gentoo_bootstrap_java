@@ -8,6 +8,7 @@ import com.amazonaws.services.ec2.model.Image;
 //import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
+import com.netflix.governator.configuration.ArchaiusConfigurationProvider;
 import com.netflix.governator.guice.BootstrapBinder;
 import com.netflix.governator.guice.BootstrapModule;
 
@@ -31,6 +32,7 @@ public class Amd64MinimalBootstrapModule implements BootstrapModule
     @Override
     public void configure(BootstrapBinder binder)
     {
+        binder.bindConfigurationProvider().to(ArchaiusConfigurationProvider.class);
         binder.bind(AmazonEC2.class).toProvider(DefaultAmazonEC2Provider.class);
         binder.bind(KeyPairInformation.class).to(ArchaiusKeyPairInformation.class);
         binder.bind(SecurityGroupInformation.class).to(ArchaiusSecurityGroupInformation.class);

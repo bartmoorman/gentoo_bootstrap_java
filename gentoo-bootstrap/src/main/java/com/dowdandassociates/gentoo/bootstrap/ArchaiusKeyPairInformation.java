@@ -17,10 +17,8 @@ import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.Filter;
 
 import com.google.inject.Inject;
-//import com.google.inject.Singleton;
 
-import com.netflix.config.DynamicPropertyFactory;
-import com.netflix.config.DynamicStringProperty;
+import com.netflix.governator.annotations.Configuration;
 import com.netflix.governator.guice.lazy.FineGrainedLazySingleton;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -28,26 +26,24 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//@Singleton
 @FineGrainedLazySingleton
 public class ArchaiusKeyPairInformation implements KeyPairInformation
 {
     private static Logger log = LoggerFactory.getLogger(ArchaiusKeyPairInformation.class);
 
-    private static final String KEY_PAIR_FILE_PROPERTY = "com.dowdandassociates.gentoo.bootstrap.KeyPair.filename";
-    private static final String KEY_PAIR_NAME_PROPERTY = "com.dowdandassociates.gentoo.bootstrap.KeyPair.name";
-
     private boolean builtKeyPair;
     private AmazonEC2 ec2Client;
-    private String filename;
-    private String name;
+
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.KeyPair.filename")
+    private String filename = null;
+
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.KeyPair.name")
+    private String name = null;
 
     @Inject
     public ArchaiusKeyPairInformation(AmazonEC2 ec2Client)
     {
         this.ec2Client = ec2Client;
-        name = DynamicPropertyFactory.getInstance().getStringProperty(KEY_PAIR_NAME_PROPERTY, null).get();
-        filename = DynamicPropertyFactory.getInstance().getStringProperty(KEY_PAIR_FILE_PROPERTY, null).get();
     }
 
     @PostConstruct
