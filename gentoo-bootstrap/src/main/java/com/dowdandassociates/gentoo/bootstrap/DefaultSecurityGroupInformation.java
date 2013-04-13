@@ -20,9 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @FineGrainedLazySingleton
-public class ArchaiusSecurityGroupInformation implements SecurityGroupInformation
+public class DefaultSecurityGroupInformation implements SecurityGroupInformation
 {
-    private static Logger log = LoggerFactory.getLogger(ArchaiusSecurityGroupInformation.class);
+    private static Logger log = LoggerFactory.getLogger(DefaultSecurityGroupInformation.class);
 
     private AmazonEC2 ec2Client;
     private String groupId;
@@ -40,7 +40,7 @@ public class ArchaiusSecurityGroupInformation implements SecurityGroupInformatio
     private int port = 22;
 
     @Inject
-    public ArchaiusSecurityGroupInformation(AmazonEC2 ec2Client)
+    public DefaultSecurityGroupInformation(AmazonEC2 ec2Client)
     {
         this.ec2Client = ec2Client;
     }

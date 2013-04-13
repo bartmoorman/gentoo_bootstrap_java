@@ -35,7 +35,7 @@ public class Amd64MinimalBootstrapModule implements BootstrapModule
         binder.bindConfigurationProvider().to(ArchaiusConfigurationProvider.class);
         binder.bind(AmazonEC2.class).toProvider(DefaultAmazonEC2Provider.class);
         binder.bind(KeyPairInformation.class).to(DefaultKeyPairInformation.class);
-        binder.bind(SecurityGroupInformation.class).to(ArchaiusSecurityGroupInformation.class);
+        binder.bind(SecurityGroupInformation.class).to(DefaultSecurityGroupInformation.class);
         binder.bind(Image.class).annotatedWith(Names.named("Bootstrap Image")).toProvider(AmazonLinuxPvX8664EbsAmiProvider.class);
         binder.bind(Image.class).annotatedWith(Names.named("Kernel Image")).toProvider(PvGrubHd0X8664AkiProvider.class);
     }
