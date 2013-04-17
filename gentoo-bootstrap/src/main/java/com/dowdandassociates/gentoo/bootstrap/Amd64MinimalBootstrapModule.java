@@ -9,6 +9,10 @@ import com.amazonaws.services.ec2.model.Instance;
 //import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
+
 import com.netflix.governator.configuration.ArchaiusConfigurationProvider;
 import com.netflix.governator.guice.BootstrapBinder;
 import com.netflix.governator.guice.BootstrapModule;
@@ -40,6 +44,9 @@ public class Amd64MinimalBootstrapModule implements BootstrapModule
         binder.bind(Image.class).annotatedWith(Names.named("Bootstrap Image")).toProvider(AmazonLinuxPvX8664EbsAmiProvider.class);
         binder.bind(Image.class).annotatedWith(Names.named("Kernel Image")).toProvider(PvGrubHd0X8664AkiProvider.class);
         binder.bind(Instance.class).annotatedWith(Names.named("Bootstrap Instance")).toProvider(SimpleInstanceLookupProvider.class);
+        binder.bind(UserInfo.class).to(DefaultUserInfo.class);
+        binder.bind(JSch.class).toProvider(JSchProvider.class);
+        binder.bind(Session.class).annotatedWith(Names.named("Bootstrap Session")).toProvider(BootstrapSessionProvider.class);
     }
 }
 
