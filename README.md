@@ -17,3 +17,12 @@ java \
 -jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
 ```
 
+## Run with pre-running instance
+
+```
+java \
+-Dcom.dowdandassociates.gentoo.bootstrap.Instance.instanceId=i-5bd4ff34 \
+-Darchaius.configurationSource.additionalUrls=file://$PWD/config/development.properties \
+-Dlog4j.configuration=file://$PWD/config/log4j-info-console.properties \
+-jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
+```
