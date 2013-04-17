@@ -16,6 +16,7 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Image;
+import com.amazonaws.services.ec2.model.Instance;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -33,6 +34,7 @@ public class Bootstrapper
     private Image kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
+    private Instance bootstrapInstance;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Image bootstrapImage)
@@ -64,6 +66,12 @@ public class Bootstrapper
         this.securityGroup = securityGroup;
     }
 
+    @Inject
+    public void setBootstrapInstance(@Named("Bootstrap Instance") Instance bootstrapInstance)
+    {
+        this.bootstrapInstance = bootstrapInstance;
+    }
+
     public void execute()
     {
         log.info("key pair name: " + keyPair.getName());
@@ -72,6 +80,7 @@ public class Bootstrapper
         log.info("security group id: " + securityGroup.getGroupId());
         log.info("bootstrap image id: " + bootstrapImage.getImageId());
         log.info("kernel id: " + kernel.getImageId());
+        log.info("bootstrap instance: " + ((bootstrapInstance != null) ? bootstrapInstance.getInstanceId() : "null"));
     }
 
 }
