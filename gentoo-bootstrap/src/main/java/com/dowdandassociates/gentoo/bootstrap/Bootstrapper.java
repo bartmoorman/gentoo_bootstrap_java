@@ -95,8 +95,23 @@ public class Bootstrapper
         log.info("kernel id: " + kernel.getImageId());
         log.info("bootstrap instance: " + ((bootstrapInstance != null) ? bootstrapInstance.getInstanceId() : "null"));
 
-        String filename = "/tmp/hello.txt";
-        String content = "hello, world";
+        String filename = "/tmp/hello.sh";
+        StringBuilder contentBuf = new StringBuilder();
+
+        contentBuf.append("#!/bin/bash");
+        contentBuf.append('\n');
+
+        contentBuf.append('\n');
+
+        contentBuf.append("echo \"hello, world\"");
+        contentBuf.append('\n');
+
+        contentBuf.append("echo \"hello, file\" > /tmp/hello.txt");
+        contentBuf.append('\n');
+
+        String content = contentBuf.toString();
+
+        String sudoCommand = "/tmp/hello.sh";
 
         try
         {
@@ -127,7 +142,7 @@ public class Bootstrapper
             }
 
             StringBuilder command = new StringBuilder();
-            command.append("C0644 ");
+            command.append("C0755 ");
             command.append(content.length());
             command.append(' ');
             if (filename.lastIndexOf('/') > 0)
@@ -152,7 +167,7 @@ public class Bootstrapper
 
             log.info("writing content");
             out.write(content.getBytes());
-            byte[] buf = new byte[1];
+            byte[] buf = new byte[1024];
             buf[0] = 0;
             out.write(buf, 0, 1);
             out.flush();
@@ -163,8 +178,55 @@ public class Bootstrapper
                 throw new IOException("checkAck failed after file write");
             }
 
-            log.info("closing connection");
+            log.info("closing scp connection");
+            in.close();
             out.close();
+            channel.disconnect();
+
+            log.info("opening sudo connection");
+            channel = (ChannelExec)bootstrapSession.openChannel("exec");
+
+
+            log.info("sudo command: " + sudoCommand);
+
+            log.info("setting sudo command");
+            channel.setCommand("sudo " + sudoCommand);
+            channel.setPty(true);
+
+            in = channel.getInputStream();
+            out = channel.getOutputStream();
+            channel.setErrStream(System.err);
+
+            log.info("connecting sudo channel");
+            channel.connect();
+
+            while (true)
+            {
+                while (in.available() > 0)
+                {
+                    int i = in.read(buf, 0, 1024);
+                    if (i < 0)
+                    {
+                        break;
+                    }
+                    System.out.print(new String(buf, 0, i));
+                }
+
+                if (channel.isClosed())
+                {
+                    log.info("exit-status: " + channel.getExitStatus());
+                    break;
+                }
+                try
+                {
+                    Thread.sleep(1000);
+                }
+                catch (Throwable t)
+                {
+                }
+            }
+
+            log.info("closing sudo connection");
             channel.disconnect();
             bootstrapSession.disconnect();
         }
