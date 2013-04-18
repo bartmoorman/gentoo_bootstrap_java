@@ -11,21 +11,24 @@ import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.Image;
 
+import com.google.inject.Provider;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractLatestImageInformation implements ImageInformation
+public abstract class LatestImageProvider implements Provider<Image> 
 {
-    private static Logger log = LoggerFactory.getLogger(AbstractLatestImageInformation.class);
+    private static Logger log = LoggerFactory.getLogger(LatestImageProvider.class);
 
     private AmazonEC2 ec2Client;
 
-    public AbstractLatestImageInformation(AmazonEC2 ec2Client)
+    public LatestImageProvider(AmazonEC2 ec2Client)
     {
         this.ec2Client = ec2Client;
     }
 
-    protected Image getLatestImage()
+    @Override
+    public Image get()
     {
         DescribeImagesResult result = ec2Client.describeImages(getRequest());
 

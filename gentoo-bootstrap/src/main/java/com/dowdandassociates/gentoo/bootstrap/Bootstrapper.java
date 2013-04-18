@@ -34,17 +34,16 @@ public class Bootstrapper
 {
     private static Logger log = LoggerFactory.getLogger(Bootstrapper.class);
 
-    private BootstrapImageInformation bootstrapImage;
-    private boolean builtKeyPair;
+    private Image bootstrapImage;
     private AmazonEC2 ec2Client;
-    private KernelImageInformation kernel;
+    private Image kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
-    private BootstrapInstanceInformation bootstrapInstance;
+    private Instance bootstrapInstance;
     private Session bootstrapSession;
 
     @Inject
-    public void setBootstrapImage(BootstrapImageInformation bootstrapImage)
+    public void setBootstrapImage(@Named("Bootstrap Image") Image bootstrapImage)
     {
         this.bootstrapImage = bootstrapImage;
     }
@@ -56,7 +55,7 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setKernel(KernelImageInformation kernel)
+    public void setKernel(@Named("Kernel Image") Image kernel)
     {
         this.kernel = kernel;
     }
@@ -74,7 +73,7 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setBootstrapInstance(BootstrapInstanceInformation bootstrapInstance)
+    public void setBootstrapInstance(@Named("Bootstrap Instance") Instance bootstrapInstance)
     {
         this.bootstrapInstance = bootstrapInstance;
     }
@@ -91,9 +90,9 @@ public class Bootstrapper
         log.info("key pair filename: " + keyPair.getFilename());
         log.info("security group name: " + securityGroup.getGroupName());
         log.info("security group id: " + securityGroup.getGroupId());
-        log.info("bootstrap image id: " + bootstrapImage.getImage().getImageId());
-        log.info("kernel id: " + kernel.getImage().getImageId());
-        log.info("bootstrap instance: " + ((bootstrapInstance.getInstance() != null) ? bootstrapInstance.getInstance().getInstanceId() : "null"));
+        log.info("bootstrap image id: " + bootstrapImage.getImageId());
+        log.info("kernel id: " + kernel.getImageId());
+        log.info("bootstrap instance: " + ((bootstrapInstance != null) ? bootstrapInstance.getInstanceId() : "null"));
 /*
         String filename = "/tmp/hello.sh";
         StringBuilder contentBuf = new StringBuilder();
