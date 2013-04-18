@@ -1,6 +1,8 @@
 
 package com.dowdandassociates.gentoo.bootstrap;
 
+import javax.annotation.PostConstruct;
+
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
@@ -11,25 +13,36 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import com.netflix.governator.annotations.Configuration;
+import com.netflix.governator.guice.lazy.FineGrainedLazySingleton;
 
-public class SimpleInstanceLookupProvider implements Provider<Instance>
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@FineGrainedLazySingleton
+public class LookupBootstrapInstanceInformation implements BootstrapInstanceInformation
 {
+    private static Logger log = LoggerFactory.getLogger(LookupBootstrapInstanceInformation.class);
+
     private AmazonEC2 ec2Client;
 
-    @Configuration("com.dowdandassociates.gentoo.bootstrap.Instance.instanceId")
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstanceInformation.instanceId")
     private String instanceId = null;
 
+    private Instance instance;
+
     @Inject
-    public SimpleInstanceLookupProvider(AmazonEC2 ec2Client)
+    public LookupBootstrapInstanceInformation (AmazonEC2 ec2Client)
     {
         this.ec2Client = ec2Client;
     }
 
-    public Instance get()
+    @PostConstruct
+    private void setup()
     {
         if (null == instanceId)
         {
-            return null;
+            instance = null;
+            return;
         }
 
         DescribeInstancesResult result = ec2Client.describeInstances(new DescribeInstancesRequest().
@@ -37,16 +50,23 @@ public class SimpleInstanceLookupProvider implements Provider<Instance>
 
         if (result.getReservations().isEmpty())
         {
-            return null;
+            instance = null;
+            return;
         }
 
         if (result.getReservations().get(0).getInstances().isEmpty())
         {
-            return null;
+            instance = null;
+            return;
         }
 
-        return result.getReservations().get(0).getInstances().get(0);
+        instance = result.getReservations().get(0).getInstances().get(0);
     }
 
+    @Override
+    public Instance getInstance()
+    {
+        return instance;
+    }
 }
 

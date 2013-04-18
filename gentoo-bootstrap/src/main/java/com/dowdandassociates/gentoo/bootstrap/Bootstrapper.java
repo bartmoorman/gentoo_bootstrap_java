@@ -40,7 +40,7 @@ public class Bootstrapper
     private KernelImageInformation kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
-    private Instance bootstrapInstance;
+    private BootstrapInstanceInformation bootstrapInstance;
     private Session bootstrapSession;
 
     @Inject
@@ -72,13 +72,13 @@ public class Bootstrapper
     {
         this.securityGroup = securityGroup;
     }
-/*
+
     @Inject
-    public void setBootstrapInstance(@Named("Bootstrap Instance") Instance bootstrapInstance)
+    public void setBootstrapInstance(BootstrapInstanceInformation bootstrapInstance)
     {
         this.bootstrapInstance = bootstrapInstance;
     }
-
+/*
     @Inject
     public void setBootstrapSession(@Named("Bootstrap Session") Session bootstrapSession)
     {
@@ -93,7 +93,7 @@ public class Bootstrapper
         log.info("security group id: " + securityGroup.getGroupId());
         log.info("bootstrap image id: " + bootstrapImage.getImage().getImageId());
         log.info("kernel id: " + kernel.getImage().getImageId());
-//        log.info("bootstrap instance: " + ((bootstrapInstance != null) ? bootstrapInstance.getInstanceId() : "null"));
+        log.info("bootstrap instance: " + ((bootstrapInstance.getInstance() != null) ? bootstrapInstance.getInstance().getInstanceId() : "null"));
 /*
         String filename = "/tmp/hello.sh";
         StringBuilder contentBuf = new StringBuilder();

@@ -43,8 +43,8 @@ public class Amd64MinimalBootstrapModule implements BootstrapModule
         binder.bind(SecurityGroupInformation.class).to(DefaultSecurityGroupInformation.class);
         binder.bind(BootstrapImageInformation.class).to(LatestBootstrapImageInformation.class);
         binder.bind(KernelImageInformation.class).to(LatestKernelImageInformation.class);
+        binder.bind(BootstrapInstanceInformation.class).to(LookupBootstrapInstanceInformation.class);
 /*
-        binder.bind(Instance.class).annotatedWith(Names.named("Bootstrap Instance")).toProvider(SimpleInstanceLookupProvider.class);
         binder.bind(UserInfo.class).to(DefaultUserInfo.class);
         binder.bind(JSch.class).toProvider(JSchProvider.class);
         binder.bind(Session.class).annotatedWith(Names.named("Bootstrap Session")).toProvider(BootstrapSessionProvider.class);
