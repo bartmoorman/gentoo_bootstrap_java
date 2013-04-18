@@ -4,21 +4,20 @@ package com.dowdandassociates.gentoo.core;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 
+import com.google.common.base.Suppliers;
+import com.google.common.base.Supplier;
+
 import com.google.inject.Provider;
 
-import com.netflix.config.DynamicPropertyFactory;
-import com.netflix.config.DynamicStringProperty;
+import com.netflix.governator.annotations.Configuration;
 
 public class DefaultAmazonEC2Provider implements Provider<AmazonEC2>
 {
-    private static final String ENDPOINT_PROPERTY = "com.amazonaws.services.ec2.AmazonEC2.endpoint";
-    private static final String DEFAULT_ENDPOINT = "https://ec2.us-east-1.amazonaws.com";
-
-    private DynamicStringProperty endpoint;
+    @Configuration("com.amazonaws.services.ec2.AmazonEC2.endpoint")
+    private Supplier<String> endpoint = Suppliers.ofInstance("https://ec2.us-east-1.amazonaws.com");
 
     public DefaultAmazonEC2Provider()
     {
-        endpoint = DynamicPropertyFactory.getInstance().getStringProperty(ENDPOINT_PROPERTY, DEFAULT_ENDPOINT);
     }
 
     public AmazonEC2 get()
