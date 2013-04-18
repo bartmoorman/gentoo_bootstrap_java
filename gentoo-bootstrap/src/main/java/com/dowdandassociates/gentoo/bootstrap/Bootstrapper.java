@@ -34,17 +34,17 @@ public class Bootstrapper
 {
     private static Logger log = LoggerFactory.getLogger(Bootstrapper.class);
 
-    private Image bootstrapImage;
+    private BootstrapImageInformation bootstrapImage;
     private boolean builtKeyPair;
     private AmazonEC2 ec2Client;
-    private Image kernel;
+    private KernelImageInformation kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
     private Instance bootstrapInstance;
     private Session bootstrapSession;
 
     @Inject
-    public void setBootstrapImage(@Named("Bootstrap Image") Image bootstrapImage)
+    public void setBootstrapImage(BootstrapImageInformation bootstrapImage)
     {
         this.bootstrapImage = bootstrapImage;
     }
@@ -56,7 +56,7 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setKernel(@Named("Kernel Image") Image kernel)
+    public void setKernel(KernelImageInformation kernel)
     {
         this.kernel = kernel;
     }
@@ -72,7 +72,7 @@ public class Bootstrapper
     {
         this.securityGroup = securityGroup;
     }
-
+/*
     @Inject
     public void setBootstrapInstance(@Named("Bootstrap Instance") Instance bootstrapInstance)
     {
@@ -84,17 +84,17 @@ public class Bootstrapper
     {
         this.bootstrapSession = bootstrapSession;
     }
-
+*/
     public void execute()
     {
         log.info("key pair name: " + keyPair.getName());
         log.info("key pair filename: " + keyPair.getFilename());
         log.info("security group name: " + securityGroup.getGroupName());
         log.info("security group id: " + securityGroup.getGroupId());
-        log.info("bootstrap image id: " + bootstrapImage.getImageId());
-        log.info("kernel id: " + kernel.getImageId());
-        log.info("bootstrap instance: " + ((bootstrapInstance != null) ? bootstrapInstance.getInstanceId() : "null"));
-
+        log.info("bootstrap image id: " + bootstrapImage.getImage().getImageId());
+        log.info("kernel id: " + kernel.getImage().getImageId());
+//        log.info("bootstrap instance: " + ((bootstrapInstance != null) ? bootstrapInstance.getInstanceId() : "null"));
+/*
         String filename = "/tmp/hello.sh";
         StringBuilder contentBuf = new StringBuilder();
 
@@ -235,6 +235,7 @@ public class Bootstrapper
             log.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
+*/
     }
 
     private int checkAck(InputStream in) throws IOException
