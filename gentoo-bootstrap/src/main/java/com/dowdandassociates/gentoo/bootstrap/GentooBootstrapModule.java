@@ -43,8 +43,8 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(AmazonEC2.class).toProvider(DefaultAmazonEC2Provider.class);
         binder.bind(KeyPairInformation.class).to(DefaultKeyPairInformation.class);
         binder.bind(SecurityGroupInformation.class).to(DefaultSecurityGroupInformation.class);
-        binder.bind(Image.class).annotatedWith(Names.named("Bootstrap Image")).toProvider(DefaultBootstrapImageProvider.class);
-        binder.bind(Image.class).annotatedWith(Names.named("Kernel Image")).toProvider(DefaultKernelImageProvider.class);
+        binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Bootstrap Image")).toProvider(DefaultBootstrapImageProvider.class);
+        binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Kernel Image")).toProvider(DefaultKernelImageProvider.class);
         binder.bind(new TypeLiteral<Optional<Instance>>() {}).annotatedWith(Names.named("Bootstrap Instance")).toProvider(SimpleBootstrapInstanceProvider.class);
 /*
         binder.bind(UserInfo.class).to(DefaultUserInfo.class);

@@ -36,16 +36,16 @@ public class Bootstrapper
 {
     private static Logger log = LoggerFactory.getLogger(Bootstrapper.class);
 
-    private Image bootstrapImage;
+    private Optional<Image> bootstrapImage;
     private AmazonEC2 ec2Client;
-    private Image kernel;
+    private Optional<Image> kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
     private Optional<Instance> bootstrapInstance;
     private Session bootstrapSession;
 
     @Inject
-    public void setBootstrapImage(@Named("Bootstrap Image") Image bootstrapImage)
+    public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
     {
         this.bootstrapImage = bootstrapImage;
     }
@@ -57,7 +57,7 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setKernel(@Named("Kernel Image") Image kernel)
+    public void setKernel(@Named("Kernel Image") Optional<Image> kernel)
     {
         this.kernel = kernel;
     }
@@ -92,8 +92,8 @@ public class Bootstrapper
         log.info("key pair filename: " + keyPair.getFilename());
         log.info("security group name: " + securityGroup.getGroupName());
         log.info("security group id: " + securityGroup.getGroupId());
-        log.info("bootstrap image id: " + bootstrapImage.getImageId());
-        log.info("kernel id: " + kernel.getImageId());
+        log.info("bootstrap image id: " + bootstrapImage.get().getImageId());
+        log.info("kernel id: " + kernel.get().getImageId());
         log.info("bootstrap instance: " + ((bootstrapInstance.isPresent()) ? bootstrapInstance.get().getInstanceId() : "absent"));
 /*
         String filename = "/tmp/hello.sh";
