@@ -13,7 +13,7 @@ import com.netflix.governator.lifecycle.LifecycleManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.dowdandassociates.gentoo.bootstrap.Amd64MinimalBootstrapModule;
+import com.dowdandassociates.gentoo.bootstrap.GentooBootstrapModule;
 import com.dowdandassociates.gentoo.bootstrap.Bootstrapper;
 
 public class Main
@@ -37,7 +37,7 @@ public class Main
         {
 //            Injector injector = Guice.createInjector(new Amd64MinimalBootstrapModule());
         
-            Injector injector = LifecycleInjector.builder().withBootstrapModule(new Amd64MinimalBootstrapModule()).createInjector();
+            Injector injector = LifecycleInjector.builder().withBootstrapModule(new GentooBootstrapModule()).createInjector();
 
             LifecycleManager manager = injector.getInstance(LifecycleManager.class);
 

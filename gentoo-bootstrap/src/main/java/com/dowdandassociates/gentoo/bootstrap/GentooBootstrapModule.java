@@ -31,7 +31,7 @@ public class Amd64MinimalBootstrapModule extends AbstractModule
     }
 }
 */
-public class Amd64MinimalBootstrapModule implements BootstrapModule 
+public class GentooBootstrapModule implements BootstrapModule 
 {
     @Override
     public void configure(BootstrapBinder binder)
