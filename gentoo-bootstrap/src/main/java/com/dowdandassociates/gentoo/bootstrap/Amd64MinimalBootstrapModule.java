@@ -17,7 +17,6 @@ import com.netflix.governator.configuration.ArchaiusConfigurationProvider;
 import com.netflix.governator.guice.BootstrapBinder;
 import com.netflix.governator.guice.BootstrapModule;
 
-import com.dowdandassociates.gentoo.core.DefaultAmazonEC2Provider;
 /*
 public class Amd64MinimalBootstrapModule extends AbstractModule
 {

@@ -1,5 +1,5 @@
 
-package com.dowdandassociates.gentoo.core;
+package com.dowdandassociates.gentoo.bootstrap;
 
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;

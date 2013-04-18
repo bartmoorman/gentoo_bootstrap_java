@@ -19,7 +19,6 @@
     <modules>
         <module>gentoo-bootstrap</module>
         <module>gentoo-console-bootstrap</module>
-        <module>gentoo-core</module>
     </modules>
 
     <build>
