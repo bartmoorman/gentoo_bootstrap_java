@@ -6,7 +6,10 @@ import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Instance;
 
+import com.google.common.base.Optional;
+
 //import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
 import com.jcraft.jsch.JSch;
@@ -42,7 +45,7 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(SecurityGroupInformation.class).to(DefaultSecurityGroupInformation.class);
         binder.bind(Image.class).annotatedWith(Names.named("Bootstrap Image")).toProvider(DefaultBootstrapImageProvider.class);
         binder.bind(Image.class).annotatedWith(Names.named("Kernel Image")).toProvider(DefaultKernelImageProvider.class);
-        binder.bind(Instance.class).annotatedWith(Names.named("Bootstrap Instance")).toProvider(SimpleBootstrapInstanceProvider.class);
+        binder.bind(new TypeLiteral<Optional<Instance>>() {}).annotatedWith(Names.named("Bootstrap Instance")).toProvider(SimpleBootstrapInstanceProvider.class);
 /*
         binder.bind(UserInfo.class).to(DefaultUserInfo.class);
         binder.bind(JSch.class).toProvider(JSchProvider.class);

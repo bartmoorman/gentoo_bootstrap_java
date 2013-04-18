@@ -7,6 +7,7 @@ import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Instance;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 
@@ -18,7 +19,7 @@ import com.netflix.governator.annotations.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SimpleBootstrapInstanceProvider implements Provider<Instance>
+public class SimpleBootstrapInstanceProvider implements Provider<Optional<Instance>>
 {
     private static Logger log = LoggerFactory.getLogger(SimpleBootstrapInstanceProvider.class);
 
@@ -34,11 +35,11 @@ public class SimpleBootstrapInstanceProvider implements Provider<Instance>
     }
 
     @Override
-    public Instance get()
+    public Optional<Instance> get()
     {
         if (null == instanceId)
         {
-            return null;
+            return Optional.absent();
         }
 
         DescribeInstancesResult result = ec2Client.describeInstances(new DescribeInstancesRequest().
@@ -46,15 +47,15 @@ public class SimpleBootstrapInstanceProvider implements Provider<Instance>
 
         if (result.getReservations().isEmpty())
         {
-            return null;
+            return Optional.absent();
         }
 
         if (result.getReservations().get(0).getInstances().isEmpty())
         {
-            return null;
+            return Optional.absent();
         }
 
-        return result.getReservations().get(0).getInstances().get(0);
+        return Optional.fromNullable(result.getReservations().get(0).getInstances().get(0));
     }
 }
 

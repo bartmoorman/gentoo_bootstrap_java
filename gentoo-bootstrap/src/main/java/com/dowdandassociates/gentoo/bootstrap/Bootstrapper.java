@@ -20,6 +20,8 @@ import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Instance;
 
+import com.google.common.base.Optional;
+
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -39,7 +41,7 @@ public class Bootstrapper
     private Image kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
-    private Instance bootstrapInstance;
+    private Optional<Instance> bootstrapInstance;
     private Session bootstrapSession;
 
     @Inject
@@ -73,7 +75,7 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setBootstrapInstance(@Named("Bootstrap Instance") Instance bootstrapInstance)
+    public void setBootstrapInstance(@Named("Bootstrap Instance") Optional<Instance> bootstrapInstance)
     {
         this.bootstrapInstance = bootstrapInstance;
     }
@@ -92,7 +94,7 @@ public class Bootstrapper
         log.info("security group id: " + securityGroup.getGroupId());
         log.info("bootstrap image id: " + bootstrapImage.getImageId());
         log.info("kernel id: " + kernel.getImageId());
-        log.info("bootstrap instance: " + ((bootstrapInstance != null) ? bootstrapInstance.getInstanceId() : "null"));
+        log.info("bootstrap instance: " + ((bootstrapInstance.isPresent()) ? bootstrapInstance.get().getInstanceId() : "absent"));
 /*
         String filename = "/tmp/hello.sh";
         StringBuilder contentBuf = new StringBuilder();
