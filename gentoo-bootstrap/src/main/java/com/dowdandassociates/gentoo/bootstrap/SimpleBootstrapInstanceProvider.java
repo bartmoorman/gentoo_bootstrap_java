@@ -37,6 +37,8 @@ public class SimpleBootstrapInstanceProvider implements Provider<Optional<Instan
     @Override
     public Optional<Instance> get()
     {
+        log.info("Get Bootstrap Instance");
+
         if (null == instanceId)
         {
             return Optional.absent();
