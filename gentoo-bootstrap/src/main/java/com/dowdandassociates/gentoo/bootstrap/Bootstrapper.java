@@ -43,7 +43,7 @@ public class Bootstrapper
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
     private Optional<Instance> bootstrapInstance;
-    private Session bootstrapSession;
+    private Optional<Session> bootstrapSession;
     private Optional<Volume> bootstrapVolume;
 
     @Inject
@@ -88,13 +88,12 @@ public class Bootstrapper
         this.bootstrapVolume = bootstrapVolume;
     }
 
-/*
     @Inject
-    public void setBootstrapSession(@Named("Bootstrap Session") Session bootstrapSession)
+    public void setBootstrapSession(@Named("Bootstrap Session") Optional<Session> bootstrapSession)
     {
         this.bootstrapSession = bootstrapSession;
     }
-*/
+
     public void execute()
     {
         log.info("key pair name: " + keyPair.getName());

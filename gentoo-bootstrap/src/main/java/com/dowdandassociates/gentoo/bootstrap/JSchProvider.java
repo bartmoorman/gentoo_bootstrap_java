@@ -1,6 +1,8 @@
 
 package com.dowdandassociates.gentoo.bootstrap;
 
+import com.google.common.base.Optional;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -10,7 +12,7 @@ import com.jcraft.jsch.JSchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JSchProvider implements Provider<JSch>
+public class JSchProvider implements Provider<Optional<JSch>>
 {
     private static Logger log = LoggerFactory.getLogger(JSchProvider.class);
 
@@ -22,20 +24,21 @@ public class JSchProvider implements Provider<JSch>
         this.keyPair = keyPair;
     }
 
-    public JSch get()
+    public Optional<JSch> get()
     {
+        log.info("Get JSch");
         try
         {
             JSch jsch = new JSch();
 
             jsch.addIdentity(keyPair.getFilename());
 
-            return jsch;
+            return Optional.of(jsch);
         }
         catch (JSchException jse)
         {
             log.error(jse.getMessage(), jse);
-            return null;
+            return Optional.absent();
         }
     }
 }

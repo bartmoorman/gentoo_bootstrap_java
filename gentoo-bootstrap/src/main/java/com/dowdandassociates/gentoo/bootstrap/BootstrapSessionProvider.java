@@ -3,6 +3,11 @@ package com.dowdandassociates.gentoo.bootstrap;
 
 import com.amazonaws.services.ec2.model.Instance;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -19,17 +24,17 @@ public class BootstrapSessionProvider extends AbstractSessionProvider
     private static Logger log = LoggerFactory.getLogger(BootstrapSessionProvider.class);
 
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapSession.user")
-    private String user = "ec2-user";
+    private Supplier<String> user = Suppliers.ofInstance("ec2-user");
 
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapSession.port")
-    private int port = 22;
+    private Supplier<Integer> port = Suppliers.ofInstance(22);
 
-    private JSch jsch;
-    private Instance instance;
+    private Optional<JSch> jsch;
+    private Optional<Instance> instance;
     private UserInfo userInfo;
 
     @Inject
-    public BootstrapSessionProvider(JSch jsch, @Named("Bootstrap Instance") Instance instance, UserInfo userInfo)
+    public BootstrapSessionProvider(Optional<JSch> jsch, @Named("Bootstrap Instance") Optional<Instance> instance, UserInfo userInfo)
     {
         this.jsch = jsch;
         this.instance = instance;
@@ -37,7 +42,7 @@ public class BootstrapSessionProvider extends AbstractSessionProvider
     }
 
     @Override
-    protected JSch getJSch()
+    protected Optional<JSch> getJSch()
     {
         return jsch;
     }
@@ -45,19 +50,26 @@ public class BootstrapSessionProvider extends AbstractSessionProvider
     @Override
     protected String getUser()
     {
-        return user;
+        return user.get();
     }
 
     @Override
-    protected String getHost()
+    protected Optional<String> getHost()
     {
-        return instance.getPublicDnsName();
+        if (instance.isPresent())
+        {
+            return Optional.fromNullable(Strings.emptyToNull(instance.get().getPublicDnsName()));
+        }
+        else
+        {
+            return Optional.absent();
+        }
     }
 
     @Override
     protected int getPort()
     {
-        return port;
+        return port.get();
     }
 
     @Override
