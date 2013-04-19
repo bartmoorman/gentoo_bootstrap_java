@@ -19,6 +19,7 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.Volume;
 
 import com.google.common.base.Optional;
 
@@ -43,6 +44,7 @@ public class Bootstrapper
     private SecurityGroupInformation securityGroup;
     private Optional<Instance> bootstrapInstance;
     private Session bootstrapSession;
+    private Optional<Volume> bootstrapVolume;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -79,6 +81,13 @@ public class Bootstrapper
     {
         this.bootstrapInstance = bootstrapInstance;
     }
+
+    @Inject
+    public void setBootstrapVolume(@Named("Bootstrap Volume") Optional<Volume> bootstrapVolume)
+    {
+        this.bootstrapVolume = bootstrapVolume;
+    }
+
 /*
     @Inject
     public void setBootstrapSession(@Named("Bootstrap Session") Session bootstrapSession)
@@ -95,6 +104,8 @@ public class Bootstrapper
         log.info("bootstrap image id: " + bootstrapImage.get().getImageId());
         log.info("kernel id: " + kernel.get().getImageId());
         log.info("bootstrap instance: " + ((bootstrapInstance.isPresent()) ? bootstrapInstance.get().getInstanceId() : "absent"));
+        log.info("bootstrap volume: " + ((bootstrapVolume.isPresent()) ? bootstrapVolume.get().getVolumeId() : "absent"));
+
 /*
         String filename = "/tmp/hello.sh";
         StringBuilder contentBuf = new StringBuilder();

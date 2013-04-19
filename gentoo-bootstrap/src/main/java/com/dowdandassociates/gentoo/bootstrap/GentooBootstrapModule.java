@@ -5,6 +5,7 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.Volume;
 
 import com.google.common.base.Optional;
 
@@ -46,6 +47,7 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Bootstrap Image")).toProvider(DefaultBootstrapImageProvider.class);
         binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Kernel Image")).toProvider(DefaultKernelImageProvider.class);
         binder.bind(new TypeLiteral<Optional<Instance>>() {}).annotatedWith(Names.named("Bootstrap Instance")).toProvider(SimpleBootstrapInstanceProvider.class);
+        binder.bind(new TypeLiteral<Optional<Volume>>() {}).annotatedWith(Names.named("Bootstrap Volume")).toProvider(SimpleBootstrapVolumeProvider.class);
 /*
         binder.bind(UserInfo.class).to(DefaultUserInfo.class);
         binder.bind(JSch.class).toProvider(JSchProvider.class);
