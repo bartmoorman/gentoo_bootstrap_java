@@ -1,6 +1,8 @@
 
 package com.dowdandassociates.gentoo.bootstrap;
 
+import java.util.Objects;
+
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Volume;
 
@@ -87,5 +89,45 @@ public class BootstrapInstanceInformation
         setDevice(device);
         return this;
     }
+
+    @Override
+    public boolean equals(Object other)
+    {
+        if (this == other)
+        {
+            return true;
+        }
+
+        if (!(other instanceof BootstrapInstanceInformation))
+        {
+            return false;
+        }
+
+        final BootstrapInstanceInformation info = (BootstrapInstanceInformation)other;
+
+        if (!getInstance().equals(info.getInstance()))
+        {
+            return false;
+        }
+
+        if (!getVolume().equals(info.getVolume()))
+        {
+            return false;
+        }
+
+        if (!getDevice().equals(info.getDevice()))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(getInstance(), getVolume(), getDevice());
+    }
+
 }
 
