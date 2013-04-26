@@ -42,9 +42,7 @@ public class Bootstrapper
     private Optional<Image> kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
-    private Optional<Instance> bootstrapInstance;
-    private Optional<Session> bootstrapSession;
-    private Optional<Volume> bootstrapVolume;
+    private BootstrapSessionInformation bootstrapSessionInformation;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -77,21 +75,9 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setBootstrapInstance(@Named("Bootstrap Instance") Optional<Instance> bootstrapInstance)
+    public void setBootstrapSessionInformation(BootstrapSessionInformation bootstrapSessionInformation)
     {
-        this.bootstrapInstance = bootstrapInstance;
-    }
-
-    @Inject
-    public void setBootstrapVolume(@Named("Bootstrap Volume") Optional<Volume> bootstrapVolume)
-    {
-        this.bootstrapVolume = bootstrapVolume;
-    }
-
-    @Inject
-    public void setBootstrapSession(@Named("Bootstrap Session") Optional<Session> bootstrapSession)
-    {
-        this.bootstrapSession = bootstrapSession;
+        this.bootstrapSessionInformation = bootstrapSessionInformation;
     }
 
     public void execute()
@@ -102,8 +88,15 @@ public class Bootstrapper
         log.info("security group id: " + securityGroup.getGroupId());
         log.info("bootstrap image id: " + bootstrapImage.get().getImageId());
         log.info("kernel id: " + kernel.get().getImageId());
+
+        Optional<Instance> bootstrapInstance = bootstrapSessionInformation.getInstanceInfo().getInstance();
         log.info("bootstrap instance: " + ((bootstrapInstance.isPresent()) ? bootstrapInstance.get().getInstanceId() : "absent"));
+
+        Optional<Volume> bootstrapVolume = bootstrapSessionInformation.getInstanceInfo().getVolume();
         log.info("bootstrap volume: " + ((bootstrapVolume.isPresent()) ? bootstrapVolume.get().getVolumeId() : "absent"));
+
+        Optional<String> bootstrapDevice = bootstrapSessionInformation.getInstanceInfo().getDevice();
+        log.info("bootstrap volume: " + ((bootstrapDevice.isPresent()) ? bootstrapDevice.get() : "absent"));
 
 /*
         String filename = "/tmp/hello.sh";

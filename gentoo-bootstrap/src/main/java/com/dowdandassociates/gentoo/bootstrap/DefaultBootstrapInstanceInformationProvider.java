@@ -25,7 +25,7 @@ public class DefaultBootstrapInstanceInformationProvider implements Provider<Boo
     private Optional<Volume> volume;
 
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.device")
-    private Supplier<String> device = Suppliers.ofInstance(null);
+    private Supplier<String> device = Suppliers.ofInstance("/dev/xvdf");
 
     @Inject
     public DefaultBootstrapInstanceInformationProvider(
