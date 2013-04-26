@@ -8,8 +8,13 @@ import com.amazonaws.services.ec2.model.Volume;
 
 import com.google.common.base.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class BootstrapInstanceInformation
 {
+    private static Logger log = LoggerFactory.getLogger(BootstrapInstanceInformation.class);
+
     private Optional<Instance> instance;
     private Optional<Volume> volume;
     private Optional<String> device;
