@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -124,12 +126,18 @@ public class Bootstrapper
         Map root = new HashMap();
         try
         {
+            Path tempFile = Files.createTempFile(template, ".tmp");
             Template temp = configuration.getTemplate(template);
-            Writer out = new OutputStreamWriter(System.out);
+            Writer out = new FileWriter(tempFile.toFile());
             temp.process(root, out);
-            out.flush();
+            out.close();
+            log.info("Processed template in " + tempFile.toString());
         }
-        catch (IOException | TemplateException e)
+        catch (IllegalArgumentException |
+                IOException |
+                SecurityException |
+                TemplateException |
+                UnsupportedOperationException e)
         {
             log.error(e.getMessage(), e);
         }
