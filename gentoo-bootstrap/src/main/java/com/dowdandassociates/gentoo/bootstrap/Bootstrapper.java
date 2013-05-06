@@ -53,9 +53,9 @@ public class Bootstrapper
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
     private BootstrapSessionInformation bootstrapSessionInformation;
-
     private Configuration configuration;
     private String template;
+    private String architecture;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -105,6 +105,12 @@ public class Bootstrapper
         this.template = template;
     }
 
+    @Inject
+    public void setArchitecture(@Named("Architecture") String architecture)
+    {
+        this.architecture = architecture;
+    }
+
     public void execute()
     {
         log.info("key pair name: " + keyPair.getName());
@@ -124,6 +130,7 @@ public class Bootstrapper
         log.info("bootstrap volume: " + ((bootstrapDevice.isPresent()) ? bootstrapDevice.get() : "absent"));
 
         Map root = new HashMap();
+        root.put("architecture", architecture);
         try
         {
             Path tempFile = Files.createTempFile(template, ".tmp");
