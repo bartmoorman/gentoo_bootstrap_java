@@ -7,6 +7,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
@@ -30,6 +34,10 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +51,9 @@ public class Bootstrapper
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
     private BootstrapSessionInformation bootstrapSessionInformation;
+
+    private Configuration configuration;
+    private String template;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -80,6 +91,18 @@ public class Bootstrapper
         this.bootstrapSessionInformation = bootstrapSessionInformation;
     }
 
+    @Inject
+    public void setConfiguration(Configuration configuration)
+    {
+        this.configuration = configuration;
+    }
+
+    @Inject
+    public void setTemplate(@Named("Template") String template)
+    {
+        this.template = template;
+    }
+
     public void execute()
     {
         log.info("key pair name: " + keyPair.getName());
@@ -97,6 +120,19 @@ public class Bootstrapper
 
         Optional<String> bootstrapDevice = bootstrapSessionInformation.getInstanceInfo().getDevice();
         log.info("bootstrap volume: " + ((bootstrapDevice.isPresent()) ? bootstrapDevice.get() : "absent"));
+
+        Map root = new HashMap();
+        try
+        {
+            Template temp = configuration.getTemplate(template);
+            Writer out = new OutputStreamWriter(System.out);
+            temp.process(root, out);
+            out.flush();
+        }
+        catch (IOException | TemplateException e)
+        {
+            log.error(e.getMessage(), e);
+        }
 
 /*
         String filename = "/tmp/hello.sh";
