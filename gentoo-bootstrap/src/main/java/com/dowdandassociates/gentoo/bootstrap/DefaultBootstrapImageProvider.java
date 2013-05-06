@@ -10,6 +10,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import com.netflix.governator.annotations.Configuration;
 
@@ -23,16 +24,16 @@ public class DefaultBootstrapImageProvider extends LatestImageProvider
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapImage.virtualizationType")
     private Supplier<String> virtualizationType = Suppliers.ofInstance("paravirtual");
 
-    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapImage.architecture")
-    private Supplier<String> architecture = Suppliers.ofInstance("x86_64");
-
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapImage.rootDeviceType")
     private Supplier<String> rootDeviceType = Suppliers.ofInstance("ebs");
 
+    private String architecture;
+
     @Inject
-    public DefaultBootstrapImageProvider(AmazonEC2 ec2Client)
+    public DefaultBootstrapImageProvider(AmazonEC2 ec2Client, @Named("Architecture") String architecture)
     {
         super(ec2Client);
+        this.architecture = architecture;
     }
 
     @Override
@@ -56,7 +57,7 @@ public class DefaultBootstrapImageProvider extends LatestImageProvider
         {
             manifestLocation.append("pv");
             localVirtualizationType = "paravirtual";
-            localArchitecture = architecture.get();
+            localArchitecture = architecture;
             localRootDeviceType = rootDeviceType.get();
         }
         manifestLocation.append("-????.??.?.*");

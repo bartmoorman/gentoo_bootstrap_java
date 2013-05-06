@@ -10,6 +10,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import com.netflix.governator.annotations.Configuration;
 
@@ -20,16 +21,16 @@ public class DefaultKernelImageProvider extends LatestImageProvider
 {
     private static Logger log = LoggerFactory.getLogger(DefaultKernelImageProvider.class);
 
-    @Configuration("com.dowdandassociates.gentoo.bootstrap.KernelImage.architecture")
-    private Supplier<String> architecture = Suppliers.ofInstance("x86_64");
-
     @Configuration("com.dowdandassociates.gentoo.bootstrap.KernelImage.bootPartition")
     private Supplier<String> bootPartition = Suppliers.ofInstance("hd0");
 
+    private String architecture;
+
     @Inject
-    public DefaultKernelImageProvider(AmazonEC2 ec2Client)
+    public DefaultKernelImageProvider(AmazonEC2 ec2Client, @Named("Architecture") String architecture)
     {
         super(ec2Client);
+        this.architecture = architecture;
     }
 
     @Override
@@ -44,7 +45,7 @@ public class DefaultKernelImageProvider extends LatestImageProvider
         return new DescribeImagesRequest().
                 withOwners("amazon").
                 withFilters(new Filter().withName("image-type").withValues("kernel"),
-                            new Filter().withName("architecture").withValues(architecture.get()),
+                            new Filter().withName("architecture").withValues(architecture),
                             new Filter().withName("manifest-location").withValues(manifestLocation.toString()));
     }
 }
