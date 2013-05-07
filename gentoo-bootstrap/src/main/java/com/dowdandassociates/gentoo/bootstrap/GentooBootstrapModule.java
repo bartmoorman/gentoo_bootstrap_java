@@ -59,6 +59,8 @@ public class GentooBootstrapModule implements BootstrapModule
 //        binder.bind(String.class).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
         binder.bind(new TypeLiteral<Supplier<String>>() {}).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
         binder.bind(Object.class).annotatedWith(Names.named("Template Data Model")).toProvider(DefaultTemplateDataModelProvider.class);
+        binder.bind(new TypeLiteral<Supplier<String>>() {}).annotatedWith(Names.named("Script Name")).toProvider(DefaultScriptNameProvider.class);
+        binder.bind(ProcessedTemplate.class).toProvider(DefaultProcessedTemplateProvider.class);
     }
 }
 

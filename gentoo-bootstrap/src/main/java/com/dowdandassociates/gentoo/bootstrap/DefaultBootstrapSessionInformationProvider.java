@@ -54,6 +54,8 @@ public class DefaultBootstrapSessionInformationProvider implements Provider<Boot
 
     private Optional<Session> getSession()
     {
+        return Optional.absent();
+/*
         try
         {
             if (null == jsch || !jsch.isPresent())
@@ -77,6 +79,7 @@ public class DefaultBootstrapSessionInformationProvider implements Provider<Boot
             log.error(jse.getMessage(), jse);
             return Optional.absent();
         }
+*/
     }
 
     private Optional<String> getHost()

@@ -54,9 +54,7 @@ public class Bootstrapper
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
     private BootstrapSessionInformation bootstrapSessionInformation;
-    private Configuration configuration;
-    private Optional<Template> template;
-    private Object templateDataModel;
+    private ProcessedTemplate processedTemplate;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -95,21 +93,9 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setConfiguration(Configuration configuration)
+    public void setProcessedTemplate(ProcessedTemplate processedTemplate)
     {
-        this.configuration = configuration;
-    }
-
-    @Inject
-    public void setTemplate(Optional<Template> template)
-    {
-        this.template = template;
-    }
-
-    @Inject
-    public void setTemplateDataModel(@Named("Template Data Model") Object templateDataModel)
-    {
-        this.templateDataModel = templateDataModel;
+        this.processedTemplate = processedTemplate;
     }
 
     public void execute()
@@ -130,29 +116,8 @@ public class Bootstrapper
         Optional<String> bootstrapDevice = bootstrapSessionInformation.getInstanceInfo().getDevice();
         log.info("bootstrap volume: " + ((bootstrapDevice.isPresent()) ? bootstrapDevice.get() : "absent"));
 
-        if (template.isPresent())
-        {
-            try
-            {
-                Path tempFile = Files.createTempFile("template", ".tmp");
-                Writer out = new FileWriter(tempFile.toFile());
-                template.get().process(templateDataModel, out);
-                out.close();
-                log.info("Processed template in " + tempFile.toString());
-            }
-            catch (IllegalArgumentException |
-                    IOException |
-                    SecurityException |
-                    TemplateException |
-                    UnsupportedOperationException e)
-            {
-                log.error(e.getMessage(), e);
-            }
-        }
-        else
-        {
-            log.info("No template");
-        }
+        Optional<Path> processedTemplatePath = processedTemplate.getPath();
+        log.info("processed template: " + ((processedTemplatePath.isPresent()) ? processedTemplatePath.get().toString() : "absent"));
 
 /*
         String filename = "/tmp/hello.sh";
