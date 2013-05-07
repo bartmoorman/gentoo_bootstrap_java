@@ -53,8 +53,7 @@ public class Bootstrapper
     private Optional<Image> kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
-    private BootstrapSessionInformation bootstrapSessionInformation;
-    private ProcessedTemplate processedTemplate;
+    private BootstrapCommandInformation bootstrapCommandInformation;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -87,15 +86,9 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setBootstrapSessionInformation(BootstrapSessionInformation bootstrapSessionInformation)
+    public void setBootstrapCommandInformation(BootstrapCommandInformation bootstrapCommandInformation)
     {
-        this.bootstrapSessionInformation = bootstrapSessionInformation;
-    }
-
-    @Inject
-    public void setProcessedTemplate(ProcessedTemplate processedTemplate)
-    {
-        this.processedTemplate = processedTemplate;
+        this.bootstrapCommandInformation = bootstrapCommandInformation;
     }
 
     public void execute()
@@ -107,18 +100,20 @@ public class Bootstrapper
         log.info("bootstrap image id: " + bootstrapImage.get().getImageId());
         log.info("kernel id: " + kernel.get().getImageId());
 
-        Optional<Instance> bootstrapInstance = bootstrapSessionInformation.getInstanceInfo().getInstance();
+        BootstrapSessionInformation bootstrapSessionInformation = bootstrapCommandInformation.getSessionInfo();
+        BootstrapInstanceInformation bootstrapInstanceInformation = bootstrapSessionInformation.getInstanceInfo();
+
+        Optional<Instance> bootstrapInstance = bootstrapInstanceInformation.getInstance();
         log.info("bootstrap instance: " + ((bootstrapInstance.isPresent()) ? bootstrapInstance.get().getInstanceId() : "absent"));
 
-        Optional<Volume> bootstrapVolume = bootstrapSessionInformation.getInstanceInfo().getVolume();
+        Optional<Volume> bootstrapVolume = bootstrapInstanceInformation.getVolume();
         log.info("bootstrap volume: " + ((bootstrapVolume.isPresent()) ? bootstrapVolume.get().getVolumeId() : "absent"));
 
-        Optional<String> bootstrapDevice = bootstrapSessionInformation.getInstanceInfo().getDevice();
+        Optional<String> bootstrapDevice = bootstrapInstanceInformation.getDevice();
         log.info("bootstrap volume: " + ((bootstrapDevice.isPresent()) ? bootstrapDevice.get() : "absent"));
 
-        Optional<Path> processedTemplatePath = processedTemplate.getPath();
-        log.info("processed template: " + ((processedTemplatePath.isPresent()) ? processedTemplatePath.get().toString() : "absent"));
-
+        Optional<String> command = bootstrapCommandInformation.getCommand();
+        log.info("command: " + ((command.isPresent()) ? command.get() : "absent"));
 /*
         String filename = "/tmp/hello.sh";
         StringBuilder contentBuf = new StringBuilder();

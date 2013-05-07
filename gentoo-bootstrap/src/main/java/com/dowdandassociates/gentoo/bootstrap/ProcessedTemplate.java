@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import javax.annotation.PreDestroy;
-
 import com.google.common.base.Optional;
 
 import org.slf4j.Logger;
@@ -74,8 +72,7 @@ public class ProcessedTemplate
         return this;
     }
 
-    @PreDestroy
-    private void tearDown()
+    public void cleanup()
     {
         if (temporaryFile && path.isPresent())
         {
