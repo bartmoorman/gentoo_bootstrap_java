@@ -28,6 +28,7 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Volume;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -55,7 +56,7 @@ public class Bootstrapper
     private BootstrapSessionInformation bootstrapSessionInformation;
     private Configuration configuration;
     private Optional<Template> template;
-    private String architecture;
+    private Supplier<String> architecture;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -106,7 +107,7 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setArchitecture(@Named("Architecture") String architecture)
+    public void setArchitecture(@Named("Architecture") Supplier<String> architecture)
     {
         this.architecture = architecture;
     }
@@ -130,7 +131,7 @@ public class Bootstrapper
         log.info("bootstrap volume: " + ((bootstrapDevice.isPresent()) ? bootstrapDevice.get() : "absent"));
 
         Map root = new HashMap();
-        root.put("architecture", architecture);
+        root.put("architecture", architecture.get());
         if (template.isPresent())
         {
             try

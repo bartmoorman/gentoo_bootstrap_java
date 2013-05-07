@@ -24,10 +24,10 @@ public class DefaultKernelImageProvider extends LatestImageProvider
     @Configuration("com.dowdandassociates.gentoo.bootstrap.KernelImage.bootPartition")
     private Supplier<String> bootPartition = Suppliers.ofInstance("hd0");
 
-    private String architecture;
+    private Supplier<String> architecture;
 
     @Inject
-    public DefaultKernelImageProvider(AmazonEC2 ec2Client, @Named("Architecture") String architecture)
+    public DefaultKernelImageProvider(AmazonEC2 ec2Client, @Named("Architecture") Supplier<String> architecture)
     {
         super(ec2Client);
         this.architecture = architecture;
@@ -45,7 +45,7 @@ public class DefaultKernelImageProvider extends LatestImageProvider
         return new DescribeImagesRequest().
                 withOwners("amazon").
                 withFilters(new Filter().withName("image-type").withValues("kernel"),
-                            new Filter().withName("architecture").withValues(architecture),
+                            new Filter().withName("architecture").withValues(architecture.get()),
                             new Filter().withName("manifest-location").withValues(manifestLocation.toString()));
     }
 }

@@ -27,10 +27,10 @@ public class DefaultBootstrapImageProvider extends LatestImageProvider
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapImage.rootDeviceType")
     private Supplier<String> rootDeviceType = Suppliers.ofInstance("ebs");
 
-    private String architecture;
+    private Supplier<String> architecture;
 
     @Inject
-    public DefaultBootstrapImageProvider(AmazonEC2 ec2Client, @Named("Architecture") String architecture)
+    public DefaultBootstrapImageProvider(AmazonEC2 ec2Client, @Named("Architecture") Supplier<String> architecture)
     {
         super(ec2Client);
         this.architecture = architecture;
@@ -57,7 +57,7 @@ public class DefaultBootstrapImageProvider extends LatestImageProvider
         {
             manifestLocation.append("pv");
             localVirtualizationType = "paravirtual";
-            localArchitecture = architecture;
+            localArchitecture = architecture.get();
             localRootDeviceType = rootDeviceType.get();
         }
         manifestLocation.append("-????.??.?.*");

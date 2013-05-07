@@ -8,6 +8,7 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Volume;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 
 //import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
@@ -55,7 +56,8 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(BootstrapInstanceInformation.class).toProvider(DefaultBootstrapInstanceInformationProvider.class);
         binder.bind(BootstrapSessionInformation.class).toProvider(DefaultBootstrapSessionInformationProvider.class);
         binder.bind(new TypeLiteral<Optional<Template>>() {}).toProvider(DefaultTemplateProvider.class);
-        binder.bind(String.class).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
+//        binder.bind(String.class).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
+        binder.bind(new TypeLiteral<Supplier<String>>() {}).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
     }
 }
 
