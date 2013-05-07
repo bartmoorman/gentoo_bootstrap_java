@@ -1,2 +1,2 @@
-still here?
+echo "still here?"
 

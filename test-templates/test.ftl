@@ -1,6 +1,16 @@
-hello, world
+#!/bin/bash
+
+SAMPLE="sample"
+
+echo "hello, world"
 
 <#include "testdir/test2.ftl">
 
-architecture: ${architecture}
+echo "architecture: ${architecture}"
+
+<#noparse>
+echo "${SAMPLE}"
+</#noparse>
+
+echo "<#noparse>${SAMPLE}</#noparse>"
 
