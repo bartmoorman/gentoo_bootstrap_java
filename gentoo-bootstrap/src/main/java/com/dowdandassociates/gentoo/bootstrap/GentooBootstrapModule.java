@@ -21,7 +21,7 @@ import com.netflix.governator.configuration.ArchaiusConfigurationProvider;
 import com.netflix.governator.guice.BootstrapBinder;
 import com.netflix.governator.guice.BootstrapModule;
 
-import freemarker.template.Configuration;
+import freemarker.template.Template;
 
 /*
 public class Amd64MinimalBootstrapModule extends AbstractModule
@@ -54,8 +54,7 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(new TypeLiteral<Optional<JSch>>() {}).toProvider(JSchProvider.class);
         binder.bind(BootstrapInstanceInformation.class).toProvider(DefaultBootstrapInstanceInformationProvider.class);
         binder.bind(BootstrapSessionInformation.class).toProvider(DefaultBootstrapSessionInformationProvider.class);
-        binder.bind(Configuration.class).toProvider(DefaultTemplateConfigurationProvider.class);
-        binder.bind(String.class).annotatedWith(Names.named("Template")).toProvider(DefaultTemplateProvider.class);
+        binder.bind(new TypeLiteral<Optional<Template>>() {}).toProvider(DefaultTemplateProvider.class);
         binder.bind(String.class).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
     }
 }

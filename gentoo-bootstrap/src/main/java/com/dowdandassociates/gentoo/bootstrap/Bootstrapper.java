@@ -54,7 +54,7 @@ public class Bootstrapper
     private SecurityGroupInformation securityGroup;
     private BootstrapSessionInformation bootstrapSessionInformation;
     private Configuration configuration;
-    private String template;
+    private Optional<Template> template;
     private String architecture;
 
     @Inject
@@ -100,7 +100,7 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setTemplate(@Named("Template") String template)
+    public void setTemplate(Optional<Template> template)
     {
         this.template = template;
     }
@@ -131,22 +131,28 @@ public class Bootstrapper
 
         Map root = new HashMap();
         root.put("architecture", architecture);
-        try
+        if (template.isPresent())
         {
-            Path tempFile = Files.createTempFile(template, ".tmp");
-            Template temp = configuration.getTemplate(template);
-            Writer out = new FileWriter(tempFile.toFile());
-            temp.process(root, out);
-            out.close();
-            log.info("Processed template in " + tempFile.toString());
+            try
+            {
+                Path tempFile = Files.createTempFile("template", ".tmp");
+                Writer out = new FileWriter(tempFile.toFile());
+                template.get().process(root, out);
+                out.close();
+                log.info("Processed template in " + tempFile.toString());
+            }
+            catch (IllegalArgumentException |
+                    IOException |
+                    SecurityException |
+                    TemplateException |
+                    UnsupportedOperationException e)
+            {
+                log.error(e.getMessage(), e);
+            }
         }
-        catch (IllegalArgumentException |
-                IOException |
-                SecurityException |
-                TemplateException |
-                UnsupportedOperationException e)
+        else
         {
-            log.error(e.getMessage(), e);
+            log.info("No template");
         }
 
 /*
