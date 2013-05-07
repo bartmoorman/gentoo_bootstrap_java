@@ -58,6 +58,7 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(new TypeLiteral<Optional<Template>>() {}).toProvider(DefaultTemplateProvider.class);
 //        binder.bind(String.class).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
         binder.bind(new TypeLiteral<Supplier<String>>() {}).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
+        binder.bind(Object.class).annotatedWith(Names.named("Template Data Model")).toProvider(DefaultTemplateDataModelProvider.class);
     }
 }
 

@@ -56,7 +56,7 @@ public class Bootstrapper
     private BootstrapSessionInformation bootstrapSessionInformation;
     private Configuration configuration;
     private Optional<Template> template;
-    private Supplier<String> architecture;
+    private Object templateDataModel;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -107,9 +107,9 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setArchitecture(@Named("Architecture") Supplier<String> architecture)
+    public void setTemplateDataModel(@Named("Template Data Model") Object templateDataModel)
     {
-        this.architecture = architecture;
+        this.templateDataModel = templateDataModel;
     }
 
     public void execute()
@@ -130,15 +130,13 @@ public class Bootstrapper
         Optional<String> bootstrapDevice = bootstrapSessionInformation.getInstanceInfo().getDevice();
         log.info("bootstrap volume: " + ((bootstrapDevice.isPresent()) ? bootstrapDevice.get() : "absent"));
 
-        Map root = new HashMap();
-        root.put("architecture", architecture.get());
         if (template.isPresent())
         {
             try
             {
                 Path tempFile = Files.createTempFile("template", ".tmp");
                 Writer out = new FileWriter(tempFile.toFile());
-                template.get().process(root, out);
+                template.get().process(templateDataModel, out);
                 out.close();
                 log.info("Processed template in " + tempFile.toString());
             }
