@@ -53,7 +53,7 @@ public class Bootstrapper
     private Optional<Image> kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
-    private BootstrapCommandInformation bootstrapCommandInformation;
+    private BootstrapResultInformation bootstrapResultInformation;
 
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -86,9 +86,9 @@ public class Bootstrapper
     }
 
     @Inject
-    public void setBootstrapCommandInformation(BootstrapCommandInformation bootstrapCommandInformation)
+    public void setBootstrapResultInformation(BootstrapResultInformation bootstrapResultInformation)
     {
-        this.bootstrapCommandInformation = bootstrapCommandInformation;
+        this.bootstrapResultInformation = bootstrapResultInformation;
     }
 
     public void execute()
@@ -100,20 +100,14 @@ public class Bootstrapper
         log.info("bootstrap image id: " + bootstrapImage.get().getImageId());
         log.info("kernel id: " + kernel.get().getImageId());
 
-        BootstrapSessionInformation bootstrapSessionInformation = bootstrapCommandInformation.getSessionInfo();
-        BootstrapInstanceInformation bootstrapInstanceInformation = bootstrapSessionInformation.getInstanceInfo();
-
-        Optional<Instance> bootstrapInstance = bootstrapInstanceInformation.getInstance();
+        Optional<Instance> bootstrapInstance = bootstrapResultInformation.getInstance();
         log.info("bootstrap instance: " + ((bootstrapInstance.isPresent()) ? bootstrapInstance.get().getInstanceId() : "absent"));
 
-        Optional<Volume> bootstrapVolume = bootstrapInstanceInformation.getVolume();
+        Optional<Volume> bootstrapVolume = bootstrapResultInformation.getVolume();
         log.info("bootstrap volume: " + ((bootstrapVolume.isPresent()) ? bootstrapVolume.get().getVolumeId() : "absent"));
 
-        Optional<String> bootstrapDevice = bootstrapInstanceInformation.getDevice();
-        log.info("bootstrap volume: " + ((bootstrapDevice.isPresent()) ? bootstrapDevice.get() : "absent"));
-
-        Optional<String> command = bootstrapCommandInformation.getCommand();
-        log.info("command: " + ((command.isPresent()) ? command.get() : "absent"));
+        Optional<Integer> exitStatus = bootstrapResultInformation.getExitStatus();
+        log.info("exitStatus: " + ((exitStatus.isPresent()) ? exitStatus.get().toString() : "absent"));
 /*
         String filename = "/tmp/hello.sh";
         StringBuilder contentBuf = new StringBuilder();

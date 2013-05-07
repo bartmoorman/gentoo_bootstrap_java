@@ -62,6 +62,7 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(new TypeLiteral<Supplier<String>>() {}).annotatedWith(Names.named("Script Name")).toProvider(DefaultScriptNameProvider.class);
         binder.bind(ProcessedTemplate.class).toProvider(DefaultProcessedTemplateProvider.class);
         binder.bind(BootstrapCommandInformation.class).toProvider(DefaultBootstrapCommandInformationProvider.class);
+        binder.bind(BootstrapResultInformation.class).toProvider(DefaultBootstrapResultInformationProvider.class);
     }
 }
 
