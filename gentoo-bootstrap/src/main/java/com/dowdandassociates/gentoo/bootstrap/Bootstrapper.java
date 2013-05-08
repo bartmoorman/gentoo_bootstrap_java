@@ -100,10 +100,10 @@ public class Bootstrapper
         log.info("bootstrap image id: " + bootstrapImage.get().getImageId());
         log.info("kernel id: " + kernel.get().getImageId());
 
-        Optional<Instance> bootstrapInstance = bootstrapResultInformation.getInstance();
+        Optional<Instance> bootstrapInstance = bootstrapResultInformation.getInstanceInfo().getInstance();
         log.info("bootstrap instance: " + ((bootstrapInstance.isPresent()) ? bootstrapInstance.get().getInstanceId() : "absent"));
 
-        Optional<Volume> bootstrapVolume = bootstrapResultInformation.getVolume();
+        Optional<Volume> bootstrapVolume = bootstrapResultInformation.getInstanceInfo().getVolume();
         log.info("bootstrap volume: " + ((bootstrapVolume.isPresent()) ? bootstrapVolume.get().getVolumeId() : "absent"));
 
         Optional<Integer> exitStatus = bootstrapResultInformation.getExitStatus();

@@ -13,79 +13,26 @@ public class BootstrapResultInformation
 {
     private static Logger log = LoggerFactory.getLogger(BootstrapResultInformation.class);
 
-    private Optional<Instance> instance;
-    private Optional<Volume> volume;
+    private BootstrapInstanceInformation instanceInfo;
     private Optional<Integer> exitStatus;
 
     public BootstrapResultInformation()
     {
     }
 
-    public Optional<Instance> getInstance()
+    public BootstrapInstanceInformation getInstanceInfo()
     {
-        return instance;
+        return instanceInfo;
     }
 
-    public void setInstance(Optional<Instance> instance)
+    public void setInstanceInfo(BootstrapInstanceInformation instanceInfo)
     {
-        if (null == instance)
-        {
-            this.instance = Optional.absent();
-        }
-        else
-        {
-            this.instance = instance;
-        }
+        this.instanceInfo = instanceInfo;
     }
 
-    public void setInstance(Instance instance)
+    public BootstrapResultInformation withInstanceInfo(BootstrapInstanceInformation instanceInfo)
     {
-        this.instance = Optional.fromNullable(instance);
-    }
-
-    public BootstrapResultInformation withInstance(Optional<Instance> instance)
-    {
-        setInstance(instance);
-        return this;
-    }
-
-    public BootstrapResultInformation withInstance(Instance instance)
-    {
-        setInstance(instance);
-        return this;
-    }
-
-    public Optional<Volume> getVolume()
-    {
-        return volume;
-    }
-
-    public void setVolume(Optional<Volume> volume)
-    {
-        if (null == volume)
-        {
-            this.volume = Optional.absent();
-        }
-        else
-        {
-            this.volume = volume;
-        }
-    }
-
-    public void setVolume(Volume volume)
-    {
-        this.volume = Optional.fromNullable(volume);
-    }
-
-    public BootstrapResultInformation withVolume(Optional<Volume> volume)
-    {
-        setVolume(volume);
-        return this;
-    }
-
-    public BootstrapResultInformation withVolume(Volume volume)
-    {
-        setVolume(volume);
+        setInstanceInfo(instanceInfo);
         return this;
     }
 

@@ -45,8 +45,7 @@ public class DefaultBootstrapResultInformationProvider implements Provider<Boots
         {
             Optional<Integer> exitStatus = Optional.absent();
             return new BootstrapResultInformation().
-                    withInstance(instanceInfo.getInstance()).
-                    withVolume(instanceInfo.getVolume()).
+                    withInstanceInfo(instanceInfo).
                     withExitStatus(exitStatus);
         }
 
@@ -112,8 +111,7 @@ public class DefaultBootstrapResultInformationProvider implements Provider<Boots
             session.disconnect();
 
             return new BootstrapResultInformation().
-                    withInstance(instanceInfo.getInstance()).
-                    withVolume(instanceInfo.getVolume()).
+                    withInstanceInfo(instanceInfo).
                     withExitStatus(exitStatus);
         }
         catch (IOException | JSchException e)
@@ -121,8 +119,7 @@ public class DefaultBootstrapResultInformationProvider implements Provider<Boots
             log.error(e.getMessage(), e);
             Optional<Integer> exitStatus = Optional.absent();
             return new BootstrapResultInformation().
-                    withInstance(instanceInfo.getInstance()).
-                    withVolume(instanceInfo.getVolume()).
+                    withInstanceInfo(instanceInfo).
                     withExitStatus(exitStatus);
         }
     }
