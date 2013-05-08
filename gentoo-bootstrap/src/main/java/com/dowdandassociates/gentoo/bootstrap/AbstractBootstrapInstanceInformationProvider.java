@@ -2,6 +2,8 @@
 package com.dowdandassociates.gentoo.bootstrap;
 
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.model.AttachVolumeRequest;
+import com.amazonaws.services.ec2.model.AttachVolumeResult;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Volume;
@@ -68,7 +70,10 @@ public abstract class AbstractBootstrapInstanceInformationProvider implements Pr
     {
         if (instance.isPresent() && volume.isPresent())
         {
-            // TODO: attach volume
+            AttachVolumeResult result = ec2Client.attachVolume(new AttachVolumeRequest().
+                    withInstanceId(instance.get().getInstanceId()).
+                    withVolumeId(volume.get().getVolumeId()).
+                    withDevice(blockDeviceInformation.getSDevice()));
         }
     }
 }

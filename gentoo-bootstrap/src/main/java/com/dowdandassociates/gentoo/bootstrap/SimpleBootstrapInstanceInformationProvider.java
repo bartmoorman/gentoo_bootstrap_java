@@ -86,5 +86,11 @@ public class SimpleBootstrapInstanceInformationProvider extends AbstractBootstra
 
         return Optional.fromNullable(result.getVolumes().get(0));
     }
+
+    @Override
+    protected void attachVolume(Optional<Instance> instance, Optional<Volume> volume)
+    {
+        // Do nothing. Manually attach volume.
+    }
 }
 
