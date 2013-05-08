@@ -31,7 +31,7 @@ public class SimpleBootstrapInstanceInformationProvider extends AbstractBootstra
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.instanceId")
     private Supplier<String> instanceId = Suppliers.ofInstance(null);
 
-    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapVolume.volumeId")
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.volumeId")
     private Supplier<String> volumeId = Suppliers.ofInstance(null);
 
     @Inject
