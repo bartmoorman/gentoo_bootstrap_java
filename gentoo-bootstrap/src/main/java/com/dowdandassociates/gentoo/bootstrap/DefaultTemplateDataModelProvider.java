@@ -23,19 +23,19 @@ public class DefaultTemplateDataModelProvider implements Provider<Object>
     @Configuration("com.dowdandassociates.gentoo.bootstrap.mirror")
     private Supplier<String> mirror = Suppliers.ofInstance("http://gentoo.mirrors.pair.com/");
 
-    private Supplier<String> architecture;
+    private ImageInformation imageInfo;
 
     @Inject
-    private void setArchitecture(@Named("Architecture") Supplier<String> architecture)
+    private void setImageInfo(ImageInformation imageInfo)
     {
-        this.architecture = architecture;
+        this.imageInfo = imageInfo;
     }
 
     public Object get()
     {
         Map root = new HashMap();
 
-        root.put("architecture", architecture.get());
+        root.put("architecture", imageInfo.getArchitecture());
         root.put("mirror", mirror.get());
 
         return root;
