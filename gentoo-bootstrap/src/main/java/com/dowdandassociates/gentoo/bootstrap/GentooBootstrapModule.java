@@ -47,7 +47,9 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(AmazonEC2.class).toProvider(DefaultAmazonEC2Provider.class);
         binder.bind(KeyPairInformation.class).to(DefaultKeyPairInformation.class);
         binder.bind(SecurityGroupInformation.class).to(DefaultSecurityGroupInformation.class);
+//        binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Bootstrap Image")).toProvider(SimpleBootstrapImageProvider.class);
         binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Bootstrap Image")).toProvider(DefaultBootstrapImageProvider.class);
+//        binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Kernel Image")).toProvider(SimpleKernelImageProvider.class);
         binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Kernel Image")).toProvider(DefaultKernelImageProvider.class);
         binder.bind(new TypeLiteral<Optional<Instance>>() {}).annotatedWith(Names.named("Bootstrap Instance")).toProvider(SimpleBootstrapInstanceProvider.class);
         binder.bind(new TypeLiteral<Optional<Volume>>() {}).annotatedWith(Names.named("Bootstrap Volume")).toProvider(SimpleBootstrapVolumeProvider.class);
@@ -56,7 +58,6 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(BootstrapInstanceInformation.class).toProvider(DefaultBootstrapInstanceInformationProvider.class);
         binder.bind(BootstrapSessionInformation.class).toProvider(DefaultBootstrapSessionInformationProvider.class);
         binder.bind(new TypeLiteral<Optional<Template>>() {}).toProvider(DefaultTemplateProvider.class);
-//        binder.bind(String.class).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
         binder.bind(new TypeLiteral<Supplier<String>>() {}).annotatedWith(Names.named("Architecture")).toProvider(DefaultArchitectureProvider.class);
         binder.bind(Object.class).annotatedWith(Names.named("Template Data Model")).toProvider(DefaultTemplateDataModelProvider.class);
         binder.bind(new TypeLiteral<Supplier<String>>() {}).annotatedWith(Names.named("Script Name")).toProvider(DefaultScriptNameProvider.class);
