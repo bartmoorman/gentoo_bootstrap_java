@@ -23,17 +23,17 @@ public class EbsBootstrapInstanceInformationProvider implements Provider<Bootstr
 
     private Optional<Instance> instance;
     private Optional<Volume> volume;
-
-    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.device")
-    private Supplier<String> device = Suppliers.ofInstance("/dev/xvdf");
+    private BlockDeviceInformation device;
 
     @Inject
     public EbsBootstrapInstanceInformationProvider(
             @Named("Bootstrap Instance") Optional<Instance> instance,
-            @Named("Bootstrap Volume") Optional<Volume> volume)
+            @Named("Bootstrap Volume") Optional<Volume> volume,
+            BlockDeviceInformation device)
     {
         this.instance = instance;
         this.volume = volume;
+        this.device = device;
     }
 
     public BootstrapInstanceInformation get()
@@ -42,8 +42,7 @@ public class EbsBootstrapInstanceInformationProvider implements Provider<Bootstr
 
         return new BootstrapInstanceInformation().
                 withInstance(instance).
-                withVolume(volume).
-                withDevice(Optional.fromNullable(device.get()));
+                withVolume(volume);
     }
 
 }

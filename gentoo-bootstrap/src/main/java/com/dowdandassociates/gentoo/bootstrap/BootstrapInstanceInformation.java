@@ -17,13 +17,12 @@ public class BootstrapInstanceInformation
 
     private Optional<Instance> instance;
     private Optional<Volume> volume;
-    private Optional<String> device;
+    private BlockDeviceInformation device;
 
     public BootstrapInstanceInformation()
     {
         instance = Optional.absent();
         volume = Optional.absent();
-        device = Optional.absent();
     }
 
     public Optional<Instance> getInstance()
@@ -43,7 +42,18 @@ public class BootstrapInstanceInformation
         }
     }
 
+    public void setInstance(Instance instance)
+    {
+        this.instance = Optional.fromNullable(instance);
+    }
+
     public BootstrapInstanceInformation withInstance(Optional<Instance> instance)
+    {
+        setInstance(instance);
+        return this;
+    }
+
+    public BootstrapInstanceInformation withInstance(Instance instance)
     {
         setInstance(instance);
         return this;
@@ -66,32 +76,20 @@ public class BootstrapInstanceInformation
         }
     }
 
+    public void setVolume(Volume volume)
+    {
+        this.volume = Optional.fromNullable(volume);
+    }
+
     public BootstrapInstanceInformation withVolume(Optional<Volume> volume)
     {
         setVolume(volume);
         return this;
     }
 
-    public Optional<String> getDevice()
+    public BootstrapInstanceInformation withVolume(Volume volume)
     {
-        return device;
-    }
-
-    public void setDevice(Optional<String> device)
-    {
-        if (null != device)
-        {
-            this.device = device;
-        }
-        else
-        {
-            this.device = Optional.absent();
-        }
-    }
-
-    public BootstrapInstanceInformation withDevice(Optional<String> device)
-    {
-        setDevice(device);
+        setVolume(volume);
         return this;
     }
 
@@ -120,19 +118,13 @@ public class BootstrapInstanceInformation
             return false;
         }
 
-        if (!getDevice().equals(info.getDevice()))
-        {
-            return false;
-        }
-
         return true;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getInstance(), getVolume(), getDevice());
+        return Objects.hash(getInstance(), getVolume());
     }
-
 }
 

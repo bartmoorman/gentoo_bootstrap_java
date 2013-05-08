@@ -24,11 +24,18 @@ public class DefaultTemplateDataModelProvider implements Provider<Object>
     private Supplier<String> mirror = Suppliers.ofInstance("http://gentoo.mirrors.pair.com/");
 
     private ImageInformation imageInfo;
+    private BlockDeviceInformation deviceInfo;
 
     @Inject
     private void setImageInfo(ImageInformation imageInfo)
     {
         this.imageInfo = imageInfo;
+    }
+
+    @Inject
+    private void setDeviceInfo(BlockDeviceInformation deviceInfo)
+    {
+        this.deviceInfo = deviceInfo;
     }
 
     public Object get()
@@ -37,6 +44,9 @@ public class DefaultTemplateDataModelProvider implements Provider<Object>
 
         root.put("architecture", imageInfo.getArchitecture());
         root.put("mirror", mirror.get());
+        root.put("device", deviceInfo.getXvDevice());
+        root.put("sDevice", deviceInfo.getSDevice());
+        root.put("xvDevice", deviceInfo.getXvDevice());
 
         return root;
     }

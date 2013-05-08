@@ -64,6 +64,7 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(ProcessedTemplate.class).toProvider(DefaultProcessedTemplateProvider.class);
         binder.bind(BootstrapCommandInformation.class).toProvider(DefaultBootstrapCommandInformationProvider.class);
         binder.bind(BootstrapResultInformation.class).toProvider(DefaultBootstrapResultInformationProvider.class);
+        binder.bind(BlockDeviceInformation.class).to(DefaultBlockDeviceInformation.class);
     }
 }
 
