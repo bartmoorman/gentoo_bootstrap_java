@@ -9,8 +9,12 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Volume;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 
 import com.google.inject.Provider;
+
+import com.netflix.governator.annotations.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +22,12 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractBootstrapInstanceInformationProvider implements Provider<BootstrapInstanceInformation>
 {
     private static Logger log = LoggerFactory.getLogger(AbstractBootstrapInstanceInformationProvider.class);
+
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.instanceType")
+    private Supplier<String> instanceType = Suppliers.ofInstance(null);
+
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.availabilityZone")
+    private Supplier<String> availabilityZone = Suppliers.ofInstance(null);
 
     private AmazonEC2 ec2Client;
     private BlockDeviceInformation blockDeviceInformation;
@@ -74,6 +84,16 @@ public abstract class AbstractBootstrapInstanceInformationProvider implements Pr
     protected SecurityGroupInformation getSecurityGroupInformation()
     {
         return securityGroupInformation;
+    }
+
+    protected Optional<String> getInstanceType()
+    {
+        return Optional.fromNullable(instanceType.get());
+    }
+
+    protected Optional<String> getAvailabilityZone()
+    {
+        return Optional.fromNullable(availabilityZone.get());
     }
 
     /**
