@@ -10,11 +10,7 @@ import com.amazonaws.services.ec2.model.Volume;
 
 import com.google.common.base.Optional;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.name.Named;
-
-import com.netflix.governator.annotations.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +21,22 @@ public abstract class AbstractBootstrapInstanceInformationProvider implements Pr
 
     private AmazonEC2 ec2Client;
     private BlockDeviceInformation blockDeviceInformation;
+    private Optional<Image> bootstrapImage;
+    private KeyPairInformation keyPairInformation;
+    private SecurityGroupInformation securityGroupInformation;
 
     public AbstractBootstrapInstanceInformationProvider(
             AmazonEC2 ec2Client,
+            Optional<Image> bootstrapImage,
+            KeyPairInformation keyPairInformation,
+            SecurityGroupInformation securityGroupInformation,
             BlockDeviceInformation blockDeviceInformation)
     {
         this.ec2Client = ec2Client;
         this.blockDeviceInformation = blockDeviceInformation;
+        this.bootstrapImage = bootstrapImage;
+        this.keyPairInformation = keyPairInformation;
+        this.securityGroupInformation = securityGroupInformation;
     }
 
     public BootstrapInstanceInformation get()
@@ -54,6 +59,21 @@ public abstract class AbstractBootstrapInstanceInformationProvider implements Pr
     protected BlockDeviceInformation getBlockDeviceInformation()
     {
         return blockDeviceInformation;
+    }
+
+    protected Optional<Image> getBootstrapImage()
+    {
+        return bootstrapImage;
+    }
+
+    protected KeyPairInformation getKeyPairInformation()
+    {
+        return keyPairInformation;
+    }
+
+    protected SecurityGroupInformation getSecurityGroupInformation()
+    {
+        return securityGroupInformation;
     }
 
     /**

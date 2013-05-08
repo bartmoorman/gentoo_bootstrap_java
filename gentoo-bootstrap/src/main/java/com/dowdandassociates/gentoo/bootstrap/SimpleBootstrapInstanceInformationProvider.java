@@ -35,9 +35,14 @@ public class SimpleBootstrapInstanceInformationProvider extends AbstractBootstra
     private Supplier<String> volumeId = Suppliers.ofInstance(null);
 
     @Inject
-    public SimpleBootstrapInstanceInformationProvider(AmazonEC2 ec2Client, BlockDeviceInformation blockDeviceInformation)
+    public SimpleBootstrapInstanceInformationProvider(
+            AmazonEC2 ec2Client,
+            @Named("Bootstrap Image") Optional<Image> bootstrapImage,
+            KeyPairInformation keyPairInformation,
+            SecurityGroupInformation securityGroupInformation,
+            BlockDeviceInformation blockDeviceInformation)
     {
-        super(ec2Client, blockDeviceInformation);
+        super(ec2Client, bootstrapImage, keyPairInformation, securityGroupInformation, blockDeviceInformation);
     }
 
     @Override
