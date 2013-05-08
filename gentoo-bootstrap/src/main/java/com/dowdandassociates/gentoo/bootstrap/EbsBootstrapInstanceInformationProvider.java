@@ -17,9 +17,9 @@ import com.netflix.governator.annotations.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultBootstrapInstanceInformationProvider implements Provider<BootstrapInstanceInformation>
+public class EbsBootstrapInstanceInformationProvider implements Provider<BootstrapInstanceInformation>
 {
-    private static Logger log = LoggerFactory.getLogger(DefaultBootstrapInstanceInformationProvider.class);
+    private static Logger log = LoggerFactory.getLogger(EbsBootstrapInstanceInformationProvider.class);
 
     private Optional<Instance> instance;
     private Optional<Volume> volume;
@@ -28,7 +28,7 @@ public class DefaultBootstrapInstanceInformationProvider implements Provider<Boo
     private Supplier<String> device = Suppliers.ofInstance("/dev/xvdf");
 
     @Inject
-    public DefaultBootstrapInstanceInformationProvider(
+    public EbsBootstrapInstanceInformationProvider(
             @Named("Bootstrap Instance") Optional<Instance> instance,
             @Named("Bootstrap Volume") Optional<Volume> volume)
     {
