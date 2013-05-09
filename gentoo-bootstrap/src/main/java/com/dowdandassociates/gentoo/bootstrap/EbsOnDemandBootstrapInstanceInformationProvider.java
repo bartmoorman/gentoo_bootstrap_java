@@ -2,11 +2,10 @@
 package com.dowdandassociates.gentoo.bootstrap;
 
 import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.CreateVolumeRequest;
+import com.amazonaws.services.ec2.model.CreateVolumeResult;
 import com.amazonaws.services.ec2.model.DescribeVolumesRequest;
 import com.amazonaws.services.ec2.model.DescribeVolumesResult;
-import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Volume;
@@ -31,6 +30,9 @@ public class EbsOnDemandBootstrapInstanceInformationProvider extends AbstractOnD
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.volumeSize")
     private Supplier<Integer> volumeSize = Suppliers.ofInstance(10);
 
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.checkVolumeSleep")
+    private Supplier<Long> sleep = Suppliers.ofInstance(10000L);
+
     @Inject
     public EbsOnDemandBootstrapInstanceInformationProvider(
             AmazonEC2 ec2Client,
@@ -43,15 +45,54 @@ public class EbsOnDemandBootstrapInstanceInformationProvider extends AbstractOnD
     }
 
     @Override
-    protected Optional<Volume> generateVolume()
+    protected Optional<Volume> generateVolume(Optional<Instance> instance)
     {
-        if (!getBootstrapImage().isPresent())
+        if (!instance.isPresent())
         {
             return Optional.absent();
         }
 
-        // TODO: replace with create volume
-        return Optional.absent();
+        log.info("AvailabilityZone=" + instance.get().getPlacement().getAvailabilityZone());
+        log.info("Size=" + volumeSize.get().toString());
+
+        CreateVolumeResult createVolumeResult = getEc2Client().createVolume(new CreateVolumeRequest().
+                withAvailabilityZone(instance.get().getPlacement().getAvailabilityZone()).
+                withSize(volumeSize.get()));
+
+        DescribeVolumesRequest describeVolumesRequest = new DescribeVolumesRequest().
+                withVolumeIds(createVolumeResult.getVolume().getVolumeId());
+
+        try
+        {
+            while (true)
+            {
+                log.info("Sleeping for " + sleep.get().toString() + " ms");
+                Thread.sleep(sleep.get());
+                DescribeVolumesResult describeVolumesResult = getEc2Client().describeVolumes(describeVolumesRequest);
+
+                Volume volume = describeVolumesResult.getVolumes().get(0);
+                String state = volume.getState();
+
+                log.info("volume state = " +  state);
+
+                if ("creating".equals(state))
+                {
+                    continue;
+                }
+
+                if (!"available".equals(state))
+                {
+                    return Optional.absent();
+                }
+
+                return Optional.fromNullable(volume);
+            }
+
+        }
+        catch (InterruptedException e)
+        {
+            return Optional.absent();
+        }
     }
 }
 

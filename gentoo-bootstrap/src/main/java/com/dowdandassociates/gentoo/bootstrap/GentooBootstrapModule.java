@@ -53,7 +53,8 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Kernel Image")).toProvider(DefaultKernelImageProvider.class);
         binder.bind(UserInfo.class).to(DefaultUserInfo.class);
         binder.bind(new TypeLiteral<Optional<JSch>>() {}).toProvider(JSchProvider.class);
-        binder.bind(BootstrapInstanceInformation.class).toProvider(SimpleBootstrapInstanceInformationProvider.class);
+//        binder.bind(BootstrapInstanceInformation.class).toProvider(SimpleBootstrapInstanceInformationProvider.class);
+        binder.bind(BootstrapInstanceInformation.class).toProvider(EbsOnDemandBootstrapInstanceInformationProvider.class);
         binder.bind(BootstrapSessionInformation.class).toProvider(DefaultBootstrapSessionInformationProvider.class);
         binder.bind(new TypeLiteral<Optional<Template>>() {}).toProvider(DefaultTemplateProvider.class);
         binder.bind(ImageInformation.class).to(ParavirtualEbsImageInformation.class);

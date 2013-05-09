@@ -53,7 +53,7 @@ public abstract class AbstractBootstrapInstanceInformationProvider implements Pr
     {
         log.info("get BootstrapInstanceInformation");
         Optional<Instance> instance = generateInstance();
-        Optional<Volume> volume = generateVolume();
+        Optional<Volume> volume = generateVolume(instance);
         attachVolume(instance, volume);
 
         return new BootstrapInstanceInformation().
@@ -104,7 +104,7 @@ public abstract class AbstractBootstrapInstanceInformationProvider implements Pr
     /**
      * Create the bootstrap volume, if applicable.
      */
-    protected abstract Optional<Volume> generateVolume();
+    protected abstract Optional<Volume> generateVolume(Optional<Instance> instance);
 
     protected void attachVolume(Optional<Instance> instance, Optional<Volume> volume)
     {

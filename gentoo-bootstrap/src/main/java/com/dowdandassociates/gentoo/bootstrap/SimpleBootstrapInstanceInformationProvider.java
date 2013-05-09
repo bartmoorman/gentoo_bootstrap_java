@@ -72,7 +72,7 @@ public class SimpleBootstrapInstanceInformationProvider extends AbstractBootstra
     }
 
     @Override
-    protected Optional<Volume> generateVolume()
+    protected Optional<Volume> generateVolume(Optional<Instance> instance)
     {
         log.info("Get Bootstrap Volume");
 
