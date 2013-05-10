@@ -111,6 +111,7 @@ public class DefaultTestSnapshotProvider implements Provider<Optional<Snapshot>>
             while (true)
             {
                 log.info("Sleeping for " + snapshotSleep.get() + " ms");
+                Thread.sleep(snapshotSleep.get());
 
                 DescribeSnapshotsResult describeSnapshotsResult = ec2Client.describeSnapshots(describeSnapshotsRequest);
                 String state = describeSnapshotsResult.getSnapshots().get(0).getState();
