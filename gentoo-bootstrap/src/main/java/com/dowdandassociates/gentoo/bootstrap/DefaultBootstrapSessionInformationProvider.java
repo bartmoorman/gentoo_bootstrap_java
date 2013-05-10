@@ -32,6 +32,9 @@ public class DefaultBootstrapSessionInformationProvider implements Provider<Boot
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapSession.port")
     private Supplier<Integer> port = Suppliers.ofInstance(22);
 
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapSession.waitToConnect")
+    private Supplier<Long> sleep = Suppliers.ofInstance(0L);
+
     private Optional<JSch> jsch;
     private UserInfo userInfo;
     private BootstrapInstanceInformation instanceInfo;
@@ -67,14 +70,20 @@ public class DefaultBootstrapSessionInformationProvider implements Provider<Boot
                 return Optional.absent();
             }
 
+            if (sleep.get() > 0)
+            {
+                log.info("Waiting " + sleep.get() + " ms");
+                Thread.sleep(sleep.get());
+            }
+
             Session session = jsch.get().getSession(user.get(), host.get(), port.get());
             session.setUserInfo(userInfo);
             session.connect();
             return Optional.of(session);
         }
-        catch (JSchException jse)
+        catch (InterruptedException | JSchException e)
         {
-            log.error(jse.getMessage(), jse);
+            log.error(e.getMessage(), e);
             return Optional.absent();
         }
     }
