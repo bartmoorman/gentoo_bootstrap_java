@@ -14,78 +14,58 @@ import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-
-import com.netflix.governator.annotations.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractOnDemandBootstrapInstanceInformationProvider extends AbstractBootstrapInstanceInformationProvider
+public class InstanceUtils
 {
-    private static Logger log = LoggerFactory.getLogger(AbstractOnDemandBootstrapInstanceInformationProvider.class);
+    private static Logger log = LoggerFactory.getLogger(InstanceUtils.class);
 
-    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.checkInstanceSleep")
-    private Supplier<Long> sleep = Suppliers.ofInstance(10000L);
-
-    public AbstractOnDemandBootstrapInstanceInformationProvider(
+    public static Optional<Instance> onDemandInstance(
             AmazonEC2 ec2Client,
-            Optional<Image> bootstrapImage,
-            KeyPairInformation keyPairInformation,
+            Optional<Image> image,
+            Integer minCount,
+            Integer maxCount,
             SecurityGroupInformation securityGroupInformation,
-            BlockDeviceInformation blockDeviceInformation)
+            KeyPairInformation keyPairInformation,
+            Optional<String> instanceType,
+            Optional<String> availabilityZone,
+            Long sleep)
     {
-        super(ec2Client, bootstrapImage, keyPairInformation, securityGroupInformation, blockDeviceInformation);
-    }
-
-    @Override
-    protected Optional<Instance> generateInstance()
-    {
-        return InstanceUtils.onDemandInstance(
-                getEc2Client(),
-                getBootstrapImage(),
-                1,
-                1,
-                getSecurityGroupInformation(),
-                getKeyPairInformation(),
-                getInstanceType(),
-                getAvailabilityZone(),
-                sleep.get());
-/*
-        if (!getBootstrapImage().isPresent())
+        if (!image.isPresent())
         {
             return Optional.absent();
         }
 
         RunInstancesRequest runInstancesRequest = new RunInstancesRequest().
-                withImageId(getBootstrapImage().get().getImageId()).
-                withMinCount(1).
-                withMaxCount(1).
-                withSecurityGroups(getSecurityGroupInformation().getGroupName()).
-                withKeyName(getKeyPairInformation().getName());
+                withImageId(image.get().getImageId()).
+                withMinCount(minCount).
+                withMaxCount(maxCount).
+                withSecurityGroups(securityGroupInformation.getGroupName()).
+                withKeyName(keyPairInformation.getName());
 
-        log.info("ImageId=" + getBootstrapImage().get().getImageId());
-        log.info("MinCount=1");
-        log.info("MaxCount=1");
-        log.info("SecurityGroups.1=" + getSecurityGroupInformation().getGroupName());
-        log.info("KeyName=" + getKeyPairInformation().getName());
+        log.info("ImageId=" + image.get().getImageId());
+        log.info("MinCount=" + minCount);
+        log.info("MaxCount=" + maxCount);
+        log.info("SecurityGroups.1=" + securityGroupInformation.getGroupName());
+        log.info("KeyName=" + keyPairInformation.getName());
 
-        if (getInstanceType().isPresent())
+        if (instanceType.isPresent())
         {
-            runInstancesRequest.setInstanceType(getInstanceType().get());
-            log.info("InstanceType=" + getInstanceType().get()); 
+            runInstancesRequest.setInstanceType(instanceType.get());
+            log.info("InstanceType=" + instanceType.get()); 
         }
 
-        if (getAvailabilityZone().isPresent())
+        if (availabilityZone.isPresent())
         {
             runInstancesRequest.setPlacement(new Placement().
-                    withAvailabilityZone(getAvailabilityZone().get()));
+                    withAvailabilityZone(availabilityZone.get()));
 
-            log.info("Placement.AvailabilityZone=" + getAvailabilityZone().get());
+            log.info("Placement.AvailabilityZone=" + availabilityZone.get());
         }
 
-        RunInstancesResult runInstancesResult = getEc2Client().runInstances(runInstancesRequest);
+        RunInstancesResult runInstancesResult = ec2Client.runInstances(runInstancesRequest);
 
         DescribeInstanceStatusRequest describeInstanceStatusRequest = new DescribeInstanceStatusRequest().
                 withInstanceIds(runInstancesResult.getReservation().getInstances().get(0).getInstanceId());
@@ -94,10 +74,10 @@ public abstract class AbstractOnDemandBootstrapInstanceInformationProvider exten
         {
             while (true)
             {
-                log.info("Sleeping for " + sleep.get().toString() + " ms");
-                Thread.sleep(sleep.get());
+                log.info("Sleeping for " + sleep + " ms");
+                Thread.sleep(sleep);
 
-                DescribeInstanceStatusResult describeInstanceStatusResult = getEc2Client().describeInstanceStatus(describeInstanceStatusRequest);
+                DescribeInstanceStatusResult describeInstanceStatusResult = ec2Client.describeInstanceStatus(describeInstanceStatusRequest);
                 if (describeInstanceStatusResult.getInstanceStatuses().isEmpty())
                 {
                     continue;
@@ -152,11 +132,10 @@ public abstract class AbstractOnDemandBootstrapInstanceInformationProvider exten
             return Optional.absent();
         }
 
-        DescribeInstancesResult describeInstancesResult = getEc2Client().describeInstances(new DescribeInstancesRequest().
+        DescribeInstancesResult describeInstancesResult = ec2Client.describeInstances(new DescribeInstancesRequest().
                 withInstanceIds(runInstancesResult.getReservation().getInstances().get(0).getInstanceId()));
 
         return Optional.fromNullable(describeInstancesResult.getReservations().get(0).getInstances().get(0));
-*/
     }
 }
 
