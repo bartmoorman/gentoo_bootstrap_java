@@ -34,10 +34,10 @@ echo "/etc/resolv.conf"
 cp -L /etc/resolv.conf ${mountPoint}/etc/resolv.conf
 
 echo "/tmp/build.sh"
-cat <<'END_OF_FILE'>/tmp/build.sh
-<#include "/build.sh.ftl">
+cat <<'END_OF_FILE'>${mountPoint}/tmp/build.sh
+<#include "/tmp/build.sh.ftl">
 END_OF_FILE
-chmod 755 /tmp/build.sh
+chmod 755 ${mountPoint}/tmp/build.sh
 
 mount -t proc none ${mountPoint}/proc
 mount --rbind /dev ${mountPoint}/dev

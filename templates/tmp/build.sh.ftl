@@ -43,7 +43,7 @@ chmod 755 ${filename}
 
 <#assign filename = "/etc/local.d/makeopts.start">
 echo "${filename}"
-cat <<'EOF'>{filename}
+cat <<'EOF'>${filename}
 <#include "/etc/local.d/makeopts.start.ftl">
 EOF
 chmod 755 ${filename}
