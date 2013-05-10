@@ -23,6 +23,12 @@ public class DefaultTemplateDataModelProvider implements Provider<Object>
     @Configuration("com.dowdandassociates.gentoo.bootstrap.mirror")
     private Supplier<String> mirror = Suppliers.ofInstance("http://gentoo.mirrors.pair.com/");
 
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.rootfstype")
+    private Supplier<String> rootFsType = Suppliers.ofInstance("ext4");
+
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.mountPoint")
+    private Supplier<String> mountPoint = Suppliers.ofInstance("/mnt/gentoo");
+
     private ImageInformation imageInfo;
     private BlockDeviceInformation deviceInfo;
 
@@ -47,6 +53,8 @@ public class DefaultTemplateDataModelProvider implements Provider<Object>
         root.put("device", deviceInfo.getXvDevice());
         root.put("sDevice", deviceInfo.getSDevice());
         root.put("xvDevice", deviceInfo.getXvDevice());
+        root.put("rootfstype", rootFsType.get());
+        root.put("mountPoint", mountPoint.get());
 
         return root;
     }

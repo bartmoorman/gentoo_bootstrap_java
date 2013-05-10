@@ -59,6 +59,7 @@ public class EbsOnDemandBootstrapInstanceInformationProvider extends AbstractOnD
                 withAvailabilityZone(instance.get().getPlacement().getAvailabilityZone()).
                 withSize(volumeSize.get()));
 
+        log.info("volume id = " + createVolumeResult.getVolume().getVolumeId());
         DescribeVolumesRequest describeVolumesRequest = new DescribeVolumesRequest().
                 withVolumeIds(createVolumeResult.getVolume().getVolumeId());
 

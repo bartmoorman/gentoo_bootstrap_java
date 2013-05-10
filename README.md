@@ -35,3 +35,12 @@ java \
 -Dlog4j.configuration=file://$PWD/config/log4j-info-console.properties \
 -jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
 ```
+## For more testing
+
+```
+java \
+-Darchaius.configurationSource.additionalUrls=file://$PWD/config/test.properties \
+-Dlog4j.configuration=file://$PWD/config/log4j-info-console.properties \
+-jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
+```
+

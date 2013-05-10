@@ -1,12 +1,17 @@
 
 package com.dowdandassociates.gentoo.bootstrap;
 
+import java.util.List;
+
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AttachVolumeRequest;
 import com.amazonaws.services.ec2.model.AttachVolumeResult;
+import com.amazonaws.services.ec2.model.DescribeVolumesRequest;
+import com.amazonaws.services.ec2.model.DescribeVolumesResult;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Volume;
+import com.amazonaws.services.ec2.model.VolumeAttachment;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
@@ -28,6 +33,10 @@ public abstract class AbstractBootstrapInstanceInformationProvider implements Pr
 
     @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.availabilityZone")
     private Supplier<String> availabilityZone = Suppliers.ofInstance(null);
+
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.BootstrapInstance.checkAttachmentSleep")
+    private Supplier<Long> sleep = Suppliers.ofInstance(10000L);
+
 
     private AmazonEC2 ec2Client;
     private BlockDeviceInformation blockDeviceInformation;
@@ -114,6 +123,53 @@ public abstract class AbstractBootstrapInstanceInformationProvider implements Pr
                     withInstanceId(instance.get().getInstanceId()).
                     withVolumeId(volume.get().getVolumeId()).
                     withDevice(blockDeviceInformation.getSDevice()));
+
+            try
+            {
+                DescribeVolumesRequest describeVolumesRequest = new DescribeVolumesRequest().
+                        withVolumeIds(volume.get().getVolumeId());
+                String instanceId = instance.get().getInstanceId();
+
+                boolean waiting = true;
+
+                do
+                {
+                    log.info("Sleeping for " + sleep.get() + " ms");
+                    Thread.sleep(sleep.get());
+                    DescribeVolumesResult describeVolumesResult = ec2Client.describeVolumes(describeVolumesRequest);
+                    if (describeVolumesResult.getVolumes().isEmpty())
+                    {
+                        return;
+                    }
+
+                    Volume bootstrapVolume = describeVolumesResult.getVolumes().get(0);
+                    List<VolumeAttachment> attachments = bootstrapVolume.getAttachments();
+                    for (VolumeAttachment attachment : attachments)
+                    {
+                        if (!instanceId.equals(attachment.getInstanceId()))
+                        {
+                            continue;
+                        }
+
+                        String attachmentState = attachment.getState();
+                        log.info("Attachment state = " + attachmentState);
+                        if ("attaching".equals(attachmentState))
+                        {
+                            break;
+                        }
+                        if (!"attached".equals(attachmentState))
+                        {
+                            return;
+                        }
+                        waiting = false;
+                        break;
+                    }
+                }
+                while (waiting);
+            }
+            catch (InterruptedException e)
+            {
+            }
         }
     }
 }
