@@ -69,6 +69,8 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(new TypeLiteral<Optional<Snapshot>>() {}).annotatedWith(Names.named("Test Snapshot")).toProvider(DefaultTestSnapshotProvider.class);
         binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Test Image")).toProvider(DefaultTestImageProvider.class);
         binder.bind(TestInstanceInformation.class).toProvider(EbsOnDemandTestInstanceInformationProvider.class);
+        binder.bind(TestSessionInformation.class).toProvider(DefaultTestSessionInformationProvider.class);
+        binder.bind(TestResultInformation.class).toProvider(DefaultTestResultInformationProvider.class);
     }
 }
 
