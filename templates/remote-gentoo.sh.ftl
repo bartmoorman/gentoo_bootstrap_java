@@ -33,12 +33,11 @@ echo "Setup files"
 echo "/etc/resolv.conf"
 cp -L /etc/resolv.conf ${mountPoint}/etc/resolv.conf
 
-<#assign filename = "/tmp/build.sh">
-echo "${filename}"
-cat <<'END_OF_FILE'>${filename}
+echo "/tmp/build.sh"
+cat <<'END_OF_FILE'>/tmp/build.sh
 <#include "/build.sh.ftl">
 END_OF_FILE
-chmod 755 ${filename}
+chmod 755 /tmp/build.sh
 
 mount -t proc none ${mountPoint}/proc
 mount --rbind /dev ${mountPoint}/dev
