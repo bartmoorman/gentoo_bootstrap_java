@@ -25,7 +25,7 @@ import com.netflix.governator.annotations.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class EbsOnDemandTestInstanceInformationProvider extends AbstractTestInstanceInformationProvider
+public class EbsOnDemandTestInstanceInformationProvider extends AbstractTestInstanceInformationProvider
 {
     private static Logger log = LoggerFactory.getLogger(EbsOnDemandTestInstanceInformationProvider.class);
 
