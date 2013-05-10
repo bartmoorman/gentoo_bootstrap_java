@@ -47,14 +47,15 @@ import org.slf4j.LoggerFactory;
 public class Bootstrapper
 {
     private static Logger log = LoggerFactory.getLogger(Bootstrapper.class);
-
+/*
     private Optional<Image> bootstrapImage;
     private AmazonEC2 ec2Client;
     private Optional<Image> kernel;
     private KeyPairInformation keyPair;
     private SecurityGroupInformation securityGroup;
-    private BootstrapResultInformation bootstrapResultInformation;
-
+*/
+    private Optional<Image> gentooImage;
+/*
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
     {
@@ -90,9 +91,19 @@ public class Bootstrapper
     {
         this.bootstrapResultInformation = bootstrapResultInformation;
     }
+*/
+
+    @Inject
+    public void setGentooImage(@Named("Gentoo Image") Optional<Image> gentooImage)
+    {
+        this.gentooImage =  gentooImage;
+    }
 
     public void execute()
     {
+        log.info("gentoo image id: " + ((gentooImage.isPresent()) ? gentooImage.get().getImageId() : "absent"));
+
+/*
         log.info("key pair name: " + keyPair.getName());
         log.info("key pair filename: " + keyPair.getFilename());
         log.info("security group name: " + securityGroup.getGroupName());
@@ -108,6 +119,7 @@ public class Bootstrapper
 
         Optional<Integer> exitStatus = bootstrapResultInformation.getExitStatus();
         log.info("exitStatus: " + ((exitStatus.isPresent()) ? exitStatus.get().toString() : "absent"));
+*/
 /*
         String filename = "/tmp/hello.sh";
         StringBuilder contentBuf = new StringBuilder();
