@@ -48,6 +48,7 @@ public class DefaultTestSnapshotProvider implements Provider<Optional<Snapshot>>
     @Inject
     public DefaultTestSnapshotProvider(AmazonEC2 ec2Client, BootstrapResultInformation bootstrapResultInformation)
     {
+        this.ec2Client = ec2Client;
         this.bootstrapResultInformation = bootstrapResultInformation;
     }
 

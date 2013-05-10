@@ -67,6 +67,7 @@ public class GentooBootstrapModule implements BootstrapModule
         binder.bind(BootstrapResultInformation.class).toProvider(DefaultBootstrapResultInformationProvider.class);
         binder.bind(BlockDeviceInformation.class).to(DefaultBlockDeviceInformation.class);
         binder.bind(new TypeLiteral<Optional<Snapshot>>() {}).annotatedWith(Names.named("Test Snapshot")).toProvider(DefaultTestSnapshotProvider.class);
+        binder.bind(new TypeLiteral<Optional<Image>>() {}).annotatedWith(Names.named("Test Image")).toProvider(DefaultTestImageProvider.class);
     }
 }
 
