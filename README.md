@@ -44,3 +44,21 @@ java \
 -jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
 ```
 
+## Try using web sources
+
+```
+java \
+-Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/Gentoo_64-bit-EBS_us-east-1.properties \
+-Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
+-jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
+```
+
+## Try using web sources (32-bit)
+
+```
+java \
+-Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/Gentoo_32-bit-EBS_us-east-1.properties \
+-Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
+-jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
+```
+

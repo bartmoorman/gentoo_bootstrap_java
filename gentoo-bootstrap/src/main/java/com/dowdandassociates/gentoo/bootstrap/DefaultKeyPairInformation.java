@@ -14,6 +14,7 @@ import javax.annotation.PreDestroy;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
 import com.amazonaws.services.ec2.model.CreateKeyPairResult;
+import com.amazonaws.services.ec2.model.DeleteKeyPairRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.Filter;
 
@@ -144,6 +145,19 @@ public class DefaultKeyPairInformation implements KeyPairInformation
         if (builtKeyPair)
         {
             log.info("Deleting key pair \"" + name + "\"");
+
+            ec2Client.deleteKeyPair(new DeleteKeyPairRequest().
+                    withKeyName(name));
+
+            try
+            {
+                File file = new File(filename);
+                file.delete();
+            }
+            catch (NullPointerException | SecurityException e)
+            {
+                log.error(e.getMessage(), e);
+            }
         }
     }
 
