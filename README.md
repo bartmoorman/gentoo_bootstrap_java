@@ -1,4 +1,8 @@
 
+# Gentoo Bootstrap Java
+
+This is a Java reimplementation of the the [Gentoo Bootstrap](https://bitbucket.org/edowd/gentoo_bootstrap) bash scripts. The purpose is to allow for more flexibility with options, to more easily make your own script to run on the server side, and to eliminate the need for the [ec2-api-tools](http://aws.amazon.com/developertools/351).
+
 ## Checkout
 
 git clone https://bitbucket.org/edowd/gentoo_bootstrap_java.git
