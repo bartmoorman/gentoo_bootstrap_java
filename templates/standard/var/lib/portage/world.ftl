@@ -11,6 +11,7 @@ app-misc/screen
 app-portage/eix
 app-portage/gentoolkit
 dev-vcs/git
+mail-mta/ssmtp
 net-misc/curl
 net-misc/dhcpcd
 net-misc/ntp
