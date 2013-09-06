@@ -103,6 +103,7 @@ eselect profile set ${gentooProfile}
 emerge --unmerge sys-apps/module-init-tools
 </#if>
 
+emerge mail-mta/ssmtp
 emerge --update --deep --with-bdeps=y --newuse @world
 
 cd /usr/src/linux
