@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 3.10.7-gentoo Kernel Configuration
+# Linux/x86 3.10.17-gentoo Kernel Configuration
 #
 
 #
@@ -263,7 +263,6 @@ CONFIG_BLOCK_COMPAT=y
 CONFIG_IOSCHED_NOOP=y
 # CONFIG_IOSCHED_DEADLINE is not set
 # CONFIG_IOSCHED_CFQ is not set
-# CONFIG_IOSCHED_BFQ is not set
 CONFIG_DEFAULT_NOOP=y
 CONFIG_DEFAULT_IOSCHED="noop"
 CONFIG_INLINE_SPIN_UNLOCK_IRQ=y
