@@ -1,13 +1,22 @@
 #!/bin/bash
 
+fdisk ${device} << EOF
+n
+p
+1
+
+
+w
+EOF
+
 echo "Format volume"
-mkfs -t ${rootfstype} ${device}
+mkfs -t ${rootfstype} ${device}1
 
 echo "Create mount point"
 mkdir -p ${mountPoint}
 
 echo "Mount volume"
-mount ${device} ${mountPoint}
+mount ${device}1 ${mountPoint}
 
 echo "Download stage3"
 <#if architecture == "i386">
