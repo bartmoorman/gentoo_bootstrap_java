@@ -32,5 +32,14 @@ java \
 -jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
 ```
 
+### HVM test
+
+```
+java \
+-Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/hvm-test/config/Gentoo_HVM-test_us-east-1.properties \
+-Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
+-jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
+```
+
 ###### Gentoo is a trademark of Gentoo Foundation, Inc. Gentoo Bootstrap is not part of the Gentoo Project and is not directed or managed by Gentoo Foundation, Inc.
 
