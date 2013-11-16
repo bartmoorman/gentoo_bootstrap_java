@@ -136,5 +136,5 @@ rc-update add ntpd default
 rc-update add lvm boot
 rc-update add mdraid boot
 
-emerge -av sys-boot/grub-static
+emerge sys-boot/grub-static
 
