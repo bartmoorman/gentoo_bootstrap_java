@@ -36,7 +36,8 @@ import com.netflix.governator.lifecycle.LifecycleManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.dowdandassociates.gentoo.bootstrap.GentooBootstrapModule;
+import com.dowdandassociates.gentoo.bootstrap.HvmBootstrapModule;
+import com.dowdandassociates.gentoo.bootstrap.ParavirtualBootstrapModule;
 import com.dowdandassociates.gentoo.bootstrap.Bootstrapper;
 
 public class Main
@@ -54,7 +55,7 @@ public class Main
         props.setProperty("log4j.logger.asyncAppenders", "DEBUG,stdout");
         LoggingConfiguration.getInstance().configure(props);
 */
-        DynamicStringProperty virtualizationType = ("com.dowdandassociates.gentoo.bootstrap.Image.virtualizationType", "paravirtual");
+        DynamicStringProperty virtualizationType = DynamicPropertyFactory.getInstance().getStringProperty("com.dowdandassociates.gentoo.bootstrap.Image.virtualizationType", "paravirtual");
 
         LoggingConfiguration.getInstance().configure();
 
@@ -65,7 +66,7 @@ public class Main
 //            Injector injector = LifecycleInjector.builder().withBootstrapModule(new GentooBootstrapModule()).createInjector();
 
             Injector injector;
-            if ("hvm".equals(virtualizationType.get())
+            if ("hvm".equals(virtualizationType.get()))
             {
                 injector = LifecycleInjector.builder().withBootstrapModule(new HvmBootstrapModule()).createInjector();
             }

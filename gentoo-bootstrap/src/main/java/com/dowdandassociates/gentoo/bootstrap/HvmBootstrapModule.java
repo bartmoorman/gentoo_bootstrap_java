@@ -60,7 +60,7 @@ public class Amd64MinimalBootstrapModule extends AbstractModule
     }
 }
 */
-public class ParavirtualBootstrapModule extends GentooBootstrapModule 
+public class HvmBootstrapModule extends GentooBootstrapModule 
 {
     @Override
     public void configure(BootstrapBinder binder)
