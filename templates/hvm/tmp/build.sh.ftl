@@ -138,3 +138,11 @@ rc-update add mdraid boot
 
 emerge sys-boot/grub-static
 
+<#if virtualizationType == "hvm">
+grub << EOF
+root (hd1,0)
+setup (hd1)
+quit
+EOF
+</#if>
+

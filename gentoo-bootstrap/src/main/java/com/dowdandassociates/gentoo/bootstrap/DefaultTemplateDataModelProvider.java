@@ -70,6 +70,7 @@ public class DefaultTemplateDataModelProvider implements Provider<Object>
         Map root = new HashMap();
 
         root.put("architecture", imageInfo.getArchitecture());
+        root.put("virtualizationType", imageInfo.getVirtualizationType());
         root.put("mirror", mirror.get());
         root.put("device", deviceInfo.getXvDevice());
         root.put("sDevice", deviceInfo.getSDevice());

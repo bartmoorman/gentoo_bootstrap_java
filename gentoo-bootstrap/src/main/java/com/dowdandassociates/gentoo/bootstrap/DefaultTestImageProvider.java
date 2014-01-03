@@ -103,14 +103,22 @@ public class DefaultTestImageProvider implements Provider<Optional<Image>>
             name.append(DateFormatUtils.formatUTC(System.currentTimeMillis(), dateFormat.get()));
         }
 
+        String architecture = imageInformation.getArchitecture();
+        String virtualizationType = imageInformation.getVirtualizationType();
         RegisterImageRequest registerImageRequest = new RegisterImageRequest().
-                withArchitecture(imageInformation.getArchitecture()).
+                withArchitecture(architecture).
+                withVirtualizationType(virtualizationType).
                 withDescription(description.get()).
-                withKernelId(kernelImage.get().getImageId()).
                 withName(name.toString()).
                 withRootDeviceName(rootDeviceName.get());
 
-        if ("i386".equals(imageInformation.getArchitecture()))
+        if ("paravirtual".equals(virtualizationType))
+        {
+            registerImageRequest = registerImageRequest.
+                    withKernelId(kernelImage.get().getImageId());
+        }
+
+        if ("i386".equals(architecture))
         {
             registerImageRequest = registerImageRequest.
                     withBlockDeviceMappings(
