@@ -1,0 +1,16 @@
+#!/bin/bash
+
+key_name=$1
+
+if [ -z $key_name ]; then
+    echo "key name not set"
+    exit
+fi
+
+if [ -z $REGION ]; then
+    REGION="us-east-1"
+fi
+
+aws --region $REGION ec2 create-key-pair --key-name "${key_name}" | jq -r ".KeyMaterial" > ${key_name}.pem
+chmod 600 ${key_name}.pem
+

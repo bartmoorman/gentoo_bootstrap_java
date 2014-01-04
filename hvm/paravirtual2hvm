@@ -1,0 +1,305 @@
+#!/bin/bash
+
+function report_status() {
+    echo "`date +%Y-%m-%dT%H:%M:%S`: $@"
+}
+
+image_id=$1
+if [ -z $image_id ]; then
+    report_status "ami not set"
+    exit
+fi
+report_status "image id: $image_id"
+
+if [ -z $REGION ]; then
+    REGION="us-east-1"
+fi
+report_status "region: $REGION"
+
+if [ -z $SECURITY_GROUP ]; then
+    SECURITY_GROUP="gentoo-bootstrap"
+fi
+report_status "security group: $SECURITY_GROUP"
+
+if [ -z $INSTANCE_TYPE ]; then
+    INSTANCE_TYPE="c3.large"
+fi
+report_status "instance type: $INSTANCE_TYPE"
+
+key_name="gentoo-bootstrap_${REGION}-`date +%Y%m%d%H%M%S`"
+
+describe_image="`aws --region $REGION ec2 describe-images --image-ids \"[\\\"${image_id}\\\"]\"`"
+snapshot_id="`echo $describe_image | jq -r \".Images[].BlockDeviceMappings | map(select(.DeviceName == \\\"/dev/sda\\\")) | .[].Ebs.SnapshotId\"`"
+report_status "snapshot id: $snapshot_id"
+
+hvm_images="`aws --region $REGION ec2 describe-images --owners \"[\\\"amazon\\\"]\" --filters \"[
+{
+    \\\"Name\\\": \\\"virtualization-type\\\",
+    \\\"Values\\\": [\\\"hvm\\\"]
+},
+{
+    \\\"Name\\\": \\\"manifest-location\\\",
+    \\\"Values\\\": [\\\"amazon/amzn-ami-hvm-*\\\"]
+}
+]\"`"
+
+boot_image="`echo $hvm_images | jq -r \".Images | sort_by(.Name) | reverse | .[0].ImageId\"`"
+report_status "boot image: $boot_image"
+
+report_status "Creating key ${key_name}"
+./create_key $key_name
+
+run_instances="`aws --region ${REGION} \
+ec2 \
+run-instances \
+--image-id ${boot_image} \
+--count 1 \
+--key-name ${key_name} \
+--security-groups \"[\\\"${SECURITY_GROUP}\\\"]\" \
+--instance-type ${INSTANCE_TYPE}`"
+instance_id="`echo ${run_instances} | jq -r \".Instances[].InstanceId\"`"
+
+report_status "instance id: ${instance_id}"
+
+instance_check_sleep=10
+while true; do
+
+    report_status "Sleeping for $instance_check_sleep seconds"
+    sleep $instance_check_sleep
+
+    describe_instance_status="`aws --region $REGION ec2 describe-instance-status --instance-ids \"[\\\"${instance_id}\\\"]\"`"
+    instance_statuses_length="`echo $describe_instance_status | jq -r \".InstanceStatuses | length\"`"
+
+    if [[ $instance_statuses_length == "0" ]]; then
+        report_status "no status yet for instance ${instance_id}"
+        continue
+    fi
+
+    instance_state="`echo $describe_instance_status | jq -r \".InstanceStatuses[].InstanceState.Name\"`"
+    instance_status="`echo $describe_instance_status | jq -r \".InstanceStatuses[].InstanceStatus.Status\"`"
+    system_status="`echo $describe_instance_status | jq -r \".InstanceStatuses[].SystemStatus.Status\"`"
+
+    report_status "instance state: $instance_state"
+    report_status "instance status: $instance_status"
+    report_status "system status: $system_status"
+
+    if [[ $instance_state == "pending" ]]; then
+        continue
+    fi
+
+    if [[ $instance_state != "running" ]]; then
+        report_status "Bad instance state: $instance_state"
+        exit
+    fi
+
+    if [[ $instance_status == "impaired" ]]; then
+        report_status "Bad instance status: $instance_status"
+        exit
+    fi
+
+    if [[ $system_status == "impaired" ]]; then
+        report_status "Bad system status: $system_status"
+        exit
+    fi
+
+    if [[ $instance_status != "ok" ]]; then
+        continue
+    fi
+
+    if [[ $system_status != "ok" ]]; then
+        continue
+    fi
+
+    break
+done
+
+report_status "Instance $instance_id has started"
+
+describe_instance="`aws --region $REGION ec2 describe-instances --instance-ids \"[\\\"${instance_id}\\\"]\"`"
+hostname="`echo $describe_instance | jq -r \".Reservations[].Instances[].PublicDnsName\"`"
+report_status "hostname: $hostname"
+availability_zone="`echo $describe_instance | jq -r \".Reservations[].Instances[].Placement.AvailabilityZone\"`"
+report_status "availability zone: $availability_zone"
+
+create_volume="`aws --region $REGION ec2 create-volume --snapshot-id ${snapshot_id} --availability-zone ${availability_zone}`"
+volume_id="`echo $create_volume | jq -r \".VolumeId\"`"
+
+report_status "volume id: ${volume_id}"
+
+volume_check_sleep=10
+
+while true; do
+    report_status "Sleeping for $volume_check_sleep seconds"
+    sleep $volume_check_sleep
+
+    describe_volume="`aws --region $REGION ec2 describe-volumes --volume-ids \"[\\\"${volume_id}\\\"]\"`"
+    volumes_length="`echo $describe_volume | jq -r \".Volumes | length\"`"
+    if [[ $volumes_length == "0" ]]; then
+        continue
+    fi
+    volume_state="`echo $describe_volume | jq -r \".Volumes[].State\"`"
+    report_status "volume state: ${volume_state}"
+    if [[ $volume_state == "creating" ]]; then
+        continue
+    fi
+    if [[ $volume_state != "available" ]]; then
+        report_status "Bad volume state: $volume_state"
+        exit
+    fi
+    break
+done
+
+device="/dev/sdf"
+report_status "Attaching volume ${volume_id} to instance ${instance_id} as device ${device}"
+attach_volume="`aws --region ${REGION} ec2 attach-volume --volume-id \"${volume_id}\" --instance-id \"${instance_id}\" --device \"${device}\"`"
+
+while true; do
+    report_status "Sleeping for $volume_check_sleep seconds"
+    sleep $volume_check_sleep
+
+    describe_volume="`aws --region $REGION ec2 describe-volumes --volume-ids \"[\\\"${volume_id}\\\"]\"`"
+    volumes_length="`echo $describe_volume | jq -r \".Volumes | length\"`"
+    if [[ $volumes_length == "0" ]]; then
+        report_status "Invalid volumes length: ${volumes_length}"
+        exit
+    fi
+
+    attachments_length="`echo $describe_volume | jq -r \".Volumes[0].Attachments | length\"`"
+    if [[ $attachments_length == "0" ]]; then
+        report_status "No attachments yet"
+        continue
+    fi
+
+    attachment_state="`echo $describe_volume | jq -r \".Volumes[0].Attachments[0].State\"`"
+    report_status "attachment state: ${attachment_state}"
+    if [[ $attachment_state == "attaching" ]]; then
+        continue
+    fi
+    if [[ $attachment_state != "attached" ]]; then
+        report_status "Bad attachment state: $attachment_state"
+    fi
+
+    break
+done
+
+report_status "Attached volume ${volume_id} to instance ${instance_id} as device ${device}"
+
+report_status "Copying script to ${hostname}"
+scp -o StrictHostKeyChecking=no -i ${key_name}.pem -r remotehvm ec2-user@$hostname:/tmp
+
+report_status "Make script executable on ${hostname}"
+ssh -o StrictHostKeyChecking=no -i ${key_name}.pem ec2-user@$hostname "chmod 755 /tmp/remotehvm"
+
+report_status "Execute script"
+ssh -o StrictHostKeyChecking=no -i ${key_name}.pem -t ec2-user@$hostname "sudo /tmp/remotehvm"
+
+report_status "Terminate instance ${instance_id}"
+terminate_instance="`aws --region ${REGION} ec2 terminate-instances --instance-ids \"[\\\"${instance_id}\\\"]\"`"
+while true; do
+
+    report_status "Sleeping for $instance_check_sleep seconds"
+    sleep $instance_check_sleep
+
+    describe_instance="`aws --region $REGION ec2 describe-instances --instance-ids \"[\\\"${instance_id}\\\"]\"`"
+
+    reservations_length="`echo $describe_instance | jq -r \".Reservations | length\"`"
+    if [[ $reservations_length == "0" ]]; then
+        report_status "no status for instance ${instance_id}"
+        break
+    fi
+
+    instances_length="`echo $describe_instance | jq -r \".Reservations[0].Instances | length\"`"
+    if [[ $instances_length == "0" ]]; then
+        report_status "no status for instance ${instance_id}"
+        break
+    fi
+
+    instance_state="`echo $describe_instance | jq -r \".Reservations[0].Instances[0].State.Name\"`"
+
+    report_status "instance state: $instance_state"
+
+    if [[ $instance_state != "terminated" ]]; then
+        continue
+    fi
+
+    break
+done
+
+report_status "Instance ${instance_id} has been terminated"
+
+report_status "Snapshot volume ${volume_id}"
+create_snapshot="`aws --region ${REGION} ec2 create-snapshot --volume-id \"${volume_id}\"`"
+new_snapshot_id="`echo $create_snapshot | jq -r \".SnapshotId\"`"
+report_status "new snapshot id: ${new_snapshot_id}"
+
+snapshot_check_sleep=10
+while true; do
+
+    report_status "Sleeping for ${snapshot_check_sleep}"
+    sleep ${snapshot_check_sleep}
+
+    describe_snapshot="`aws --region ${REGION} ec2 describe-snapshots --snapshot-ids \"[\\\"${new_snapshot_id}\\\"]\"`"
+    snapshots_length="`echo $describe_snapshots | jq -r \".Snapshots | length\"`"
+
+    if [[ $snapshots_length == "0" ]]; then
+        report_status "no snapshot info yet for ${new_snapshot_id}"
+        continue
+    fi
+
+    snapshot_state="`echo ${describe_snapshot} | jq -r \".Snapshots[0].State\"`"
+    report_status "snapshot state: ${snapshot_state}"
+    if [[ $snapshot_state == "error" ]]; then
+        report_status "Error making snapshot ${new_snapshot_id}"
+        exit
+    fi
+    if [[ $snapshot_state != "completed" ]]; then
+        continue
+    fi
+
+    break
+done
+
+report_status "Snapshot ${new_snapshot_id} complete"
+
+report_status "Delete volume ${volume_id}"
+delete_volume="`aws --region ${REGION} ec2 delete-volume --volume-id \"${volume_id}\"`"
+
+report_status "Register image"
+image_suffix="`date --utc +%Y-%m-%d-%H-%M-%S`"
+register_image="`aws --region ${REGION} ec2 \
+register-image \
+--name \"Pygoscelis-Papua_Gentoo_HVM_${image_suffix}\" \
+--description \"Pygoscelis Papua (Gentoo) HVM ${image_suffix}\" \
+--architecture x86_64 \
+--root-device-name /dev/xvda \
+--block-device-mappings \"[
+{
+    \\\"DeviceName\\\": \\\"/dev/xvda\\\",
+    \\\"Ebs\\\": {
+        \\\"SnapshotId\\\": \\\"${new_snapshot_id}\\\"
+    }
+},
+{
+    \\\"DeviceName\\\": \\\"/dev/xvdb\\\",
+    \\\"VirtualName\\\": \\\"ephemeral0\\\"
+},
+{
+    \\\"DeviceName\\\": \\\"/dev/xvdc\\\",
+    \\\"VirtualName\\\": \\\"ephemeral1\\\"
+},
+{
+    \\\"DeviceName\\\": \\\"/dev/xvdd\\\",
+    \\\"VirtualName\\\": \\\"ephemeral2\\\"
+},
+{
+    \\\"DeviceName\\\": \\\"/dev/xvde\\\",
+    \\\"VirtualName\\\": \\\"ephemeral3\\\"
+}
+]\" \
+--virtualization-type hvm`"
+new_image_id="`echo ${register_image} | jq -r \".ImageId\"`"
+report_status "new image id: ${new_image_id}"
+
+report_status "Deleting key ${key_name}"
+./delete_key ${key_name}
+
