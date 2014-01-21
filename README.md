@@ -5,12 +5,16 @@ This is a Java reimplementation of the the [Gentoo Bootstrap](https://bitbucket.
 
 ## Checkout
 
+```
 git clone https://bitbucket.org/edowd/gentoo_bootstrap_java.git
 cd gentoo_bootstrap_java
+```
 
 ## Build
 
+```
 mvn clean package
+```
 
 ## Pygoscelis Papua
 
