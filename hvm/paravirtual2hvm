@@ -268,7 +268,7 @@ report_status "Register image"
 image_suffix="`date --utc +%Y-%m-%d-%H-%M-%S`"
 register_image="`aws --region ${REGION} ec2 \
 register-image \
---name \"Pygoscelis-Papua_Gentoo_HVM_${image_suffix}\" \
+--name \"Pygoscelis-Papua_Gentoo_HVM-${image_suffix}\" \
 --description \"Pygoscelis Papua (Gentoo) HVM ${image_suffix}\" \
 --architecture x86_64 \
 --root-device-name /dev/xvda \
