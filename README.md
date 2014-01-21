@@ -14,12 +14,14 @@ mvn clean package
 
 ## Pygoscelis Papua
 
+The successor to the Gentoo in the Cloud images is Pygoscelis Papua images:
+
 ### 64-bit EBS us-east-1
 
 ```
 java \
--Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/pygoscelis-papua/config/Pygoscelis-Papua-64-bit-EBS_us-east-1.properties \
--Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/pygoscelis-papua/config/log4j-info-console.properties \
+-Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/Pygoscelis-Papua-64-bit-EBS_us-east-1.properties \
+-Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
 -jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
 ```
 
@@ -27,21 +29,30 @@ java \
 
 ```
 java \
--Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/pygoscelis-papua/config/Pygoscelis-Papua-32-bit-EBS_us-east-1.properties \
--Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/pygoscelis-papua/config/log4j-info-console.properties \
+-Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/Pygoscelis-Papua-32-bit-EBS_us-east-1.properties \
+-Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
 -jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
 ```
 
 ### HVM us-east-1
 
+Due to difficulties in getting the aws java sdk and one-jar to play nicely together, we currently have a shell script for converting the 64-bit EBS image to HVM. It requires the [aws cli tool](http://www.dowdandassociates.com/blog/content/howto-install-aws-cli-aws-command-line-interface/) and [jq](http://www.dowdandassociates.com/blog/content/howto-install-jq/)
+
 ```
-java \
--Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/pygoscelis-papua/config/Pygoscelis-Papua-HVM_us-east-1.properties \
--Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/pygoscelis-papua/config/log4j-info-console.properties \
--jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
+cd hvm
+./paravirtual2hvm <64-bit-ebs-image-id>
 ```
 
-## Run
+so for example
+
+```
+cd hvm
+./paravirtual2hvm ami-19ad9f70
+```
+
+## Gentoo in the Cloud
+
+To build the older gentoo in the cloud images:
 
 ### 64-bit EBS us-east-1
 
@@ -57,15 +68,6 @@ java \
 ```
 java \
 -Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/Gentoo_32-bit-EBS_us-east-1.properties \
--Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
--jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
-```
-
-### HVM test
-
-```
-java \
--Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/hvm-test/config/Gentoo_HVM-test_us-east-1.properties \
 -Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
 -jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
 ```
