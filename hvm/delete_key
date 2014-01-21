@@ -1,0 +1,22 @@
+#!/bin/bash
+
+key_name=$1
+
+if [ -z $key_name ]; then
+    echo "key name not set"
+    exit
+fi
+
+if [ -z $REGION ]; then
+    REGION="us-east-1"
+fi
+
+delete_key="`aws --region $REGION ec2 delete-key-pair --key-name \"${key_name}\"`" 
+return_value="`echo $delete_key | jq -r \".return\"`"
+
+if [[ $return_value != "true" ]]; then
+    echo $delete_key | jq "."
+fi
+
+rm -f ${key_name}.pem
+

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+mount /dev/xvdf1 /mnt
+mount -t proc none /mnt/proc
+mount --rbind /dev /mnt/dev
+mount --rbind /dev/pts /mnt/dev/pts
+
+cat<<'EOF'>/mnt/tmp/grub.sh
+#!/bin/bash
+grub << END
+root (hd1,0)
+setup (hd1)
+quit
+END
+EOF
+chmod 755 /mnt/tmp/grub.sh
+
+chroot /mnt /tmp/grub.sh
+
+rm -f /mnt/tmp/grub.sh
+
+shutdown -h now
+

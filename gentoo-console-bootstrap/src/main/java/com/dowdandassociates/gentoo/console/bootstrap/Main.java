@@ -28,13 +28,16 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import com.netflix.blitz4j.LoggingConfiguration;
+import com.netflix.config.DynamicPropertyFactory;
+import com.netflix.config.DynamicStringProperty;
 import com.netflix.governator.guice.LifecycleInjector;
 import com.netflix.governator.lifecycle.LifecycleManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.dowdandassociates.gentoo.bootstrap.GentooBootstrapModule;
+import com.dowdandassociates.gentoo.bootstrap.HvmBootstrapModule;
+import com.dowdandassociates.gentoo.bootstrap.ParavirtualBootstrapModule;
 import com.dowdandassociates.gentoo.bootstrap.Bootstrapper;
 
 public class Main
@@ -52,13 +55,25 @@ public class Main
         props.setProperty("log4j.logger.asyncAppenders", "DEBUG,stdout");
         LoggingConfiguration.getInstance().configure(props);
 */
+        DynamicStringProperty virtualizationType = DynamicPropertyFactory.getInstance().getStringProperty("com.dowdandassociates.gentoo.bootstrap.Image.virtualizationType", "paravirtual");
+
         LoggingConfiguration.getInstance().configure();
 
         try
         {
 //            Injector injector = Guice.createInjector(new Amd64MinimalBootstrapModule());
         
-            Injector injector = LifecycleInjector.builder().withBootstrapModule(new GentooBootstrapModule()).createInjector();
+//            Injector injector = LifecycleInjector.builder().withBootstrapModule(new GentooBootstrapModule()).createInjector();
+
+            Injector injector;
+            if ("hvm".equals(virtualizationType.get()))
+            {
+                injector = LifecycleInjector.builder().withBootstrapModule(new HvmBootstrapModule()).createInjector();
+            }
+            else
+            {
+                injector = LifecycleInjector.builder().withBootstrapModule(new ParavirtualBootstrapModule()).createInjector();
+            }
 
             LifecycleManager manager = injector.getInstance(LifecycleManager.class);
 
