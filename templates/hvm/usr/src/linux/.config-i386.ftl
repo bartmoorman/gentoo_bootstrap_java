@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 3.10.17-gentoo Kernel Configuration
+# Linux/x86 3.10.32-gentoo Kernel Configuration
 #
 
 #
@@ -928,6 +928,7 @@ CONFIG_MD_RAID10=m
 CONFIG_MD_MULTIPATH=m
 CONFIG_MD_FAULTY=m
 # CONFIG_BCACHE is not set
+CONFIG_BLK_DEV_DM_BUILTIN=y
 CONFIG_BLK_DEV_DM=y
 # CONFIG_DM_DEBUG is not set
 CONFIG_DM_CRYPT=m
