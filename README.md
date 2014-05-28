@@ -26,7 +26,7 @@ The successor to the Gentoo in the Cloud images is Pygoscelis Papua images:
 java \
 -Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/Pygoscelis-Papua-64-bit-EBS_us-east-1.properties \
 -Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
--jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
+-jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.jar
 ```
 
 ### 32-bit EBS us-east-1
@@ -35,7 +35,7 @@ java \
 java \
 -Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/Pygoscelis-Papua-32-bit-EBS_us-east-1.properties \
 -Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
--jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.one-jar.jar
+-jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.jar
 ```
 
 ### HVM us-east-1
