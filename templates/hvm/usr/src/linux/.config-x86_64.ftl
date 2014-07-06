@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 3.12.13-gentoo Kernel Configuration
+# Linux/x86 3.12.21-gentoo-r1 Kernel Configuration
 #
 
 #
