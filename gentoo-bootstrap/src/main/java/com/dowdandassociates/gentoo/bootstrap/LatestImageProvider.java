@@ -36,6 +36,8 @@ import com.google.common.base.Optional;
 
 import com.google.inject.Provider;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +61,12 @@ public abstract class LatestImageProvider implements Provider<Optional<Image>>
 
         for (Image image : result.getImages())
         {
-            imageMap.put(image.getImageLocation(), image);
+            String imageLocation = StringUtils.substringAfterLast(image.getImageLocation(), "/");
+            if (StringUtils.isBlank(imageLocation))
+            {
+                imageLocation = image.getImageLocation();
+            }
+            imageMap.put(imageLocation, image);
         }
 
         if (imageMap.isEmpty())
