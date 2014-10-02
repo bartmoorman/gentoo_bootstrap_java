@@ -66,6 +66,7 @@ public abstract class LatestImageProvider implements Provider<Optional<Image>>
             {
                 imageLocation = image.getImageLocation();
             }
+            log.info("imageLocation = " + imageLocation);
             imageMap.put(imageLocation, image);
         }
 
@@ -77,6 +78,7 @@ public abstract class LatestImageProvider implements Provider<Optional<Image>>
         SortedSet<String> sortedKeySet = new TreeSet<String>();
         sortedKeySet.addAll(imageMap.keySet());
         String[] keys = sortedKeySet.toArray(new String[0]);
+        log.info("key = " + keys[keys.length - 1]);
         return Optional.fromNullable(imageMap.get(keys[keys.length - 1]));
     }
 
