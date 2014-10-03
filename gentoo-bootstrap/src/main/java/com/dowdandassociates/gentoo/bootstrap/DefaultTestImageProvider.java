@@ -89,12 +89,6 @@ public class DefaultTestImageProvider implements Provider<Optional<Image>>
             return Optional.absent();
         }
 
-        if (!kernelImage.isPresent())
-        {
-            log.info("kernel image not present");
-            return Optional.absent();
-        }
-
         StringBuilder name = new StringBuilder();
         name.append(prefix.get());
 
@@ -105,15 +99,22 @@ public class DefaultTestImageProvider implements Provider<Optional<Image>>
 
         String architecture = imageInformation.getArchitecture();
         String virtualizationType = imageInformation.getVirtualizationType();
+
         RegisterImageRequest registerImageRequest = new RegisterImageRequest().
                 withArchitecture(architecture).
-//                withVirtualizationType(virtualizationType).
+                withVirtualizationType(virtualizationType).
                 withDescription(description.get()).
                 withName(name.toString()).
                 withRootDeviceName(rootDeviceName.get());
 
         if ("paravirtual".equals(virtualizationType))
         {
+            if (!kernelImage.isPresent())
+            {
+                log.info("kernel image not present");
+                return Optional.absent();
+            }
+
             registerImageRequest = registerImageRequest.
                     withKernelId(kernelImage.get().getImageId());
         }

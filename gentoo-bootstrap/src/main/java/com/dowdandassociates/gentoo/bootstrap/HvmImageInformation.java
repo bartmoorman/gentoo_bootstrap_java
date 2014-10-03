@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @FineGrainedLazySingleton
-public abstract class HvmImageInformation implements ImageInformation
+public class HvmImageInformation implements ImageInformation
 {
     private static Logger log = LoggerFactory.getLogger(HvmImageInformation.class);
 

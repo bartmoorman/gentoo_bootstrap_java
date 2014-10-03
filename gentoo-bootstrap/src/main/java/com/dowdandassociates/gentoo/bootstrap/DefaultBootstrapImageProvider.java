@@ -60,7 +60,8 @@ public class DefaultBootstrapImageProvider extends LatestImageProvider
         {
             manifestLocation.append("pv");
         }
-        manifestLocation.append("-????.??.?.*");
+//        manifestLocation.append("-????.??.?.*");
+        manifestLocation.append("-2014.03.?.*");
 
         return new DescribeImagesRequest().
                 withOwners("amazon").
