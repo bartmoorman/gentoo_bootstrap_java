@@ -107,7 +107,7 @@ public class DefaultTestImageProvider implements Provider<Optional<Image>>
         String virtualizationType = imageInformation.getVirtualizationType();
         RegisterImageRequest registerImageRequest = new RegisterImageRequest().
                 withArchitecture(architecture).
-//                withVirtualizationType(virtualizationType).
+                withVirtualizationType(virtualizationType).
                 withDescription(description.get()).
                 withName(name.toString()).
                 withRootDeviceName(rootDeviceName.get());
