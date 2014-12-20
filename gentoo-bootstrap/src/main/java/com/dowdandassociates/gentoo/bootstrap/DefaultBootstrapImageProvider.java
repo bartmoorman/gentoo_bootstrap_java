@@ -63,6 +63,15 @@ public class DefaultBootstrapImageProvider extends LatestImageProvider
 //        manifestLocation.append("-????.??.?.*");
         manifestLocation.append("-2014.03.?.*");
 
+        if ("ebs".equals(imageInfo.getRootDeviceType()))
+        {
+            manifestLocation.append("-ebs");
+        }
+        else if ("instance-store".equals(imageInfo.getRootDeviceType()))
+        {
+            manifestLocation.append("-s3");
+        }
+
         return new DescribeImagesRequest().
                 withOwners("amazon").
                 withFilters(new Filter().withName("image-type").withValues("machine"),
