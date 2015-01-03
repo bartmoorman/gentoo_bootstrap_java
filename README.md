@@ -40,7 +40,16 @@ java \
 
 ### HVM us-east-1
 
-Due to difficulties in getting the aws java sdk and one-jar to play nicely together, we currently have a shell script for converting the 64-bit EBS image to HVM. It requires the [aws cli tool](http://www.dowdandassociates.com/blog/content/howto-install-aws-cli-aws-command-line-interface/) and [jq](http://www.dowdandassociates.com/blog/content/howto-install-jq/)
+```
+java \
+-Darchaius.configurationSource.additionalUrls=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/Pygoscelis-Papua-HVM_us-east-1.properties \
+-Dlog4j.configuration=https://bitbucket.org/edowd/gentoo_bootstrap_java/raw/master/config/log4j-info-console.properties \
+-jar gentoo-console-bootstrap/target/gentoo-console-bootstrap.jar
+```
+
+- - - - -
+
+There were difficulties in the past of getting an executable jar that worked with later versions of the aws java sdk. However the following script for converting a 64-bit EBS image is still useful to eliminate a separate hvm build. It requires the [aws cli tool](http://www.dowdandassociates.com/blog/content/howto-install-aws-cli-aws-command-line-interface/) and [jq](http://www.dowdandassociates.com/blog/content/howto-install-jq/)
 
 ```
 cd hvm
