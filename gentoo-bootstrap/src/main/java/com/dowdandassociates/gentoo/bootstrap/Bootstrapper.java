@@ -113,12 +113,19 @@ public class Bootstrapper
         this.bootstrapResultInformation = bootstrapResultInformation;
     }
 */
-
+/*
     @Inject
     public void setGentooImage(@Named("Gentoo Image") Optional<Image> gentooImage)
     {
         this.gentooImage =  gentooImage;
     }
+*/
+    @Inject
+    public void setGentooImage(@Named("Test Image") Optional<Image> gentooImage)
+    {
+        this.gentooImage =  gentooImage;
+    }
+
 
     public void execute()
     {
