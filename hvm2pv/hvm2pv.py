@@ -61,12 +61,12 @@ logging.info("old name = " + image.name + "; new name = " + new_name)
 new_description = image.description.replace("HVM", "64-bit EBS")
 logging.info("old description = " + image.description + "; new description = " + new_description)
 
-new_root_device_name = image.root_device_name.replace("xv", "s")
+new_root_device_name = image.root_device_name.replace("/dev/xv", "/dev/s")
 logging.info("old root device name = " + image.root_device_name + "; new root device name = " + new_root_device_name)
 
 bdm = boto.ec2.blockdevicemapping.BlockDeviceMapping()
 for key in image.block_device_mapping:
-    new_key = key.replace("xv", "s")
+    new_key = key.replace("/dev/xv", "/dev/s")
     logging.info("old device name = " + key + "; new device name = " + new_key)
     bdm[new_key] = boto.ec2.blockdevicemapping.BlockDeviceType()
     if image.block_device_mapping[key].ephemeral_name is not None:
