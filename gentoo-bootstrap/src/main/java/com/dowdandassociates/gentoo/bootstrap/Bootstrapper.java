@@ -50,6 +50,7 @@ import com.amazonaws.services.ec2.model.Volume;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -58,9 +59,13 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+import com.netflix.governator.annotations.Configuration;
+
+/*
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+*/
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +81,10 @@ public class Bootstrapper
     private SecurityGroupInformation securityGroup;
 */
     private Optional<Image> gentooImage;
+
+    @Configuration("com.dowdandassociates.gentoo.bootstrap.Bootstrapper.outputFile")
+    Supplier<String> outputFilename = Suppliers.ofInstance("config.json");
+
 /*
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -131,6 +140,27 @@ public class Bootstrapper
     {
         log.info("gentoo image id: " + ((gentooImage.isPresent()) ? gentooImage.get().getImageId() : "absent"));
 
+        try
+        {
+            FileWriter fileWriter = new FileWriter(outputFilename.get());
+            try
+            {
+                String imageId = (gentooImage.isPresent()) ? gentooImage.get().getImageId() : "";
+                fileWriter.write(new StringBuilder().append("{\"images\": [\"").append(imageId).append("\"]}").toString());
+            }
+            finally
+            {
+                fileWriter.close();
+            }
+        }
+        catch (RuntimeException re)
+        {
+            throw re;
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
 /*
         log.info("key pair name: " + keyPair.getName());
         log.info("key pair filename: " + keyPair.getFilename());
