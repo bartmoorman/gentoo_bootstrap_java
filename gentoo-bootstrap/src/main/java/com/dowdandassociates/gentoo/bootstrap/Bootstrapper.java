@@ -33,6 +33,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.amazonaws.services.ec2.AmazonEC2;
@@ -51,6 +52,11 @@ import com.amazonaws.services.ec2.model.Volume;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -85,6 +91,8 @@ public class Bootstrapper
     @Configuration("com.dowdandassociates.gentoo.bootstrap.Bootstrapper.outputFile")
     Supplier<String> outputFilename = Suppliers.ofInstance("config.json");
 
+    @Configuration("com.amazonaws.services.ec2.AmazonEC2.endpoint")
+    private Supplier<String> endpoint = Suppliers.ofInstance("https://ec2.us-east-1.amazonaws.com");
 /*
     @Inject
     public void setBootstrapImage(@Named("Bootstrap Image") Optional<Image> bootstrapImage)
@@ -129,12 +137,12 @@ public class Bootstrapper
         this.gentooImage =  gentooImage;
     }
 */
+
     @Inject
     public void setGentooImage(@Named("Test Image") Optional<Image> gentooImage)
     {
         this.gentooImage =  gentooImage;
     }
-
 
     public void execute()
     {
@@ -145,8 +153,19 @@ public class Bootstrapper
             FileWriter fileWriter = new FileWriter(outputFilename.get());
             try
             {
-                String imageId = (gentooImage.isPresent()) ? gentooImage.get().getImageId() : "";
-                fileWriter.write(new StringBuilder().append("{\"images\": [\"").append(imageId).append("\"]}").toString());
+                Map<String, String> image = Maps.newLinkedHashMap();
+                image.put("endpoint", endpoint.get());
+                if (gentooImage.isPresent())
+                {
+                    image.put("imageId", gentooImage.get().getImageId());
+                }
+                Map<String, Object> config = Maps.newLinkedHashMap();
+                config.put("bootstrap", image);
+
+                Gson gson = new GsonBuilder().
+                        create();
+
+                gson.toJson(config, fileWriter);
             }
             finally
             {

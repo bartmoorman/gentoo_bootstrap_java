@@ -1,4 +1,4 @@
 *.swp
 target/
 *.pem
-
+config.json
