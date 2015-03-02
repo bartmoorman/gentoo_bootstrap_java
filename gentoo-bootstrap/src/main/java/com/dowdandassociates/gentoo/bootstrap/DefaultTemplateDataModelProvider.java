@@ -42,7 +42,7 @@ public class DefaultTemplateDataModelProvider implements Provider<Object>
     private static Logger log = LoggerFactory.getLogger(DefaultTemplateDataModelProvider.class);
 
     @Configuration("com.dowdandassociates.gentoo.bootstrap.mirror")
-    private Supplier<String> mirror = Suppliers.ofInstance("http://gentoo.mirrors.pair.com/");
+    private Supplier<String> mirror = Suppliers.ofInstance("http://gentoo.mirrors.easynews.com/linux/gentoo/");
 
     @Configuration("com.dowdandassociates.gentoo.bootstrap.rootfstype")
     private Supplier<String> rootFsType = Suppliers.ofInstance("ext4");
