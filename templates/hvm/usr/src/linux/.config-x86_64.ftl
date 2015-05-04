@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 3.18.7-gentoo Kernel Configuration
+# Linux/x86 3.18.11-gentoo Kernel Configuration
 #
 
 #
