@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 3.18.11-gentoo Kernel Configuration
+# Linux/x86 3.18.12-gentoo Kernel Configuration
 #
 
 #
@@ -360,7 +360,7 @@ CONFIG_GART_IOMMU=y
 CONFIG_SWIOTLB=y
 CONFIG_IOMMU_HELPER=y
 # CONFIG_MAXSMP is not set
-CONFIG_NR_CPUS=8
+CONFIG_NR_CPUS=64
 # CONFIG_SCHED_SMT is not set
 CONFIG_SCHED_MC=y
 CONFIG_PREEMPT_NONE=y
