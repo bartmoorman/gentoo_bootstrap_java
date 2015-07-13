@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "--- PREPARING ENVIRONMENT"
+
+echo "--- Partition disk"
 fdisk ${device} << EOF
 n
 p
@@ -37,8 +40,6 @@ tar -xjpf /tmp/stage3.tar.bz2 -C ${mountPoint}
 echo "--- Unpack portage"
 tar -xjf /tmp/portage.tar.bz2 -C ${mountPoint}/usr
 
-echo "--- Setup files (outside chroot)"
-
 echo "--- /etc/resolv.conf"
 cp -L /etc/resolv.conf ${mountPoint}/etc/resolv.conf
 
@@ -52,6 +53,7 @@ mount -t proc none ${mountPoint}/proc
 mount --rbind /dev ${mountPoint}/dev
 mount --rbind /dev/pts ${mountPoint}/dev/pts
 
+echo "--- chroot and start building"
 chroot ${mountPoint} /tmp/build.sh
 
 rm -fR ${mountPoint}/tmp/*

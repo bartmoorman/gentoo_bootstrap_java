@@ -3,7 +3,6 @@ app-admin/logrotate
 app-admin/mcelog
 </#if>
 app-admin/sudo
-app-admin/syslog-ng
 app-admin/sysstat
 app-editors/vim
 app-misc/screen
@@ -19,8 +18,6 @@ net-misc/ntp
 sys-apps/mlocate
 sys-cluster/ganglia
 sys-fs/mdadm
-sys-kernel/gentoo-sources
 sys-process/atop
 sys-process/htop
 sys-process/lsof
-sys-process/vixie-cron
