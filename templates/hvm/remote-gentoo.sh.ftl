@@ -59,4 +59,3 @@ rm -fR ${mountPoint}/var/tmp/*
 rm -fR ${mountPoint}/usr/portage/distfiles/*
 
 shutdown -h now
-

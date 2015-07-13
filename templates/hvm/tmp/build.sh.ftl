@@ -2,44 +2,11 @@
 
 echo "Setup files"
 
-mkdir -p /boot/grub
-
-<#assign filename = "/boot/grub/menu.lst">
-echo "${filename}"
-cat <<'EOF'>${filename}
-<#include "/boot/grub/menu.lst.ftl">
-EOF
-
-mkdir -p /etc
-
 <#assign filename = "/etc/fstab">
 echo "${filename}"
 cat <<'EOF'>${filename}
 <#include "/etc/fstab.ftl">
 EOF
-
-mkdir -p /etc/local.d
-
-<#assign filename = "/etc/local.d/public-keys.start">
-echo "${filename}"
-cat <<'EOF'>${filename}
-<#include "/etc/local.d/public-keys.start.ftl">
-EOF
-chmod 755 ${filename}
-
-<#assign filename = "/etc/local.d/public-keys.stop">
-echo "${filename}"
-cat <<'EOF'>${filename}
-<#include "/etc/local.d/public-keys.stop.ftl">
-EOF
-chmod 755 ${filename}
-
-<#assign filename = "/etc/local.d/killall_nash-hotplug.start">
-echo "${filename}"
-cat <<'EOF'>${filename}
-<#include "/etc/local.d/killall_nash-hotplug.start.ftl">
-EOF
-chmod 755 ${filename}
 
 <#assign filename = "/etc/local.d/makeopts.start">
 echo "${filename}"
@@ -48,10 +15,11 @@ cat <<'EOF'>${filename}
 EOF
 chmod 755 ${filename}
 
-echo "/etc/localtime"
-cp -L /usr/share/zoneinfo/UTC /etc/localtime
-
-mkdir -p /etc/portage
+<#assign filename = "/etc/timezone">
+echo "${filename}"
+cat <<'EOF'>${filename}
+<#include "/etc/timezone.ftl">
+EOF
 
 <#assign filename = "/etc/portage/make.conf">
 echo "${filename}"
@@ -59,23 +27,12 @@ cat <<'EOF'>${filename}
 <#include "/etc/portage/make.conf.ftl">
 EOF
 
-mkdir -p /etc/sudoers.d
-
-<#assign filename = "/etc/sudoers.d/ec2-user">
+<#assign filename = "/etc/sudoers.d/_wheel">
 echo "${filename}"
 cat <<'EOF'>${filename}
-<#include "/etc/sudoers.d/ec2-user.ftl">
+<#include "/etc/sudoers.d/_wheel.ftl">
 EOF
 chmod 440 ${filename}
-
-<#assign filename = "/etc/sudoers.d/_sudo">
-echo "${filename}"
-cat <<'EOF'>${filename}
-<#include "/etc/sudoers.d/_sudo.ftl">
-EOF
-chmod 440 ${filename}
-
-mkdir -p /var/lib/portage
 
 <#assign filename = "/var/lib/portage/world">
 echo "${filename}"
@@ -93,17 +50,10 @@ emerge --sync
 emerge --oneshot sys-apps/portage
 
 <#if architecture == "i386">
-    <#assign gentooProfile = "default/linux/x86/13.0">
-<#else>
-    <#assign gentooProfile = "default/linux/amd64/13.0/no-multilib">
-</#if>
-eselect profile set ${gentooProfile}
-
-<#if architecture == "i386">
 emerge --unmerge sys-apps/module-init-tools
 </#if>
 
-emerge mail-mta/ssmtp
+emerge mail-mta/netqmail
 emerge --update --deep --with-bdeps=y --newuse @world
 
 cd /usr/src/linux
@@ -123,10 +73,7 @@ make && make modules_install
 </#if>
 cp -L arch/${kernelArch}/boot/bzImage /boot/bzImage
 
-groupadd sudo
-useradd -r -m -s /bin/bash ec2-user
-
-useradd -g users -G sudo -m bmoorman
+useradd -g users -G wheel -m bmoorman
 
 <#assign filename = "/home/bmoorman/.ssh/authorized_keys">
 echo "${filename}"
@@ -134,7 +81,7 @@ cat <<'EOF'>${filename}
 <#include "/keys/bmoorman.ftl">
 EOF
 
-useradd -g users -G sudo -m npeterson
+useradd -g users -G wheel -m npeterson
 
 <#assign filename = "/home/npeterson/.ssh/authorized_keys">
 echo "${filename}"
@@ -142,7 +89,7 @@ cat <<'EOF'>${filename}
 <#include "/keys/npeterson.ftl">
 EOF
 
-useradd -g users -G sudo -m sdibb
+useradd -g users -G wheel -m sdibb
 
 <#assign filename = "/home/sdibb/.ssh/authorized_keys">
 echo "${filename}"
@@ -155,12 +102,17 @@ ln -s /etc/init.d/net.lo /etc/init.d/net.eth0
 rc-update add net.eth0 default
 rc-update add sshd default
 rc-update add syslog-ng default
-rc-update add fcron default
+rc-update add vixie-cron default
 rc-update add ntpd default
-rc-update add lvm boot
-rc-update add mdraid boot
+rc-update add svscan default
 
 emerge sys-boot/grub-static
+
+<#assign filename = "/boot/grub/menu.lst">
+echo "${filename}"
+cat <<'EOF'>${filename}
+<#include "/boot/grub/menu.lst.ftl">
+EOF
 
 <#if virtualizationType == "hvm">
 grub << EOF
@@ -169,4 +121,3 @@ setup (hd1)
 quit
 EOF
 </#if>
-

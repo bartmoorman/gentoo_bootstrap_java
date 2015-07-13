@@ -9,4 +9,3 @@ sed \
 -e "s/EMERGE_DEFAULT_OPTS=.*/EMERGE_DEFAULT_OPTS=\"--jobs=<#noparse>${CORES}</#noparse> --load-average=<#noparse>${THREADS}</#noparse>.0\"/g" \
 /etc/portage/make.conf.old \
 > /etc/portage/make.conf
-

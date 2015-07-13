@@ -15,4 +15,3 @@ if [ $? -eq 0 ] ; then
     chgrp ec2-user /home/ec2-user/.ssh/authorized_keys
     rm /tmp/my-key
 fi
-
