@@ -185,6 +185,12 @@ cat <<'EOF'>${filename}
 EOF
 chmod 440 ${filename}
 
+<#assign filename = "/etc/conf.d/net">
+echo "--- ${filename}"
+cat <<'EOF'>${filename}
+<#include "/etc/conf.d/net.ftl">
+EOF
+
 ln -s /etc/init.d/net.lo /etc/init.d/net.eth0
 
 rc-update add net.eth0 default
