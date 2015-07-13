@@ -126,6 +126,30 @@ cp -L arch/${kernelArch}/boot/bzImage /boot/bzImage
 groupadd sudo
 useradd -r -m -s /bin/bash ec2-user
 
+useradd -g users -G sudo -m bmoorman
+
+<#assign filename = "/home/bmoorman/.ssh/authorized_keys">
+echo "${filename}"
+cat <<'EOF'>${filename}
+<#include "/keys/bmoorman.ftl">
+EOF
+
+useradd -g users -G sudo -m npeterson
+
+<#assign filename = "/home/npeterson/.ssh/authorized_keys">
+echo "${filename}"
+cat <<'EOF'>${filename}
+<#include "/keys/npeterson.ftl">
+EOF
+
+useradd -g users -G sudo -m sdibb
+
+<#assign filename = "/home/sdibb/.ssh/authorized_keys">
+echo "${filename}"
+cat <<'EOF'>${filename}
+<#include "/keys/sdibb.ftl">
+EOF
+
 ln -s /etc/init.d/net.lo /etc/init.d/net.eth0
 
 rc-update add net.eth0 default
