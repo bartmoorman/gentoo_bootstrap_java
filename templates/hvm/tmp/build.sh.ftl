@@ -93,6 +93,12 @@ sed -i -r \
 -e "s/^emailAddress=.*/emailAddress=systems@insidesales.com/" \
 "${filename}"
 
+<#assign filename = "/usr/src/linux/.config">
+echo "--- ${filename}"
+cat <<'EOF'>${filename}
+<#include "/usr/src/linux/.config.ftl">
+EOF
+
 emerge --update --deep --with-bdeps=y --newuse @world
 
 <#assign filename = "/etc/logrotate.conf">
@@ -137,11 +143,6 @@ sed -i -r \
 "${filename}"
 
 cd /usr/src/linux
-<#assign filename = "/usr/src/linux/.config">
-echo "--- ${filename}"
-cat <<'EOF'>${filename}
-<#include "/usr/src/linux/.config.ftl">
-EOF
 
 yes "" | make oldconfig
 make && make modules_install
