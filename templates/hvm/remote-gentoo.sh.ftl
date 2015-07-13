@@ -9,16 +9,16 @@ p
 w
 EOF
 
-echo "Format volume"
+echo "--- Format volume"
 mkfs -t ${rootfstype} ${device}1
 
-echo "Create mount point"
+echo "--- Create mount point"
 mkdir -p ${mountPoint}
 
-echo "Mount volume"
+echo "--- Mount volume"
 mount ${device}1 ${mountPoint}
 
-echo "Download stage3"
+echo "--- Download stage3"
 <#if architecture == "i386">
     <#assign archDir = "x86">
     <#assign archFile = "i686">
@@ -28,21 +28,21 @@ echo "Download stage3"
 </#if>
 curl --silent -o /tmp/stage3.tar.bz2 "${mirror}releases/${archDir}/autobuilds/`curl --silent "${mirror}releases/${archDir}/autobuilds/latest-stage3-${archFile}.txt" | grep stage3-${archFile}`"
 
-echo "Download portage"
+echo "--- Download portage"
 curl --silent -o /tmp/portage.tar.bz2 "${mirror}snapshots/portage-latest.tar.bz2"
 
-echo "Unpack stage3"
+echo "--- Unpack stage3"
 tar -xjpf /tmp/stage3.tar.bz2 -C ${mountPoint}
 
-echo "Unpack portage"
+echo "--- Unpack portage"
 tar -xjf /tmp/portage.tar.bz2 -C ${mountPoint}/usr
 
-echo "Setup files"
+echo "--- Setup files (outside chroot)"
 
-echo "/etc/resolv.conf"
+echo "--- /etc/resolv.conf"
 cp -L /etc/resolv.conf ${mountPoint}/etc/resolv.conf
 
-echo "/tmp/build.sh"
+echo "--- /tmp/build.sh"
 cat <<'END_OF_FILE'>${mountPoint}/tmp/build.sh
 <#include "/tmp/build.sh.ftl">
 END_OF_FILE
