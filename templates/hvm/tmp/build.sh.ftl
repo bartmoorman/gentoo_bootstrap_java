@@ -60,7 +60,7 @@ cp -L arch/${kernelArch}/boot/bzImage /boot/bzImage
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
--e "s|^(/dev/(BOOT|SWAP))|#\1|" \
+-e "s|^(/dev/(BOOT\|SWAP))|#\1|" \
 -e "s|^/dev/ROOT.*|/dev/xvda1\t\t/\t\text4\t\tnoatime,discard\t0 0|" \
 "${filename}"
 
@@ -183,12 +183,12 @@ sed -i -r \
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
--e "|^\[DEFAULT\]|,|^\[.*\]|s|^(ignoreip\s+=\s+.*)|\1 10.0.0.0/8|" \
--e "|^\[DEFAULT\]|,|^\[.*\]|s|^(bantime\s+=\s+).*|\1-1|" \
--e "|^\[ssh-tcpwrapper\]|,|^\[.*\]|s|^(enabled\s+=\s+).*|\1true|" \
--e "|^\[ssh-tcpwrapper\]|,|^\[.*\]|s|^(\s+sendmail-whois)|#\1|" \
--e "|^\[ssh-tcpwrapper\]|,|^\[.*\]|s|^(ignoreregex)|#\1|" \
--e "|^\[ssh-tcpwrapper\]|,|^\[.*\]|s|^(logpath\s+=\s+).*|\1/var/log/messages|" \
+-e "\|^\[DEFAULT\]|,\|^\[.*\]|s|^(ignoreip\s+=\s+.*)|\1 10.0.0.0/8|" \
+-e "\|^\[DEFAULT\]|,\|^\[.*\]|s|^(bantime\s+=\s+).*|\1-1|" \
+-e "\|^\[ssh-tcpwrapper\]|,\|^\[.*\]|s|^(enabled\s+=\s+).*|\1true|" \
+-e "\|^\[ssh-tcpwrapper\]|,\|^\[.*\]|s|^(\s+sendmail-whois)|#\1|" \
+-e "\|^\[ssh-tcpwrapper\]|,\|^\[.*\]|s|^(ignoreregex)|#\1|" \
+-e "\|^\[ssh-tcpwrapper\]|,\|^\[.*\]|s|^(logpath\s+=\s+).*|\1/var/log/messages|" \
 "${filename}"
 
 <#assign filename = "/etc/hosts.allow">
@@ -198,14 +198,22 @@ echo -e "\nnrpe: 10.0.0.0/8" >> "${filename}"
 
 rc-update add fail2ban default
 
+<#assign filename = "/tmp/nrpe.cfg.insert">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/etc/nagios/nrpe.cfg.ftl">
+EOF
+
 <#assign filename = "/etc/nagios/nrpe.cfg">
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "s|^(allowed_hosts=.*)|\1,10.0.0.0/8|" \
 -e "s|^(command\[check_load\]=.*)|#\1|" \
--e "s|^(command\[check_total_procs\]=.*)|\1\n\n<#include "/etc/nagios/nrpe.cfg.ftl">|" \
+-e "\|^command\[check_total_procs\]|r /tmp/nrpe.cfg.insert" \
 "${filename}"
+
+mkdir -p /usr/lib64/nagios/plugins/custom
 
 <#assign filename = "/usr/lib64/nagios/plugins/custom/check_bonding">
 echo "--- ${filename} (replace)"

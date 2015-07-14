@@ -1,3 +1,4 @@
+
 command[check_load]=/usr/lib64/nagios/plugins/check_load -r -w 2,1.5,1 -c 4,3,2
 command[check_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /
 command[check_swap]=/usr/lib64/nagios/plugins/check_swap -w 20% -c 10%
