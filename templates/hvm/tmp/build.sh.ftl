@@ -47,7 +47,7 @@ cat <<'EOF'>${filename}
 EOF
 
 yes "" | make oldconfig
-make && make modules_install
+make -j$(grep "^processor" /proc/cpuinfo | tail -n 1 | awk '{print $3 + 2}') && make modules_install
 
 <#if architecture == "i386">
     <#assign kernelArch = "x86">
