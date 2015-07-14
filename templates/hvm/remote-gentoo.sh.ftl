@@ -40,10 +40,10 @@ tar -xjpf /tmp/stage3.tar.bz2 -C ${mountPoint}
 echo "--- Unpack portage"
 tar -xjf /tmp/portage.tar.bz2 -C ${mountPoint}/usr
 
-echo "--- /etc/resolv.conf"
+echo "--- /etc/resolv.conf (copy)"
 cp -L /etc/resolv.conf ${mountPoint}/etc/resolv.conf
 
-echo "--- /tmp/build.sh"
+echo "--- /tmp/build.sh (replace)"
 cat <<'END_OF_FILE'>${mountPoint}/tmp/build.sh
 <#include "/tmp/build.sh.ftl">
 END_OF_FILE
