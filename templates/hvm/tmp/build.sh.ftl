@@ -61,7 +61,7 @@ echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "s|^(/dev/(BOOT\|SWAP))|#\1|" \
--e "s|^/dev/ROOT.*|/dev/xvda1\t\t/\t\text4\t\tnoatime,discard\t0 0|" \
+-e "s|^/dev/ROOT(\s+/\s+)ext3(\s+noatime\s+)0 1|/dev/xvda1\1ext4\20 0|" \
 "${filename}"
 
 cd /etc/init.d
@@ -151,6 +151,12 @@ cat <<'EOF'>"${filename}"
 EOF
 
 emerge -uDN @world
+
+rc-update add mdraid boot
+rc-update add lvm boot
+
+easy_install pip
+pip install awscli
 
 <#assign filename = "/etc/logrotate.conf">
 echo "--- ${filename} (modify)"

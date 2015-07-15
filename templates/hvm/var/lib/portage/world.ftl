@@ -10,6 +10,7 @@ app-misc/tmux
 app-portage/eix
 app-portage/gentoolkit
 dev-lang/php
+dev-python/setuptools
 net-analyzer/fail2ban
 net-analyzer/nrpe
 net-dns/djbdns
@@ -17,6 +18,7 @@ net-misc/dhcpcd
 net-misc/ntp
 sys-apps/mlocate
 sys-cluster/ganglia
+sys-fs/lvm2
 sys-fs/mdadm
 sys-process/atop
 sys-process/htop
