@@ -16,3 +16,5 @@ command[check_bonding]=/usr/lib64/nagios/plugins/custom/check_bonding
 command[check_memory]=/usr/lib64/nagios/plugins/custom/check_memory -w 20% -c 10%
 command[check_ipv4_conntrack]=/usr/lib64/nagios/plugins/custom/check_conntrack
 command[check_qmail_queue]=/usr/lib64/nagios/plugins/custom/check_qmail_queue
+command[check_mysql_connections]=/usr/lib64/nagios/plugins/custom/check_mysql_connections
+command[check_mysql_slave]=/usr/lib64/nagios/plugins/custom/check_mysql_slave
