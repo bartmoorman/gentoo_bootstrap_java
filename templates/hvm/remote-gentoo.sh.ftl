@@ -3,7 +3,7 @@
 echo "--- PREPARING ENVIRONMENT"
 
 echo "--- Partition disk"
-fdisk ${device} <<EOF
+fdisk ${device} <<'EOF'
 n
 p
 1

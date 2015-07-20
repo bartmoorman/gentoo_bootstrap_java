@@ -18,8 +18,6 @@ net-misc/dhcpcd
 net-misc/ntp
 sys-apps/mlocate
 sys-cluster/ganglia
-sys-fs/lvm2
-sys-fs/mdadm
 sys-process/atop
 sys-process/htop
 sys-process/lsof

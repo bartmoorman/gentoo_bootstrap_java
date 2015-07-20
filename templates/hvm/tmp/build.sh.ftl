@@ -119,7 +119,7 @@ cat <<'EOF'>"${filename}"
 EOF
 
 <#if virtualizationType == "hvm">
-grub << EOF
+grub <<'EOF'
 root (hd1,0)
 setup (hd1)
 quit
@@ -144,12 +144,6 @@ cat <<'EOF'>"${filename}"
 <#include "/etc/portage/package.use/ganglia.ftl">
 EOF
 
-<#assign filename = "/etc/portage/package.use/lvm2">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/etc/portage/package.use/lvm2.ftl">
-EOF
-
 <#assign filename = "/etc/portage/package.use/mysql">
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
@@ -163,9 +157,6 @@ cat <<'EOF'>"${filename}"
 EOF
 
 emerge -uDN @world
-
-rc-update add mdraid boot
-rc-update add lvm boot
 
 easy_install pip
 pip install awscli
@@ -233,13 +224,6 @@ sed -i -r \
 
 mkdir -p /usr/lib64/nagios/plugins/custom
 
-<#assign filename = "/usr/lib64/nagios/plugins/custom/check_bonding">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/usr/lib64/nagios/plugins/custom/check_bonding.ftl">
-EOF
-chmod 755 "${filename}"
-
 <#assign filename = "/usr/lib64/nagios/plugins/custom/check_conntrack">
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
@@ -258,20 +242,6 @@ chmod 755 "${filename}"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 <#include "/usr/lib64/nagios/plugins/custom/check_qmail_queue.ftl">
-EOF
-chmod 755 "${filename}"
-
-<#assign filename = "/usr/lib64/nagios/plugins/custom/check_mysql_connections">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/usr/lib64/nagios/plugins/custom/check_mysql_connections.ftl">
-EOF
-chmod 755 "${filename}"
-
-<#assign filename = "/usr/lib64/nagios/plugins/custom/check_mysql_slave">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/usr/lib64/nagios/plugins/custom/check_mysql_slave.ftl">
 EOF
 chmod 755 "${filename}"
 
@@ -326,28 +296,5 @@ chmod 755 "${filename}"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 <#include "/usr/local/lib64/ganglia/diskstats.php.ftl">
-EOF
-chmod 755 "${filename}"
-
-mkdir -p /usr/local/lib64/mysql/include
-
-<#assign filename = "/usr/local/lib64/mysql/watch_mysql_connections.php">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/usr/local/lib64/mysql/watch_mysql_connections.php.ftl">
-EOF
-chmod 755 "${filename}"
-
-<#assign filename = "/usr/local/lib64/mysql/watch_mysql_slave.php">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/usr/local/lib64/mysql/watch_mysql_slave.php.ftl">
-EOF
-chmod 755 "${filename}"
-
-<#assign filename = "/usr/local/lib64/mysql/include/settings.inc">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/usr/local/lib64/mysql/include/settings.inc.ftl">
 EOF
 chmod 755 "${filename}"
