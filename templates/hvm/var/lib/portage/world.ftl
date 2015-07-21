@@ -4,6 +4,7 @@ app-admin/mcelog
 </#if>
 app-admin/sudo
 app-admin/sysstat
+app-editors/nano
 app-editors/vim
 app-misc/screen
 app-misc/tmux

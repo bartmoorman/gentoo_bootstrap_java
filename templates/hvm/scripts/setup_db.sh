@@ -15,21 +15,13 @@ elif [ "${hostname##*_}" -eq "2" ]; then
 	offset="1"
 fi
 
-pvcreate /dev/xvd[fg]
-vgcreate vg0 /dev/xvd[fg]
-lvcreate -l 100%VG -n lvol0 vg0
-mkfs.ext4 /dev/vg0/lvol0
-
-filename="/etc/fstab"
-echo "--- ${filename} (append)"
-echo -e "\n\n/dev/vg0/lvol0\t\t/var/lib/mysql\text4\t\tnoatime\t\t0 0" >> "${filename}"
-
 filename="/var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"${filename}"
 dev-db/mysql
 dev-db/mytop
 dev-python/mysql-python
+sys-apps/pv
 sys-fs/lvm2
 EOF
 
@@ -70,11 +62,21 @@ echo "--- ${filename} (replace)"
 cat <<EOF>"${filename}"
 
 expire_logs_days		= 2
-log_slow_queries
+slow_query_log
 relay-log			= /var/log/mysql/binary/mysqld-relay-bin
 log_slave_updates
 auto_increment_increment	= 2
 auto_increment_offset		= ${offset}
+EOF
+
+filename="/tmp/my.cnf.insert.3"
+echo "--- ${filename} (replace)"
+cat <<EOF>"${filename}"
+
+innodb_flush_method		= O_DIRECT
+innodb_thread_concurrency	= 48
+innodb_concurrency_tickets	= 5000
+innodb_io_capacity		= 1000
 EOF
 
 filename="/etc/mysql/my.cnf"
@@ -97,6 +99,7 @@ sed -i -r \
 -e "s|^(innodb_data_file_path\s+=\s+.*)|#\1|" \
 -e "s|^(innodb_log_file_size\s+=\s+).*|\11024M|" \
 -e "s|^(innodb_flush_log_at_trx_commit\s+=\s+).*|\12|" \
+-e "\|^innodb_file_per_table|r /tmp/my.cnf.insert.3" \
 "${filename}"
 
 filename="/etc/mysql/sta.key"
@@ -188,12 +191,21 @@ mysql < "${filename}"
 
 /etc/init.d/mysql stop
 
+pvcreate /dev/xvd[fg]
+vgcreate vg0 /dev/xvd[fg]
+lvcreate -l 100%VG -n lvol0 vg0
+mkfs.ext4 /dev/vg0/lvol0
+
+filename="/etc/fstab"
+echo "--- ${filename} (append)"
+echo -e "\n/dev/vg0/lvol0\t\t/var/lib/mysql\text4\t\tnoatime\t\t0 0" >> "${filename}"
+
 dirname="/var/lib/mysql"
 echo "--- ${dirname} (mount)"
-mv "{$dirname}" "{$dirname}.bak"
-mkdir "{$dirname}"
-mount "{$dirname}"
-rsync -a "{$dirname}.bak/" "{$dirname}/"
+mv "${dirname}" "${dirname}.bak"
+mkdir "${dirname}"
+mount "${dirname}"
+rsync -a "${dirname}.bak/" "${dirname}/"
 
 /etc/init.d/mysql start
 
