@@ -89,7 +89,10 @@ locale-gen
 <#assign filename = "/etc/sysctl.conf">
 echo "--- ${filename} (append)"
 cp "${filename}" "${filename}.orig"
-echo -e "\nvm.swappiness = 10" >> "${filename}"
+cat <<'EOF'>>"${filename}"
+
+vm.swappiness = 10
+EOF
 
 emerge mail-mta/netqmail
 
@@ -203,7 +206,10 @@ sed -i -r \
 <#assign filename = "/etc/hosts.allow">
 echo "--- ${filename} (append)"
 cp "${filename}" "${filename}.orig"
-echo -e "\nnrpe: 10.0.0.0/8" >> "${filename}"
+cat <<'EOF'>>"${filename}"
+
+nrpe: 10.0.0.0/8
+EOF
 
 rc-update add fail2ban default
 

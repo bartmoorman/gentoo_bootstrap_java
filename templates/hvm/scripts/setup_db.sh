@@ -198,7 +198,10 @@ mkfs.ext4 /dev/vg0/lvol0
 
 filename="/etc/fstab"
 echo "--- ${filename} (append)"
-echo -e "\n/dev/vg0/lvol0\t\t/var/lib/mysql\text4\t\tnoatime\t\t0 0" >> "${filename}"
+cat <<'EOF'>>"${filename}"
+
+/dev/vg0/lvol0		/var/lib/mysql	ext4		noatime		0 0
+EOF
 
 dirname="/var/lib/mysql"
 echo "--- ${dirname} (mount)"
