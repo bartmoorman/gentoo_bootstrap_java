@@ -1,9 +1,29 @@
 #!/bin/bash
 hostname="$(hostname)"
+mac="$(curl -s http://169.254.169.254/latest/meta-data/mac)"
+if [ -z "${mac}" ]; then
+	echo "Unable to determine MAC!"
+	exit 1
+fi
+ip="$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${mac}/local-ipv4s)"
+if [ -z "${ip}" ]; then
+	echo "Unable to determine IP!"
+	exit 1
+fi
 
 filename="/var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"${filename}"
+sys-cluster/glusterfs
+EOF
+
+dirname="/etc/portage/package.keywords"
+echo "--- $dirname (create)"
+mkdir -p "${dirname}"
+
+filename="/etc/portage/package.keywords/glusterfs"
+echo "--- ${filename} (create)"
+cat <<'EOF'>"${filename}"
 sys-cluster/glusterfs
 EOF
 
@@ -19,7 +39,7 @@ mkdir -p "${dirname}"
 
 volume="tinydns"
 echo "--- $volume (manage)"
-gluster volume create ${volume} ${hostmame}:/var/glusterfs/${volume}
+gluster volume create ${volume} ${hostname}:/var/glusterfs/${volume} force
 gluster volume set ${volume} auth.allow 127.*,10.*
 gluster volume start ${volume}
 
@@ -34,7 +54,7 @@ dirname="/var/tinydns/root"
 echo "--- $dirname (mount)"
 mount "${dirname}"
 
-dnscache-conf dnscache dnslog /var/dnscache $(ifconfig eth0 | sed -n -r -e 's/\s+inet (([0-9]{1,3}\.?){4}).*/\1/p')
+dnscache-conf dnscache dnslog /var/dnscache ${ip}
 
 filename="/var/dnscache/root/ip/10"
 echo "--- ${filename} (create)"

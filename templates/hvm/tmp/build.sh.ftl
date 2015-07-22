@@ -35,6 +35,13 @@ cat <<'EOF'>"${filename}"
 EOF
 chmod 755 "${filename}"
 
+<#assign filename = "/etc/local.d/hostname.start">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/etc/local.d/hostname.start.ftl">
+EOF
+chmod 755 "${filename}"
+
 /etc/local.d/makeopts.start
 
 emerge sys-kernel/gentoo-sources
