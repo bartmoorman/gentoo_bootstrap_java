@@ -1,6 +1,5 @@
 #!/bin/bash
 hostname="$(hostname)"
-
 if [ "${hostname##*_}" -eq "0" ]; then
 	master="${hostname%_*}_1"
 	id="1"
