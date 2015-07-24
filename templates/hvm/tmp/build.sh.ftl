@@ -237,7 +237,9 @@ sed -i -r \
 -e "\|^command\[check_total_procs\]|r /tmp/nrpe.cfg.insert" \
 "${filename}"
 
-mkdir -p /usr/lib64/nagios/plugins/custom
+<#assign dirname = "/usr/lib64/nagios/plugins/custom">
+echo "--- ${dirname} (create)"
+mkdir -p "${dirname}"
 
 <#assign filename = "/usr/lib64/nagios/plugins/custom/check_conntrack">
 echo "--- ${filename} (replace)"
@@ -274,6 +276,28 @@ sed -i -r \
 rc-update add ntp-client default
 rc-update add ntpd default
 
+dnscache-conf dnscache dnslog /var/dnscache 127.0.0.1
+
+<#assign filename = "/var/dnscache/root/servers/@">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/var/dnscache/root/servers/@.ftl">
+EOF
+
+<#assign filename = "/var/dnscache/env/FORWARDONLY">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+1
+EOF
+
+<#assign filename = "/etc/resolv.conf.head">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/etc/resolv.conf.head.ftl">
+EOF
+
+ln -s /var/dnscache/ /service/dnscache
+
 useradd -g users -G wheel -m bmoorman
 
 <#assign filename = "/home/bmoorman/.ssh/authorized_keys">
@@ -298,7 +322,9 @@ cat <<'EOF'>"${filename}"
 <#include "/keys/sdibb.ftl">
 EOF
 
-mkdir -p /usr/local/lib64/ganglia
+<#assign dirname = "/usr/local/lib64/ganglia">
+echo "--- ${dirname} (create)"
+mkdir -p "${dirname}"
 
 <#assign filename = "/usr/local/lib64/ganglia/conntrack.sh">
 echo "--- ${filename} (replace)"

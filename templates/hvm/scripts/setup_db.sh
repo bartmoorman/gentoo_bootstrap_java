@@ -13,6 +13,16 @@ elif [ "${hostname##*_}" -eq "2" ]; then
 	id="3"
 	offset="1"
 fi
+mac="$(curl -s http://169.254.169.254/latest/meta-data/mac)"
+if [ -z "${mac}" ]; then
+	echo "Unable to determine MAC!"
+	exit 1
+fi
+ip="$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${mac}/local-ipv4s)"
+if [ -z "${ip}" ]; then
+	echo "Unable to determine IP!"
+	exit 1
+fi
 
 filename="/var/lib/portage/world"
 echo "--- ${filename} (append)"
@@ -205,7 +215,7 @@ EOF
 dirname="/var/lib/mysql"
 echo "--- ${dirname} (mount)"
 mv "${dirname}" "${dirname}.bak"
-mkdir "${dirname}"
+mkdir -p "${dirname}"
 mount "${dirname}"
 rsync -a "${dirname}.bak/" "${dirname}/"
 
@@ -240,7 +250,9 @@ sed -i -r \
 -e "\|^command\[check_total_procs\]|r /tmp/nrpe.cfg.insert" \
 "${filename}"
 
-mkdir -p /usr/lib64/nagios/plugins/custom/include
+dirname="/usr/lib64/nagios/plugins/custom/include"
+echo "--- ${dirname} (create)"
+mkdir -p "${dirname}"
 
 filename="/usr/lib64/nagios/plugins/custom/check_mysql_connections"
 echo "--- ${filename} (replace)"
@@ -264,7 +276,9 @@ $mpass = 'BwaaPPmbdNnsyf3GvZRHfdvA';
 ?>
 EOF
 
-mkdir -p /usr/local/lib64/mysql/include
+dirname="/usr/local/lib64/mysql/include"
+echo "--- ${dirname} (create)"
+mkdir -p "${dirname}"
 
 filename="/usr/local/lib64/mysql/watch_mysql_connections.php"
 echo "--- ${filename} (replace)"
