@@ -11,6 +11,8 @@ EOF
 env-update
 source /etc/profile
 
+emerge -q --sync
+
 <#assign filename = "/etc/timezone">
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
