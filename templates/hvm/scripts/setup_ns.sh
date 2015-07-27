@@ -1,12 +1,5 @@
 #!/bin/bash
 hostname="$(hostname)"
-if [ "${hostname:(-3)}" == "ns1" ]; then
-	peer_name="${hostname::(-3)}ns2"
-	peer_ip="10.12.32.10"
-elif [ "${hostname:(-3)}" == "ns2" ]; then
-	peer_name="${hostname::(-3)}ns1"
-	peer_ip="10.12.16.10"
-fi
 mac="$(curl -s http://169.254.169.254/latest/meta-data/mac)"
 if [ -z "${mac}" ]; then
 	echo "Unable to determine MAC!"
@@ -18,6 +11,13 @@ if [ -z "${ip}" ]; then
 	exit 1
 fi
 
+if [ "${hostname:(-3)}" == "ns1" ]; then
+	peer_name="${hostname::(-3)}ns2"
+	peer_ip="10.12.32.10"
+elif [ "${hostname:(-3)}" == "ns2" ]; then
+	peer_name="${hostname::(-3)}ns1"
+	peer_ip="10.12.16.10"
+fi
 
 filename="/etc/resolv.conf.head"
 echo "--- ${filename} (delete)"

@@ -1,5 +1,16 @@
 #!/bin/bash
 hostname="$(hostname)"
+mac="$(curl -s http://169.254.169.254/latest/meta-data/mac)"
+if [ -z "${mac}" ]; then
+	echo "Unable to determine MAC!"
+	exit 1
+fi
+ip="$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${mac}/local-ipv4s)"
+if [ -z "${ip}" ]; then
+	echo "Unable to determine IP!"
+	exit 1
+fi
+
 if [ "${hostname##*_}" -eq "0" ]; then
 	master="${hostname%_*}_1"
 	id="1"
@@ -13,16 +24,6 @@ elif [ "${hostname##*_}" -eq "2" ]; then
 	id="3"
 	offset="1"
 fi
-mac="$(curl -s http://169.254.169.254/latest/meta-data/mac)"
-if [ -z "${mac}" ]; then
-	echo "Unable to determine MAC!"
-	exit 1
-fi
-ip="$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${mac}/local-ipv4s)"
-if [ -z "${ip}" ]; then
-	echo "Unable to determine IP!"
-	exit 1
-fi
 
 filename="/var/lib/portage/world"
 echo "--- ${filename} (append)"
@@ -32,6 +33,7 @@ dev-db/mytop
 dev-python/mysql-python
 sys-apps/pv
 sys-fs/lvm2
+sys-fs/s3fs
 EOF
 
 filename="/etc/portage/package.use/lvm2"
