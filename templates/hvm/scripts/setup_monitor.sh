@@ -198,7 +198,6 @@ rc-update add nagios default
 filename="/tmp/gmetad.conf.insert"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
-
 data_source "Backup" backup1
 data_source "Database" db1_0 db1_1 db1_2 db2_0 db2_1 db2_2 db3_0 db3_1 db3_2 db4_0 db4_1 db4_2 db5_0 db5_1 db5_2
 data_source "Deplopy" deploy1
@@ -225,7 +224,7 @@ cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "s|^(data_source .*)|#\1|" \
 -e "\|^#data_source|r /tmp/gmetad.conf.insert" \
--e "s|^# gridname .*|gridname \"ISDC-EU\"|" \
+-e "s|^(# gridname .*)|\1\ngridname \"ISDC-EU\"|" \
 "${filename}"
 
 filename="/etc/fstab"
