@@ -290,6 +290,12 @@ cat <<'EOF'>"${filename}"
 <#include "/var/dnscache/root/servers/amazonaws.com.ftl">
 EOF
 
+<#assign filename = "/var/dnscache/root/servers/githubusercontent.com">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/var/dnscache/root/servers/githubusercontent.com.ftl">
+EOF
+
 <#assign filename = "/var/dnscache/env/FORWARDONLY">
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"

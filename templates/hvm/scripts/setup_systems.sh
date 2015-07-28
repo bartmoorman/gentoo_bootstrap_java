@@ -10,3 +10,5 @@ if [ -z "${ip}" ]; then
 	echo "Unable to determine IP!"
 	exit 1
 fi
+
+scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"

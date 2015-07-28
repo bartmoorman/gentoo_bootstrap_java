@@ -11,6 +11,8 @@ if [ -z "${ip}" ]; then
 	exit 1
 fi
 
+scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
+
 if [ "${hostname:(-3)}" == "ns1" ]; then
 	peer_name="${hostname::(-3)}ns2"
 	peer_ip="10.12.32.10"
@@ -159,43 +161,11 @@ mkdir -p "${dirname}"
 
 filename="/usr/local/lib64/nsupdater/index.php"
 echo "--- ${filename} (replacee)"
-cat <<'EOF'>"${filename}"
-<?php
-echo 'hello';
-?>
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 
 filename="/etc/init.d/nsupdater"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-#!/sbin/runscript
-
-checkconfig() {
-        PIDFILE="${PIDFILE:-/var/run/${SVCNAME}.pid}"
-        LOGFILE="${LOGFILE:-/var/log/${SVCNAME}.log}"
-        DAEMON="${DAEMON:-/usr/bin/php}"
-        DAEMON_IP="${DAEMON_IP:-0.0.0.0}"
-        DAEMON_PORT="${DAEMON_PORT:-8053}"
-        DAEMON_SCRIPT="${DAEMON_SCRIPT:-/usr/local/lib64/nsupdater/index.php}"
-        DAEMON_OPTS="-S ${DAEMON_IP}:${DAEMON_PORT} ${DAEMON_SCRIPT}"
-}
-
-start() {
-        checkconfig || return 1
-
-        ebegin "Starting ${SVCNAME}"
-        start-stop-daemon --start --background --make-pidfile --pidfile ${PIDFILE} --exec ${DAEMON} -- ${DAEMON_OPTS} &>> ${LOGFILE}
-        eend $?
-}
-
-stop() {
-        checkconfig || return 1
-
-        ebegin "Stopping ${SVCNAME}"
-        start-stop-daemon --stop --pidfile ${PIDFILE}
-        eend $?
-}
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 chmod 755 "${filename}"
 
 /etc/init.d/nsupdater start

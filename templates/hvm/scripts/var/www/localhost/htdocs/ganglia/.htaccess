@@ -1,0 +1,5 @@
+SetEnv ganglia_secret MVedpvR6jqdTnREhHunaqzrX
+AuthType Basic
+AuthName "Authorization is required beyond this point!"
+AuthUserFile /etc/ganglia/auth.users
+Require valid-user

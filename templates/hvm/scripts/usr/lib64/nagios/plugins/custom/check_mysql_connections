@@ -1,0 +1,71 @@
+#!/usr/bin/php
+<?php
+include('include/settings.inc');
+
+define('OK', 0);
+define('WARNING', 1);
+define('CRITICAL', 2);
+define('UNKNOWN', 3);
+
+$options = getopt('w:c:');
+$warning = $options['w'] ? $options['w'] : 60;
+$critical = $options['c'] ? $options['c'] : 80;
+
+$state = 'OK';
+$exit = OK;
+
+$mysql = @new mysqli($mhost, $muser, $mpass, 'information_schema');
+
+$query = <<<EOQ
+SELECT `VARIABLE_NAME`, `VARIABLE_VALUE`
+FROM `GLOBAL_VARIABLES`
+WHERE `VARIABLE_NAME` IN('MAX_CONNECTIONS', 'MAX_USER_CONNECTIONS')
+UNION
+SELECT `VARIABLE_NAME`, `VARIABLE_VALUE`
+FROM `GLOBAL_STATUS`
+WHERE `VARIABLE_NAME` IN('THREADS_CONNECTED')
+EOQ;
+$results = $mysql->query($query);
+
+while ($result = $results->fetch_object()) {
+	${$result->VARIABLE_NAME} = $result->VARIABLE_VALUE;
+}
+
+$used_percent = $THREADS_CONNECTED * 100 / $MAX_CONNECTIONS;
+$connections[] = sprintf('global -> %u (%.2f%%)', $THREADS_CONNECTED, $used_percent);
+
+if ($used_percent > $critical && $exit < 2) {
+	$state = 'CRITICAL';
+	$exit = CRITICAL;
+} elseif ($used_percent > $warning && $exit < 1) {
+	$state = 'WARNING';
+	$exit = WARNING;
+}
+
+$query = <<<EOQ
+SELECT `USER`, COUNT(*) AS CONNECTIONS
+FROM `PROCESSLIST`
+GROUP BY `USER`
+EOQ;
+$results = $mysql->query($query);
+
+while ($result = $results->fetch_object()) {
+	if (in_array($result->USER, array('monitoring', 'mytop', 'replication', 'system user'))) continue;
+
+	$used_percent = $result->CONNECTIONS * 100 / $MAX_USER_CONNECTIONS;
+	$connections[] = sprintf('%s -> %u (%.2f%%)', $result->USER, $result->CONNECTIONS, $used_percent);
+
+	if ($used_percent > $critical && $exit < 2) {
+		$state = 'CRITICAL';
+		$exit = CRITICAL;
+	} elseif ($used_percent > $warning && $exit < 1) {
+		$state = 'WARNING';
+		$exit = WARNING;
+	}
+}
+
+$mysql->close();
+
+echo "{$state}: " . implode(', ', $connections) . PHP_EOL;
+exit($exit);
+?>

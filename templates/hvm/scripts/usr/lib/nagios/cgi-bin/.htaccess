@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Authorization is required beyond this point!"
+AuthUserFile /etc/nagios/auth.users
+Require valid-user

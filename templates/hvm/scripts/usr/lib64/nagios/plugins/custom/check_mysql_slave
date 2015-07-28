@@ -1,0 +1,41 @@
+#!/usr/bin/php
+<?php
+include('include/settings.inc');
+
+define('OK', 0);
+define('WARNING', 1);
+define('CRITICAL', 2);
+define('UNKNOWN', 3);
+
+$options = getopt('w:c:');
+$warning = $options['w'] ? $options['w'] : 300;
+$critical = $options['c'] ? $options['c'] : 600;
+
+$localDb = @new mysqli($mhost, $muser, $mpass);
+
+$query = <<<EOQ
+SHOW SLAVE STATUS
+EOQ;
+
+$status = $localDb->query($query);
+$status = $status->fetch_object();
+
+if ($status->Slave_SQL_Running != 'Yes') {
+	echo "CRITICAL: Slave is stopped" . PHP_EOL;
+	exit(CRITICAL);
+} elseif (!is_numeric($status->Seconds_Behind_Master)) {
+	echo "CRITICAL: Slave is {$status->Seconds_Behind_Master}" . PHP_EOL;
+	exit(CRITICAL);
+} elseif ($status->Seconds_Behind_Master > $critical) {
+	echo "CRITICAL: Slave is {$status->Seconds_Behind_Master} seconds behind master" . PHP_EOL;
+	exit(CRITICAL);
+} elseif ($status->Seconds_Behind_Master > $warning) {
+	echo "WARNING: Slave is {$status->Seconds_Behind_Master} seconds behind master" . PHP_EOL;
+	exit(WARNING);
+} else {
+	echo "OK: Slave is {$status->Seconds_Behind_Master} seconds behind master" . PHP_EOL;
+	exit(OK);
+}
+
+$localDb->close();
+?>

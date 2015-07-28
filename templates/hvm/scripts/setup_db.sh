@@ -11,6 +11,8 @@ if [ -z "${ip}" ]; then
 	exit 1
 fi
 
+scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
+
 if [ "${hostname##*_}" -eq "0" ]; then
 	master="${hostname%_*}_1"
 	id="1"
@@ -148,56 +150,9 @@ n
 y
 EOF
 
-filename="/tmp/mysql_setup.sql"
+filename="/etc/mysql/configure_as_slave.sql"
 echo "--- ${filename} (replace)"
-cat <<EOF>"${filename}"
-USE mysql;
-
-DELETE
-FROM user
-WHERE User LIKE 'root';
-
-DELETE
-FROM db;
-
-GRANT
-ALL
-ON *.*
-TO 'bmoorman'@'%' IDENTIFIED BY PASSWORD '*45BA692206F8B176986CABC043AAEE6143A929B1'
-WITH GRANT OPTION;
-
-GRANT
-ALL
-ON *.*
-TO 'cplummer'@'%' IDENTIFIED BY PASSWORD '*64B0067BC8D951A5AD8D57924F8606962ECC4E35'
-WITH GRANT OPTION;
-
-GRANT
-REPLICATION SLAVE
-ON *.*
-TO 'replication'@'10.%' IDENTIFIED BY '4Dv2QVfpHsBH48jrcKVwChPn';
-
-GRANT
-PROCESS, SUPER, REPLICATION CLIENT
-ON *.*
-TO 'monitoring'@'localhost' IDENTIFIED BY 'BwaaPPmbdNnsyf3GvZRHfdvA';
-
-GRANT
-PROCESS
-ON *.*
-TO 'mytop'@'localhost' IDENTIFIED BY 'jrquMqj5MtJAHaKrnXKscc8D';
-
-RESET MASTER;
-
-FLUSH PRIVILEGES;
-
-CHANGE MASTER TO
-master_host = '${master}',
-master_user = 'replication',
-master_password = '4Dv2QVfpHsBH48jrcKVwChPn';
-
-START SLAVE;
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 mysql < "${filename}"
 
 /etc/init.d/mysql stop
@@ -227,14 +182,7 @@ rc-update add mysql default
 
 filename="/etc/skel/.mytop"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-user=mytop
-pass=jrquMqj5MtJAHaKrnXKscc8D
-delay=1
-idle=0
-resolve=0
-sort=1
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 
 filename="/tmp/nrpe.cfg.insert"
 echo "--- ${filename} (replace)"
@@ -258,25 +206,17 @@ mkdir -p "${dirname}"
 
 filename="/usr/lib64/nagios/plugins/custom/check_mysql_connections"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 chmod 755 "${filename}"
 
 filename="/usr/lib64/nagios/plugins/custom/check_mysql_slave"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 chmod 755 "${filename}"
 
 filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<?php
-$mhost = 'localhost';
-$muser = 'monitoring';
-$mpass = 'BwaaPPmbdNnsyf3GvZRHfdvA';
-?>
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 
 dirname="/usr/local/lib64/mysql/include"
 echo "--- ${dirname} (create)"
@@ -284,114 +224,14 @@ mkdir -p "${dirname}"
 
 filename="/usr/local/lib64/mysql/watch_mysql_connections.php"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-#!/usr/bin/php
-<?php
-include('include/settings.inc');
-
-$threshold = .80;
-
-while (true) {
-	$interval = 5;
-	$message = '';
-
-	$localDb = @new mysqli($mhost, $muser, $mpass);
-
-	if ($localDb->connect_error) {
-		sleep($interval);
-		continue;
-	}
-
-	$query = <<<EOQ
-SHOW STATUS LIKE 'Threads_connected'
-EOQ;
-	$status = $localDb->query($query);
-	$status = $status->fetch_object();
-
-	$query = <<<EOQ
-SHOW VARIABLES LIKE 'max_connections'
-EOQ;
-	$variables = $localDb->query($query);
-	$variables = $variables->fetch_object();
-
-	if ($status->Value > $variables->Value * $threshold) {
-		$query = <<<EOQ
-SELECT * FROM information_schema.PROCESSLIST
-EOQ;
-		$processes = $localDb->query($query);
-
-		while ($process = $processes->fetch_object()) {
-			$message .= sprintf("%u %s %s %s %s %u %s %s\n", $process->ID, $process->USER, $process->HOST, $process->DB, $process->COMMAND, $process->TIME, $process->STATE, preg_replace('/\s+/', ' ', $process->INFO));
-		}
-
-		mail('Bart Moorman <bmoorman@insidesales.com>, NOC <noc@insidesales.com>', "TOO MANY CONNECTIONS ({$status->Value})", $message, 'From: mysql@' . gethostname());
-
-		$interval = 60;
-	}
-
-	$localDb->close();
-
-	sleep($interval);
-}
-?>
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 chmod 755 "${filename}"
 
 filename="/usr/local/lib64/mysql/watch_mysql_slave.php"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-#!/usr/bin/php
-<?php
-include('include/settings.inc');
-
-$threshold = 300;
-
-while (true) {
-	$interval = 5;
-	$message = '';
-
-	$localDb = @new mysqli($mhost, $muser, $mpass);
-
-	if ($localDb->connect_error) {
-		sleep($interval);
-		continue;
-	}
-
-	$query = <<<EOQ
-SHOW SLAVE STATUS
-EOQ;
-	$status = $localDb->query($query);
-	$status = $status->fetch_object();
-
-	if ($status->Slave_SQL_Running == 'Yes' && $status->Seconds_Behind_Master >= $threshold) {
-		$query = <<<EOQ
-SELECT * FROM information_schema.PROCESSLIST
-EOQ;
-		$processes = $localDb->query($query);
-
-		while ($process = $processes->fetch_object()) {
-			$message .= sprintf("%u %s %s %s %s %u %s %s\n", $process->ID, $process->USER, $process->HOST, $process->DB, $process->COMMAND, $process->TIME, $process->STATE, preg_replace('/\s+/', ' ', $process->INFO));
-		}
-
-		mail('Bart Moorman <bmoorman@insidesales.com>, NOC <noc@insidesales.com>', "SLAVE IS TOO FAR BEHIND ({$status->Seconds_Behind_Master})", $message, 'From: mysql@' . gethostname());
-
-		$interval = 60;
-	}
-
-	$localDb->close();
-
-	sleep($interval);
-}
-?>
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 chmod 755 "${filename}"
 
 filename="/usr/local/lib64/mysql/include/settings.inc"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<?php
-$mhost = 'localhost';
-$muser = 'monitoring';
-$mpass = 'BwaaPPmbdNnsyf3GvZRHfdvA';
-?>
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"

@@ -1,0 +1,27 @@
+#!/sbin/runscript
+
+checkconfig() {
+	PIDFILE="${PIDFILE:-/var/run/${SVCNAME}.pid}"
+	LOGFILE="${LOGFILE:-/var/log/${SVCNAME}.log}"
+	DAEMON="${DAEMON:-/usr/bin/php}"
+	DAEMON_IP="${DAEMON_IP:-0.0.0.0}"
+	DAEMON_PORT="${DAEMON_PORT:-8053}"
+	DAEMON_SCRIPT="${DAEMON_SCRIPT:-/usr/local/lib64/nsupdater/index.php}"
+	DAEMON_OPTS="-S ${DAEMON_IP}:${DAEMON_PORT} ${DAEMON_SCRIPT}"
+}
+
+start() {
+	checkconfig || return 1
+
+	ebegin "Starting ${SVCNAME}"
+	start-stop-daemon --start --background --make-pidfile --pidfile ${PIDFILE} --exec ${DAEMON} -- ${DAEMON_OPTS} &>> ${LOGFILE}
+	eend $?
+}
+
+stop() {
+	checkconfig || return 1
+
+	ebegin "Stopping ${SVCNAME}"
+	start-stop-daemon --stop --pidfile ${PIDFILE}
+	eend $?
+}

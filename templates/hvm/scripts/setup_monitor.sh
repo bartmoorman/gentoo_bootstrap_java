@@ -11,6 +11,8 @@ if [ -z "${ip}" ]; then
 	exit 1
 fi
 
+scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
+
 filename="/var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"${filename}"
@@ -73,21 +75,11 @@ rc-update add apache2 default
 
 filename="/usr/lib/nagios/cgi-bin/.htaccess"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-AuthType Basic
-AuthName "Authorization is required beyond this point!"
-AuthUserFile /etc/nagios/auth.users
-Require valid-user
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 
 filename="/usr/share/nagios/htdocs/.htaccess"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-AuthType Basic
-AuthName "Authorization is required beyond this point!"
-AuthUserFile /etc/nagios/auth.users
-Require valid-user
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 
 filename="/etc/nagios/cgi.cfg"
 echo "--- ${filename} (modify)"
@@ -118,28 +110,85 @@ dirname="/etc/nagios/global"
 echo "--- $dirname (create)"
 mkdir -p "${dirname}"
 
-#
-# TODO: Add GLOBAL configs
-#
+filename="/etc/nagios/global/commands.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/global/contact_groups.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/global/contacts.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/global/hosts.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/global/services.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/global/time_periods.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
 
 dirname="/etc/nagios/aws"
 echo "--- $dirname (create)"
 mkdir -p "${dirname}"
 
-#
-# TODO: Add AWS configs
-#
+filename="/etc/nagios/aws/host_groups.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/aws/hosts.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/aws/service_groups.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/aws/services.cfg"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
 
 dirname="/etc/nagios/scripts/include"
 echo "--- $dirname (create)"
 mkdir -p "${dirname}"
 
-curl --silent -o /etc/nagios/scripts/include/nma.php https://raw.githubusercontent.com/iVirus/NMA-PHP/master/nma.php
-curl --silent -o /etc/nagios/scripts/include/prowl.php https://raw.githubusercontent.com/iVirus/Prowl-PHP/master/prowl.php
+filename="/etc/nagios/scripts/build_host_email_message.php"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
 
-#
-# TODO: Add SCRIPTS
-#
+filename="/etc/nagios/scripts/build_host_push_message.php"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/scripts/build_service_email_message.php"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/scripts/build_service_push_message.php"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/scripts/nma.php"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/scripts/prowl.php"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "${scripts}${filename}"
+
+filename="/etc/nagios/scripts/include/nma.php"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "https://raw.githubusercontent.com/iVirus/NMA-PHP/master/nma.php"
+
+filename="/etc/nagios/scripts/include/prowl.php"
+echo "--- ${filename} (replace)"
+curl --silent -o "${filename}" "https://raw.githubusercontent.com/iVirus/Prowl-PHP/master/prowl.php"
 
 /etc/init./nagios start
 
@@ -229,22 +278,16 @@ dirname="/usr/local/lib64/ganglia"
 echo "--- ${dirname} (create)"
 mkdir -p "${dirname}"
 
-filename="/usr/local/lib64/ganglia/persist"
+filename="/usr/local/lib64/ganglia/persist.sh"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-#!/bin/bash
-
-if [ -f "/var/lib/ganglia/rrds/.keep_sys-cluster_ganglia-0" ]; then
-	rsync -avzq --del /var/lib/ganglia/rrds/ /var/lib/ganglia/rrds-disk/
-fi
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 chmod 755 "${filename}"
 
 filename="/var/spool/cron/crontabs/root"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 
-45 */3 * * *	bash /usr/local/lib64/ganglia/persist
+45 */3 * * *	bash /usr/local/lib64/ganglia/persist.sh
 EOF
 touch /var/spool/cron/crontabs
 
@@ -252,38 +295,8 @@ ln -s /var/www/localhost/htdocs/ganglia-web/ /var/www/localhost/htdocs/ganglia
 
 filename="/var/www/localhost/htdocs/ganglia/.htaccess"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-SetEnv ganglia_secret MVedpvR6jqdTnREhHunaqzrX
-AuthType Basic
-AuthName "Authorization is required beyond this point!"
-AuthUserFile /etc/ganglia/auth.users
-Require valid-user
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
 
 filename="/var/www/localhost/htdocs/ganglia/conf.php"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-$acl = GangliaAcl::getInstance();
-
-$acl->addPrivateCluster('Database');
-$acl->addPrivateCluster('Deplopy');
-$acl->addPrivateCluster('Dialer');
-$acl->addPrivateCluster('Event Handler');
-$acl->addPrivateCluster('Inbound');
-$acl->addPrivateCluster('Joule Processor');
-$acl->addPrivateCluster('Log');
-$acl->addPrivateCluster('Message Queue');
-$acl->addPrivateCluster('MongoDB');
-$acl->addPrivateCluster('Monitor');
-$acl->addPrivateCluster('Name Server');
-$acl->addPrivateCluster('Public Web');
-$acl->addPrivateCluster('Socket');
-$acl->addPrivateCluster('Statistics');
-$acl->addPrivateCluster('Systems');
-$acl->addPrivateCluster('Web');
-$acl->addPrivateCluster('Worker');
-
-$acl->addRole('bmoorman', GangliaAcl::ADMIN);
-$acl->addRole('npeterson', GangliaAcl::ADMIN);
-$acl->addRole('sdibb', GangliaAcl::ADMIN);
-EOF
+curl --silent -o "${filename}" "${scripts}${filename}"
