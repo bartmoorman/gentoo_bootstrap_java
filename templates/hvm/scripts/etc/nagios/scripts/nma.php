@@ -83,7 +83,7 @@ switch($type):
 		break;
 	case 'FLAPPINGSTOP':
 		$nma->setPriority(0);
-		break;	
+		break;
 	case 'FLAPPINGDISABLED':
 		$nma->setPriority(-2);
 		break;

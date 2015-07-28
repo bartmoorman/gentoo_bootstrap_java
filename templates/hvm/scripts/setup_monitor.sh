@@ -100,6 +100,7 @@ filename="/etc/nagios/nagios.cfg"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
+-e "s|^(cfg_file=.*)|#\1|" \
 -e "\|^#cfg_dir=/etc/nagios/routers|r /tmp/nagios.cfg.insert" \
 -e "s|^(check_result_reaper_frequency=).*|\12|" \
 -e "s|^(use_large_installation_tweaks=).*|\11|" \
@@ -190,7 +191,7 @@ filename="/etc/nagios/scripts/include/prowl.php"
 echo "--- ${filename} (replace)"
 curl --silent -o "${filename}" "https://raw.githubusercontent.com/iVirus/Prowl-PHP/master/prowl.php"
 
-/etc/init./nagios start
+/etc/init.d/nagios start
 
 rc-update add nagios default
 
@@ -198,6 +199,7 @@ filename="/tmp/gmetad.conf.insert"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 
+data_source "Backup" backup1
 data_source "Database" db1_0 db1_1 db1_2 db2_0 db2_1 db2_2 db3_0 db3_1 db3_2 db4_0 db4_1 db4_2 db5_0 db5_1 db5_2
 data_source "Deplopy" deploy1
 data_source "Dialer"  sip1 sip2 sip3 sip4 sip5
@@ -222,8 +224,8 @@ echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "s|^(data_source .*)|#\1|" \
--e "\|^#data_source|r /tmp/gmetad.conf.insert"
--e "s|^# gridname .*|gridname \"ISDC-EU\"|"
+-e "\|^#data_source|r /tmp/gmetad.conf.insert" \
+-e "s|^# gridname .*|gridname \"ISDC-EU\"|" \
 "${filename}"
 
 filename="/etc/fstab"

@@ -83,7 +83,7 @@ switch($type):
 		break;
 	case 'FLAPPINGSTOP':
 		$prowl->setPriority(0);
-		break;	
+		break;
 	case 'FLAPPINGDISABLED':
 		$prowl->setPriority(-2);
 		break;

@@ -1,6 +1,7 @@
 <?php
 $acl = GangliaAcl::getInstance();
 
+$acl->addPrivateCluster('Backup');
 $acl->addPrivateCluster('Database');
 $acl->addPrivateCluster('Deplopy');
 $acl->addPrivateCluster('Dialer');
