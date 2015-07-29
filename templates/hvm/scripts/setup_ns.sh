@@ -117,7 +117,7 @@ echo -n "Sleeping..."
 sleep 10
 echo "done! :)"
 
-echo -n "Waiting for ${peer_name}"
+echo -n "Waiting for ${peer_name}..."
 
 while ! gluster peer probe ${peer_name} &> /dev/null; do
 	if [ "${counter}" -ge "${timeout}" ]; then

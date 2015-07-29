@@ -44,6 +44,13 @@ cat <<'EOF'>"${filename}"
 EOF
 chmod 755 "${filename}"
 
+<#assign filename = "/etc/local.d/initialize.start">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/etc/local.d/initialize.start.ftl">
+EOF
+chmod 755 "${filename}"
+
 /etc/local.d/makeopts.start
 
 emerge sys-kernel/gentoo-sources
@@ -172,6 +179,11 @@ emerge -uDN @world
 
 easy_install pip
 pip install awscli
+
+<#assign filename = "/tmp/aws-cfn-bootstrap-latest.tar.gz">
+echo "--- ${filename} (replace)"
+wget -O "${filename}" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
+easy_install "${filename}"
 
 <#assign filename = "/etc/logrotate.conf">
 echo "--- ${filename} (modify)"
