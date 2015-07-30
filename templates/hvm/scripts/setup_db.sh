@@ -1,31 +1,38 @@
 #!/bin/bash
-hostname="$(hostname)"
-mac="$(curl -s http://169.254.169.254/latest/meta-data/mac)"
-if [ -z "${mac}" ]; then
-	echo "Unable to determine MAC!"
-	exit 1
-fi
-ip="$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${mac}/local-ipv4s)"
-if [ -z "${ip}" ]; then
-	echo "Unable to determine IP!"
-	exit 1
-fi
-
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-if [ "${hostname##*_}" -eq "0" ]; then
-	master="${hostname%_*}_1"
-	id="1"
-	offset="1"
-elif [ "${hostname##*_}" -eq "1" ]; then
-	master="${hostname%_*}_0"
-	id="2"
-	offset="2"
-elif [ "${hostname##*_}" -eq "2" ]; then
-	master="${hostname%_*}_1"
-	id="3"
-	offset="1"
+while getopts "d:i:n:o:" OPTNAME; do
+	case $OPTNAME in
+		d)
+			echo "Server ID: ${OPTARG}"
+			server_id="${OPTARG}"
+			;;
+		i)
+			echo "Peer IP: ${OPTARG}"
+			master_ip="${OPTARG}"
+			;;
+		n)
+			echo "Peer Name: ${OPTARG}"
+			master_name="${OPTARG}"
+			;;
+		o)
+			echo "Offset: ${OPTARG}"
+			offset="${OPTARG}"
+			;;
+	esac
+done
+
+if [ -z "${master_ip}" -o -z "${master_name}" -o -z "${server_id}" -o -z "${offset}"]; then
+	echo "Usage: $0 -n master_name -i master_ip -d server_id -o offset"
+	exit 1
 fi
+
+filename="/etc/hosts"
+echo "--- ${filename} (append)"
+cat <<EOF>>"${filename}"
+
+${master_ip}      ${master_name}.salesteamautomation.com ${master_name}
+EOF
 
 filename="/var/lib/portage/world"
 echo "--- ${filename} (append)"
@@ -48,9 +55,9 @@ filename="/etc/portage/package.use/mysql"
 echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|minimal|extraengine profiling|" \
-"${filename}"
+"${filename}" || exit 1
 
-emerge -uDN @world
+emerge -uDN @world || exit 1
 
 filename="/tmp/my.cnf.insert.1"
 echo "--- ${filename} (replace)"
@@ -113,7 +120,7 @@ sed -i -r \
 -e "s|^(innodb_log_file_size\s+=\s+).*|\11024M|" \
 -e "s|^(innodb_flush_log_at_trx_commit\s+=\s+).*|\12|" \
 -e "\|^innodb_file_per_table|r /tmp/my.cnf.insert.3" \
-"${filename}"
+"${filename}" || exit 1
 
 filename="/etc/mysql/sta.key"
 echo "--- ${filename} (replace)"
@@ -138,8 +145,8 @@ mkdir -p "${dirname}"
 chmod 700 "${dirname}"
 chown mysql: "${dirname}"
 
-yes "" | emerge --config dev-db/mysql
-/etc/init.d/mysql start
+yes "" | emerge --config dev-db/mysql || exit 1
+/etc/init.d/mysql start || exit 1
 
 mysql_secure_installation <<'EOF'
 
@@ -152,15 +159,18 @@ EOF
 
 filename="/etc/mysql/configure_as_slave.sql"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
-mysql < "${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+sed -i -r \
+-e "s|%MASTER_HOST%|${master_name}|" \
+"${filename}" || exit 1
+mysql < "${filename}" || exit 1
 
-/etc/init.d/mysql stop
+/etc/init.d/mysql stop || exit 1
 
-pvcreate /dev/xvd[fg]
-vgcreate vg0 /dev/xvd[fg]
-lvcreate -l 100%VG -n lvol0 vg0
-mkfs.ext4 /dev/vg0/lvol0
+pvcreate /dev/xvd[fg] || exit 1
+vgcreate vg0 /dev/xvd[fg] || exit 1
+lvcreate -l 100%VG -n lvol0 vg0 || exit 1
+mkfs.ext4 /dev/vg0/lvol0 || exit 1
 
 filename="/etc/fstab"
 echo "--- ${filename} (append)"
@@ -171,18 +181,18 @@ EOF
 
 dirname="/var/lib/mysql"
 echo "--- ${dirname} (mount)"
-mv "${dirname}" "${dirname}.bak"
+mv "${dirname}" "${dirname}.bak" || exit 1
 mkdir -p "${dirname}"
-mount "${dirname}"
-rsync -a "${dirname}.bak/" "${dirname}/"
+mount "${dirname}" || exit 1
+rsync -a "${dirname}.bak/" "${dirname}/" || exit 1
 
-/etc/init.d/mysql start
+/etc/init.d/mysql start || exit 1
 
 rc-update add mysql default
 
 filename="/etc/skel/.mytop"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/tmp/nrpe.cfg.insert"
 echo "--- ${filename} (replace)"
@@ -198,7 +208,7 @@ echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "\|^command\[check_total_procs\]|r /tmp/nrpe.cfg.insert" \
-"${filename}"
+"${filename}" || exit 1
 
 dirname="/usr/lib64/nagios/plugins/custom/include"
 echo "--- ${dirname} (create)"
@@ -206,17 +216,17 @@ mkdir -p "${dirname}"
 
 filename="/usr/lib64/nagios/plugins/custom/check_mysql_connections"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 chmod 755 "${filename}"
 
 filename="/usr/lib64/nagios/plugins/custom/check_mysql_slave"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 chmod 755 "${filename}"
 
 filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 dirname="/usr/local/lib64/mysql/include"
 echo "--- ${dirname} (create)"
@@ -224,14 +234,14 @@ mkdir -p "${dirname}"
 
 filename="/usr/local/lib64/mysql/watch_mysql_connections.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 chmod 755 "${filename}"
 
 filename="/usr/local/lib64/mysql/watch_mysql_slave.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 chmod 755 "${filename}"
 
 filename="/usr/local/lib64/mysql/include/settings.inc"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1

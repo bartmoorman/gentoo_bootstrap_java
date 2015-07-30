@@ -1,16 +1,4 @@
 #!/bin/bash
-hostname="$(hostname)"
-mac="$(curl -s http://169.254.169.254/latest/meta-data/mac)"
-if [ -z "${mac}" ]; then
-	echo "Unable to determine MAC!"
-	exit 1
-fi
-ip="$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${mac}/local-ipv4s)"
-if [ -z "${ip}" ]; then
-	echo "Unable to determine IP!"
-	exit 1
-fi
-
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="/var/lib/portage/world"
@@ -47,7 +35,7 @@ cat <<'EOF'>"${filename}"
 sys-cluster/ganglia python
 EOF
 
-emerge -uDN @world
+emerge -uDN @world || exit 1
 
 filename="/etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
@@ -60,33 +48,33 @@ sed -i -r \
 -e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
 -e "s|^(track_errors\s+=\s+).*|\1Off|" \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
-"${filename}"
+"${filename}" || exit 1
 
 filename="/etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"\1 -D PHP5 -D NAGIOS\"|" \
-"${filename}"
+"${filename}" || exit 1
 
-/etc/init.d/apache2 start
+/etc/init.d/apache2 start || exit 1
 
 rc-update add apache2 default
 
 filename="/usr/lib/nagios/cgi-bin/.htaccess"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/usr/share/nagios/htdocs/.htaccess"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/cgi.cfg"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "s|nagiosadmin|bmoorman,npeterson,sdibb|" \
-"${filename}"
+"${filename}" || exit 1
 
 filename="/tmp/nagios.cfg.insert"
 echo "--- ${filename} (replace)"
@@ -105,7 +93,7 @@ sed -i -r \
 -e "s|^(check_result_reaper_frequency=).*|\12|" \
 -e "s|^(use_large_installation_tweaks=).*|\11|" \
 -e "s|^(enable_environment_macros=).*|\10|" \
-"${filename}"
+"${filename}" || exit 1
 
 dirname="/etc/nagios/global"
 echo "--- $dirname (create)"
@@ -113,27 +101,27 @@ mkdir -p "${dirname}"
 
 filename="/etc/nagios/global/commands.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/global/contact_groups.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/global/contacts.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/global/hosts.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/global/services.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/global/time_periods.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 dirname="/etc/nagios/aws"
 echo "--- $dirname (create)"
@@ -141,19 +129,19 @@ mkdir -p "${dirname}"
 
 filename="/etc/nagios/aws/host_groups.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/aws/hosts.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/aws/service_groups.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/aws/services.cfg"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 dirname="/etc/nagios/scripts/include"
 echo "--- $dirname (create)"
@@ -161,37 +149,37 @@ mkdir -p "${dirname}"
 
 filename="/etc/nagios/scripts/build_host_email_message.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/scripts/build_host_push_message.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/scripts/build_service_email_message.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/scripts/build_service_push_message.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/scripts/nma.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/scripts/prowl.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/nagios/scripts/include/nma.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "https://raw.githubusercontent.com/iVirus/NMA-PHP/master/nma.php"
+curl -sf -o "${filename}" "https://raw.githubusercontent.com/iVirus/NMA-PHP/master/nma.php" || exit 1
 
 filename="/etc/nagios/scripts/include/prowl.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "https://raw.githubusercontent.com/iVirus/Prowl-PHP/master/prowl.php"
+curl -sf -o "${filename}" "https://raw.githubusercontent.com/iVirus/Prowl-PHP/master/prowl.php" || exit 1
 
-/etc/init.d/nagios start
+/etc/init.d/nagios start || exit 1
 
 rc-update add nagios default
 
@@ -225,7 +213,7 @@ sed -i -r \
 -e "s|^(data_source .*)|#\1|" \
 -e "\|^#data_source|r /tmp/gmetad.conf.insert" \
 -e "s|^(# gridname .*)|\1\ngridname \"ISDC-EU\"|" \
-"${filename}"
+"${filename}" || exit 1
 
 filename="/etc/fstab"
 echo "--- ${filename} (append)"
@@ -236,10 +224,10 @@ EOF
 
 dirname="/var/lib/ganglia/rrds"
 echo "--- ${dirname} (mount)"
-mv "${dirname}" "${dirname}-disk"
+mv "${dirname}" "${dirname}-disk" || exit 1
 mkdir -p "${dirname}"
-mount "${dirname}"
-rsync -a "${dirname}-disk/" "${dirname}/"
+mount "${dirname}" || exit 1
+rsync -a "${dirname}-disk/" "${dirname}/" || exit 1
 
 filename="/tmp/gmetad.start"
 echo "--- ${filename} (replace)"
@@ -269,9 +257,9 @@ cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "\|^start|r /tmp/gmetad.start" \
 -e "\|Failed to stop gmetad|r /tmp/gmetad.stop" \
-"${filename}"
+"${filename}" || exit 1
 
-/etc/init.d/gmetad start
+/etc/init.d/gmetad start || exit 1
 
 rc-update add gmetad default
 
@@ -281,7 +269,7 @@ mkdir -p "${dirname}"
 
 filename="/usr/local/lib64/ganglia/persist.sh"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 chmod 755 "${filename}"
 
 filename="/var/spool/cron/crontabs/root"
@@ -296,8 +284,8 @@ ln -s /var/www/localhost/htdocs/ganglia-web/ /var/www/localhost/htdocs/ganglia
 
 filename="/var/www/localhost/htdocs/ganglia/.htaccess"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/var/www/localhost/htdocs/ganglia/conf.php"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1

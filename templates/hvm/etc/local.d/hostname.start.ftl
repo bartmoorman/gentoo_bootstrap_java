@@ -1,5 +1,10 @@
 # /etc/local.d/hostname.start
 
+IP="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
+if [ -z "<#noparse>${IP}</#noparse>" ]; then
+	echo "Unable to determine Local IPv4!"
+	exit 1
+fi
 INSTANCE_ID="$(curl -s http://169.254.169.254/latest/meta-data/instance-id)"
 if [ -z "<#noparse>${INSTANCE_ID}</#noparse>" ]; then
 	echo "Unable to determine Instance ID!"

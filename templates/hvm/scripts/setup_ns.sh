@@ -1,31 +1,34 @@
 #!/bin/bash
-hostname="$(hostname)"
-mac="$(curl -s http://169.254.169.254/latest/meta-data/mac)"
-if [ -z "${mac}" ]; then
-	echo "Unable to determine MAC!"
-	exit 1
-fi
-ip="$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${mac}/local-ipv4s)"
-if [ -z "${ip}" ]; then
-	echo "Unable to determine IP!"
+name="$(hostname)"
+ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
+
+while getopts "i:n:" OPTNAME; do
+	case $OPTNAME in
+		i)
+			echo "Peer IP: ${OPTARG}"
+			peer_ip="${OPTARG}"
+			;;
+		n)
+			echo "Peer Name: ${OPTARG}"
+			peer_name="${OPTARG}"
+			;;
+	esac
+done
+
+if [ -z "${peer_ip}" -o -z "${peer_name}" ]; then
+	echo "Usage: $0 -n peer_name -i peer_ip"
 	exit 1
 fi
 
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-if [ "${hostname:(-3)}" == "ns1" ]; then
-	peer_name="${hostname::(-3)}ns2"
-	peer_ip="10.12.32.10"
-elif [ "${hostname:(-3)}" == "ns2" ]; then
-	peer_name="${hostname::(-3)}ns1"
-	peer_ip="10.12.16.10"
-fi
-
 filename="/etc/resolv.conf.head"
 echo "--- ${filename} (delete)"
 rm "${filename}"
 
-svc -d /service/dnscache
+kill -HUP $(pgrep ^dhcpcd) || exit 1
+
+svc -d /service/dnscache || exit 1
 
 filename="/var/dnscache/env/FORWARDONLY"
 echo "--- ${filename} (delete)"
@@ -71,9 +74,9 @@ filename="/var/dnscache/root/ip/10.12"
 echo "--- ${filename} (create)"
 touch "${filename}"
 
-svc -u /service/dnscache
+svc -u /service/dnscache || exit 1
 
-tinydns-conf tinydns dnslog /var/tinydns 127.0.0.1
+tinydns-conf tinydns dnslog /var/tinydns 127.0.0.1 || exit 1
 
 filename="/etc/hosts"
 echo "--- ${filename} (append)"
@@ -98,7 +101,7 @@ cat <<'EOF'>"${filename}"
 sys-cluster/glusterfs
 EOF
 
-emerge -uDN @world
+emerge -uDN @world || exit 1
 
 counter=0
 sleep=3
@@ -109,7 +112,7 @@ dirname="/var/glusterfs/${volume}"
 echo "--- $dirname (create)"
 mkdir -p "${dirname}"
 
-/etc/init.d/glusterd start
+/etc/init.d/glusterd start || exit 1
 
 rc-update add glusterd default
 
@@ -134,9 +137,9 @@ echo "connected! :)"
 
 if ! gluster volume info ${volume} &> /dev/null; then
 	echo "--- $volume (manage)"
-	gluster volume create ${volume} replica 2 ${hostname}:/var/glusterfs/${volume} ${peer_name}:/var/glusterfs/${volume} force
+	gluster volume create ${volume} replica 2 ${name}:/var/glusterfs/${volume} ${peer_name}:/var/glusterfs/${volume} force || exit 1
 	gluster volume set ${volume} auth.allow 127.*,10.12.*
-	gluster volume start ${volume}
+	gluster volume start ${volume} || exit 1
 fi
 
 filename="/etc/fstab"
@@ -148,10 +151,10 @@ EOF
 
 dirname="/var/tinydns/root"
 echo "--- $dirname (mount)"
-mv "${dirname}" "${dirname}.bak"
+mv "${dirname}" "${dirname}.bak" || exit 1
 mkdir -p "${dirname}"
-mount "${dirname}"
-rsync -a "${dirname}.bak/" "${dirname}"
+mount "${dirname}" || exit 1
+rsync -a "${dirname}.bak/" "${dirname}" || exit 1
 
 ln -s /var/tinydns/ /service/tinydns
 
@@ -161,13 +164,13 @@ mkdir -p "${dirname}"
 
 filename="/usr/local/lib64/nsupdater/index.php"
 echo "--- ${filename} (replacee)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/init.d/nsupdater"
 echo "--- ${filename} (replace)"
-curl --silent -o "${filename}" "${scripts}${filename}"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 chmod 755 "${filename}"
 
-/etc/init.d/nsupdater start
+/etc/init.d/nsupdater start || exit 1
 
 rc-update add nsupdater default
