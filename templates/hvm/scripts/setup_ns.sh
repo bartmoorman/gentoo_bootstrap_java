@@ -117,7 +117,7 @@ mkdir -p "${dirname}"
 rc-update add glusterd default
 
 echo -n "Sleeping..."
-sleep 10
+sleep $(bc <<< "${RANDOM} % 10")
 echo "done! :)"
 
 echo -n "Waiting for ${peer_name}..."

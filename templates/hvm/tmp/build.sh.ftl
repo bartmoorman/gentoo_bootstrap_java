@@ -182,7 +182,7 @@ pip install awscli
 
 <#assign filename = "/tmp/aws-cfn-bootstrap-latest.tar.gz">
 echo "--- ${filename} (replace)"
-wget -O "${filename}" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
+curl -s -o "${filename}" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
 easy_install "${filename}"
 
 <#assign filename = "/etc/logrotate.conf">
@@ -300,6 +300,12 @@ EOF
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 <#include "/var/dnscache/root/servers/amazonaws.com.ftl">
+EOF
+
+<#assign filename = "/var/dnscache/root/servers/fastly.net">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/var/dnscache/root/servers/fastly.net.ftl">
 EOF
 
 <#assign filename = "/var/dnscache/root/servers/githubusercontent.com">

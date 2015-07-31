@@ -31,7 +31,7 @@ filename="/etc/hosts"
 echo "--- ${filename} (append)"
 cat <<EOF>>"${filename}"
 
-${master_ip}      ${master_name}.salesteamautomation.com ${master_name}
+${master_ip}	${master_name}.salesteamautomation.com ${master_name}
 EOF
 
 filename="/var/lib/portage/world"
@@ -145,27 +145,15 @@ mkdir -p "${dirname}"
 chmod 700 "${dirname}"
 chown mysql: "${dirname}"
 
-yes "" | emerge --config dev-db/mysql || exit 1
-/etc/init.d/mysql start || exit 1
-
-mysql_secure_installation <<'EOF'
-
-n
-y
-y
-n
-y
-EOF
-
-filename="/etc/mysql/configure_as_slave.sql"
+filename="/usr/lib64/mysql/plugin/libmysql_strip_phone.so"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-sed -i -r \
--e "s|%MASTER_HOST%|${master_name}|" \
-"${filename}" || exit 1
-mysql < "${filename}" || exit 1
 
-/etc/init.d/mysql stop || exit 1
+filename="/usr/lib64/mysql/plugin/libmysql_format_phone.so"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+yes "" | emerge --config dev-db/mysql || exit 1
 
 pvcreate /dev/xvd[fg] || exit 1
 vgcreate vg0 /dev/xvd[fg] || exit 1
@@ -190,9 +178,35 @@ rsync -a "${dirname}.bak/" "${dirname}/" || exit 1
 
 rc-update add mysql default
 
+mysql_secure_installation <<'EOF'
+
+n
+y
+y
+n
+y
+EOF
+
+filename="/etc/mysql/configure_as_slave.sql"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+sed -i -r \
+-e "s|%MASTER_HOST%|${master_name}|" \
+"${filename}" || exit 1
+
+#
+# TODO: Replace %BMOORMAN_PASSWORD%, %CPLUMMER_PASSWORD%, %REPLICATION_PASSWORD%, %MONITORING_PASSWORD%, %MYTOP_PASSWORD%, %MASTER_PASSWORD%
+#
+
+mysql < "${filename}" || exit 1
+
 filename="/etc/skel/.mytop"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+#
+# TODO: Replace %MYTOP_PASSWORD%
+#
 
 filename="/tmp/nrpe.cfg.insert"
 echo "--- ${filename} (replace)"
@@ -228,6 +242,10 @@ filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
+#
+# TODO: Replace %MONITORING_PASSWORD%
+#
+
 dirname="/usr/local/lib64/mysql/include"
 echo "--- ${dirname} (create)"
 mkdir -p "${dirname}"
@@ -245,3 +263,7 @@ chmod 755 "${filename}"
 filename="/usr/local/lib64/mysql/include/settings.inc"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+#
+# TODO: Replace %MONITORING_PASSWORD%
+#

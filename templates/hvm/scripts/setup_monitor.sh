@@ -61,7 +61,7 @@ sed -i -r \
 
 rc-update add apache2 default
 
-filename="/usr/lib/nagios/cgi-bin/.htaccess"
+filename="/usr/lib64/nagios/cgi-bin/.htaccess"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
@@ -110,6 +110,10 @@ curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 filename="/etc/nagios/global/contacts.cfg"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+#
+# TODO: Replace %BMOORMAN_PROWL%, %NPETERSON_NMA%, %SDIBB_NMA%, %TLOSEE_PROWL%, %TPURDY_NMA%
+#
 
 filename="/etc/nagios/global/hosts.cfg"
 echo "--- ${filename} (replace)"
