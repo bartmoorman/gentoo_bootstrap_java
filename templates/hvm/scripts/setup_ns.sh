@@ -114,7 +114,7 @@ EOF
 emerge -uDN @world || exit 1
 
 counter=0
-sleep=3
+sleep=30
 timeout=1800
 volume="tinydns"
 
