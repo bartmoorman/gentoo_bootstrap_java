@@ -26,6 +26,16 @@ filename="/etc/resolv.conf.head"
 echo "--- ${filename} (delete)"
 rm "${filename}"
 
+filename="/etc/ntp.conf"
+echo "--- ${filename} (restore)"
+cp "${filename}.orig" "${filename}"
+
+filename="/etc/ntp.conf"
+echo "--- ${filename} (append)"
+cat <<'EOF'>>"${filename}"
+restrict 10.12.0.0 mask 255.255.0.0 nomodify nopeer notrap
+EOF
+
 kill -HUP $(pgrep ^dhcpcd) || exit 1
 
 svc -d /service/dnscache || exit 1
