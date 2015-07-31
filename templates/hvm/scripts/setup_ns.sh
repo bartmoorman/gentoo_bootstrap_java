@@ -115,7 +115,7 @@ emerge -uDN @world || exit 1
 
 counter=0
 sleep=3
-timeout=600
+timeout=1800
 volume="tinydns"
 
 dirname="/var/glusterfs/${volume}"
@@ -127,7 +127,7 @@ mkdir -p "${dirname}"
 rc-update add glusterd default
 
 echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 10")
+sleep $(bc <<< "${RANDOM} % 30")
 echo "done! :)"
 
 echo -n "Waiting for ${peer_name}..."
@@ -144,6 +144,10 @@ while ! gluster peer probe ${peer_name} &> /dev/null; do
 done
 
 echo "connected! :)"
+
+echo -n "Sleeping..."
+sleep $(bc <<< "${RANDOM} % 30")
+echo "done! :)"
 
 if ! gluster volume info ${volume} &> /dev/null; then
 	echo "--- $volume (manage)"
