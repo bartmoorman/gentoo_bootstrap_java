@@ -168,7 +168,7 @@ echo "--- $dirname (mount)"
 mv "${dirname}" "${dirname}.bak" || exit 1
 mkdir -p "${dirname}"
 mount "${dirname}" || exit 1
-rsync -a "${dirname}.bak/" "${dirname}" || exit 1
+rsync -a "${dirname}.bak/" "${dirname}/" || exit 1
 
 ln -s /var/tinydns/ /service/tinydns
 

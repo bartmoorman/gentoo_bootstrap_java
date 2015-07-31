@@ -6,8 +6,8 @@ while getopts "p:" OPTNAME; do
 	case $OPTNAME in
 		p)
 			echo "Peers: ${OPTARG}"
-			peers=(${p//,/ })
-			lpeers=(${p//,/ })
+			peers=(${OPTARG//,/ })
+			lpeers=(${OPTARG//,/ })
 			;;
 	esac
 done
@@ -28,9 +28,16 @@ EOF
 filename="/var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"${filename}"
+app-shells/rssh
 net-misc/asterisk
 sys-cluster/glusterfs
 sys-fs/s3fs
+EOF
+
+filename="/etc/portage/package.use/asterisk"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+net-misc/asterisk lua
 EOF
 
 dirname="/etc/portage/package.keywords"
@@ -41,6 +48,12 @@ filename="/etc/portage/package.keywords/glusterfs"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 sys-cluster/glusterfs
+EOF
+
+filename="/etc/portage/package.keywords/rssh"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+app-shells/rssh
 EOF
 
 emerge -uDN @world || exit 1
@@ -96,7 +109,36 @@ done
 
 if ! gluster volume info ${volume} &> /dev/null; then
 	echo "--- $volume (manage)"
-	gluster volume create ${volume} replica ${#peers[@]} ${hosts} force || exit 1
+	gluster volume create ${volume} replica $(bc <<< "${#peers[@]} + 1") ${hosts} force || exit 1
 	gluster volume set ${volume} auth.allow 127.*,10.12.*
 	gluster volume start ${volume} || exit 1
 fi
+
+filename="/etc/fstab"
+echo "--- ${filename} (append)"
+cat <<EOF>>"${filename}"
+
+localhost:/${volume}	/var/lib/asterisk/sounds/vmprompts	glusterfs	_netdev		0 0
+EOF
+
+dirname="/var/lib/asterisk/sounds/vmprompts"
+echo "--- $dirname (mount)"
+mkdir -p "${dirname}"
+mount "${dirname}" || exit 1
+
+filename="/etc/rssh.conf"
+echo "--- ${filename} (modify)"
+cp "${filename}.default" "${filename}"
+sed -r -i \
+-e "s|^#(allowrsync)|\1|" \
+"${filename}"
+
+usermod -s /usr/bin/rssh asterisk
+
+dirname="/var/lib/asterisk/.ssh"
+echo "--- $dirname (create)"
+mkdir -p "${dirname}"
+
+filename="/var/lib/asterisk/.ssh/authorized_keys"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}/keys/asterisk" || exit 1
