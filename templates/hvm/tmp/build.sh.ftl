@@ -37,6 +37,8 @@ cat <<'EOF'>"${filename}"
 EOF
 chmod 755 "${filename}"
 
+/etc/local.d/makeopts.start
+
 <#assign filename = "/etc/local.d/hostname.start">
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
@@ -50,8 +52,6 @@ cat <<'EOF'>"${filename}"
 <#include "/etc/local.d/initialize.start.ftl">
 EOF
 chmod 755 "${filename}"
-
-/etc/local.d/makeopts.start
 
 emerge sys-kernel/gentoo-sources
 cd /usr/src/linux

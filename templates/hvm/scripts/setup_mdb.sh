@@ -1,7 +1,4 @@
 #!/bin/bash
-name="$(hostname)"
-scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
-
 while getopts "i:j:n:o:" OPTNAME; do
 	case $OPTNAME in
 		i)
@@ -24,9 +21,17 @@ while getopts "i:j:n:o:" OPTNAME; do
 done
 
 if [ -z "${peer1_ip}" -o -z "${peer1_name}" -o -z "${peer2_ip}" -o -z "${peer2_name}"]; then
-	echo "Usage: $0 -n peer1_name -i peer1_ip -o peer2_name -j peer2_ip"
+	echo "Usage: ${BASH_SOURCE[0]} -n peer1_name -i peer1_ip -o peer2_name -j peer2_ip"
 	exit 1
 fi
+
+name="$(hostname)"
+scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
+
+filename="/tmp/encrypt_decrypt_text"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+source "${filename}"
 
 filename="/etc/hosts"
 echo "--- ${filename} (append)"
@@ -76,13 +81,16 @@ sed -i -r \
 -e "s|^(\s+)#(replSetName:)|\1\2 \"prod0\"|" \
 "${filename}" || exit 1
 
-#
-# TODO: Generate keyfile
-#
+user="mongodb"
+type="keyfile"
+echo "-- ${user} ${type} (decrypt)"
+declare "${user}_${type}=$(decrypt_user_text "${type}" "${user}")"
 
 filename="/etc/ssl/mongodb-keyfile"
 echo "--- ${filename} (create)"
-openssl rand -base64 741 > "${filename}" || exit 1
+cat <<EOF>"${filename}"
+${mongodb_keyfile}
+EOF
 chmod 600 "${filename}"
 chown mongodb: "${filename}"
 

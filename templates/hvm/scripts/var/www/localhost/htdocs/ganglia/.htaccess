@@ -1,4 +1,4 @@
-SetEnv ganglia_secret MVedpvR6jqdTnREhHunaqzrX
+SetEnv ganglia_secret %GANGLIA_SECRET%
 AuthType Basic
 AuthName "Authorization is required beyond this point!"
 AuthUserFile /etc/ganglia/auth.users

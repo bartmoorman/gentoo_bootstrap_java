@@ -1,7 +1,4 @@
 #!/bin/bash
-name="$(hostname)"
-ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
-
 while getopts "i:n:" OPTNAME; do
 	case $OPTNAME in
 		i)
@@ -16,10 +13,12 @@ while getopts "i:n:" OPTNAME; do
 done
 
 if [ -z "${peer_ip}" -o -z "${peer_name}" ]; then
-	echo "Usage: $0 -n peer_name -i peer_ip"
+	echo "Usage: ${BASH_SOURCE[0]} -n peer_name -i peer_ip"
 	exit 1
 fi
 
+ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
+name="$(hostname)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="/etc/resolv.conf.head"

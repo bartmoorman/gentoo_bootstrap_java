@@ -1,0 +1,42 @@
+#!/bin/bash
+encrypt_user_text() {
+	local token_table="TokenData"
+	local encryption_key="alias/Automation"
+	local availability_zone="$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)"
+	#local availability_zone="eu-west-1z"
+
+	local token="$1"
+	local user="$2"
+	local decrypted_text="$3"
+
+	local encrypted_text="$(aws kms encrypt --region "${availability_zone%?}" --key-id "${encryption_key}" --plaintext "${decrypted_text}" --query "CiphertextBlob" --output text)"
+
+	local key="{\"Token\":{\"S\":\"${token}\"},\"User\":{\"S\":\"${user}\"}}"
+	local expression="SET #T = :t"
+	local attribute_names="{\"#T\":\"Text\"}"
+	local attribute_values="{\":t\":{\"S\":\"${encrypted_text}\"}}"
+
+	aws dynamodb update-item --region "${availability_zone%?}" --table-name "${token_table}" --key "${key}" --update-expression "${expression}" --expression-attribute-names "${attribute_names}" --expression-attribute-values "${attribute_values}"
+}
+
+decrypt_user_text() {
+	local token_table="TokenData"
+	local encryption_key="alias/Automation"
+	local availability_zone="$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)"
+	#local availability_zone="eu-west-1z"
+
+	local token="$1"
+	local user="$2"
+
+	local key="{\"Token\":{\"S\":\"${token}\"},\"User\":{\"S\":\"${user}\"}}"
+	local expression="#T"
+	local attribute_names="{\"#T\":\"Text\"}"
+
+	local encrypted_text=$(aws dynamodb get-item --region "${availability_zone%?}" --table-name "${token_table}" --key "${key}" --projection-expression "${expression}" --expression-attribute-names "${attribute_names}" --output text | cut -d$'\t' -f2)
+	local encrypted_file="$(mktemp)"
+
+	base64 -d <<< "${encrypted_text}" > "${encrypted_file}"
+	local decrypted_text="$(aws kms decrypt --region "${availability_zone%?}" --ciphertext-blob "fileb://${encrypted_file}" --query "Plaintext" --output text | base64 -d)"
+
+	echo -n "${decrypted_text}"
+}

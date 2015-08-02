@@ -1,5 +1,5 @@
 user=mytop
-pass=%MYTOP_PASSWORD%
+pass=%MYTOP_AUTH%
 delay=1
 idle=0
 resolve=0

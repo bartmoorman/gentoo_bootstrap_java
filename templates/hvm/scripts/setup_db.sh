@@ -1,6 +1,4 @@
 #!/bin/bash
-scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
-
 while getopts "d:i:n:o:" OPTNAME; do
 	case $OPTNAME in
 		d)
@@ -23,9 +21,16 @@ while getopts "d:i:n:o:" OPTNAME; do
 done
 
 if [ -z "${master_ip}" -o -z "${master_name}" -o -z "${server_id}" -o -z "${offset}"]; then
-	echo "Usage: $0 -n master_name -i master_ip -d server_id -o offset"
+	echo "Usage: ${BASH_SOURCE[0]} -n master_name -i master_ip -d server_id -o offset"
 	exit 1
 fi
+
+scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
+
+filename="/tmp/encrypt_decrypt_text"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+source "${filename}"
 
 filename="/etc/hosts"
 echo "--- ${filename} (append)"
@@ -113,7 +118,7 @@ sed -i -r \
 -e "\|^lc_messages\s+=\s+|r /tmp/my.cnf.insert.1" \
 -e "s|^(bind-address\s+=\s+.*)|#\1|" \
 -e "s|^(log-bin)|\1\t\t\t\t= /var/log/mysql/binary/mysqld-bin|" \
--e "s|^(server-id\s+=\s+).*|\1${id}|" \
+-e "s|^(server-id\s+=\s+).*|\1${server_id}|" \
 -e "\|^server-id\s+=\s+|r /tmp/my.cnf.insert.2" \
 -e "s|^(innodb_buffer_pool_size\s+=\s+).*|\132768M|" \
 -e "s|^(innodb_data_file_path\s+=\s+.*)|#\1|" \
@@ -190,13 +195,54 @@ EOF
 filename="/etc/mysql/configure_as_slave.sql"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-sed -i -r \
--e "s|%MASTER_HOST%|${master_name}|" \
-"${filename}" || exit 1
 
-#
-# TODO: Replace %BMOORMAN_PASSWORD%, %CPLUMMER_PASSWORD%, %REPLICATION_PASSWORD%, %MONITORING_PASSWORD%, %MYTOP_PASSWORD%, %MASTER_PASSWORD%
-#
+user="bmoorman"
+app="mysql"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="cplummer"
+app="mysql"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="replication"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="monitoring"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="mytop"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="master"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/etc/mysql/configure_as_slave.sql"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%BMOORMAN_HASH%|${bmoorman_mysql_hash}|" \
+-e "s|%CPLUMMER_HASH%|${cplummer_mysql_hash}|" \
+-e "s|%REPLICATION_AUTH%|${replication_mysql_auth}|" \
+-e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
+-e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
+-e "s|%MASTER_HOST%|${master_name}|" \
+-e "s|%MASTER_AUTH%|${master_mysql_auth}|" \
+"${filename}" || exit 1
 
 mysql < "${filename}" || exit 1
 
@@ -204,9 +250,17 @@ filename="/etc/skel/.mytop"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
-#
-# TODO: Replace %MYTOP_PASSWORD%
-#
+user="mytop"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/etc/skel/.mytop"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
+"${filename}" || exit 1
 
 filename="/tmp/nrpe.cfg.insert"
 echo "--- ${filename} (replace)"
@@ -219,7 +273,6 @@ EOF
 
 filename="/etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "\|^command\[check_total_procs\]|r /tmp/nrpe.cfg.insert" \
 "${filename}" || exit 1
@@ -242,9 +295,17 @@ filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
-#
-# TODO: Replace %MONITORING_PASSWORD%
-#
+user="monitoring"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
+"${filename}" || exit 1
 
 dirname="/usr/local/lib64/mysql/include"
 echo "--- ${dirname} (create)"
@@ -264,6 +325,14 @@ filename="/usr/local/lib64/mysql/include/settings.inc"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
-#
-# TODO: Replace %MONITORING_PASSWORD%
-#
+user="monitoring"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/usr/local/lib64/mysql/include/settings.inc"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
+"${filename}" || exit 1

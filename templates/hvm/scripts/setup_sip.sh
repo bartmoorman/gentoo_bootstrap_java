@@ -1,7 +1,4 @@
 #!/bin/bash
-name="$(hostname)"
-scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
-
 while getopts "p:" OPTNAME; do
 	case $OPTNAME in
 		p)
@@ -11,6 +8,9 @@ while getopts "p:" OPTNAME; do
 			;;
 	esac
 done
+
+name="$(hostname)"
+scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 n=$'\n'
 t=$'\t'

@@ -1,6 +1,11 @@
 #!/bin/bash
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
+filename="/tmp/encrypt_decrypt_text"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+source "${filename}"
+
 filename="/var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"${filename}"
@@ -69,11 +74,51 @@ filename="/usr/share/nagios/htdocs/.htaccess"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
+user="bmoorman"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="npeterson"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="sdibb"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="tlosee"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="tpurdy"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/etc/nagios/auth.users"
+echo "--- ${filename} (create)"
+cat <<EOF>"${filename}"
+bmoorman:${bmoorman_nagios_hash}
+npeterson:${npeterson_nagios_hash}
+sdibb:${sdibb_nagios_hash}
+tlosee:${tlosee_nagios_hash}
+tpurdy:${tpurdy_nagios_hash}
+EOF
+
 filename="/etc/nagios/cgi.cfg"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
--e "s|nagiosadmin|bmoorman,npeterson,sdibb|" \
+-e "s|nagiosadmin|bmoorman,npeterson,sdibb,tlosee,tpurdy|" \
 "${filename}" || exit 1
 
 filename="/tmp/nagios.cfg.insert"
@@ -111,9 +156,45 @@ filename="/etc/nagios/global/contacts.cfg"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
-#
-# TODO: Replace %BMOORMAN_PROWL%, %NPETERSON_NMA%, %SDIBB_NMA%, %TLOSEE_PROWL%, %TPURDY_NMA%
-#
+user="bmoorman"
+app="nagios"
+type="prowl"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="npeterson"
+app="nagios"
+type="nma"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="sdibb"
+app="nagios"
+type="nma"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="tlosee"
+app="nagios"
+type="prowl"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="tpurdy"
+app="nagios"
+type="nma"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/etc/nagios/global/contacts.cfg"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%BMOORMAN_PROWL%|${bmoorman_nagios_prowl}|" \
+-e "s|%NPETERSON_NMA%|${npeterson_nagios_nma}|" \
+-e "s|%SDIBB_NMA%|${sdibb_nagios_nma}|" \
+-e "s|%TLOSEE_PROWL%|${tlosee_nagios_prowl}|" \
+-e "s|%TPURDY_NMA%|${tpurdy_nagios_nma}|" \
+"${filename}" || exit 1
 
 filename="/etc/nagios/global/hosts.cfg"
 echo "--- ${filename} (replace)"
@@ -289,6 +370,57 @@ ln -s /var/www/localhost/htdocs/ganglia-web/ /var/www/localhost/htdocs/ganglia
 filename="/var/www/localhost/htdocs/ganglia/.htaccess"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+user="ganglia"
+type="secret"
+echo "-- ${user} ${type} (decrypt)"
+declare "${user}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/var/www/localhost/htdocs/ganglia/.htaccess"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%GANGLIA_SECRET%|${ganglia_secret}|" \
+"${filename}" || exit 1
+
+user="bmoorman"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="npeterson"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="sdibb"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="tlosee"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="tpurdy"
+app="nagios"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/etc/ganglia/auth.users"
+echo "--- ${filename} (create)"
+cat <<EOF>"${filename}"
+bmoorman:${bmoorman_nagios_hash}
+npeterson:${npeterson_nagios_hash}
+sdibb:${sdibb_nagios_hash}
+tlosee:${tlosee_nagios_hash}
+tpurdy:${tpurdy_nagios_hash}
+EOF
 
 filename="/var/www/localhost/htdocs/ganglia/conf.php"
 echo "--- ${filename} (replace)"
