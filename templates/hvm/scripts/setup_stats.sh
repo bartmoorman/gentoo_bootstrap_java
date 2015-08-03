@@ -1,10 +1,6 @@
 #!/bin/bash
 while getopts "i:o:" OPTNAME; do
 	case $OPTNAME in
-		m)
-			echo "Master: ${OPTARG}"
-			master="${OPTARG}"
-			;;
 		i)
 			echo "Server ID: ${OPTARG}"
 			server_id="${OPTARG}"
@@ -12,6 +8,10 @@ while getopts "i:o:" OPTNAME; do
 		o)
 			echo "Offset: ${OPTARG}"
 			offset="${OPTARG}"
+			;;
+		b)
+			echo "Bucket Name: ${OPTARG}"
+			bucket_name="${OPTARG}"
 			;;
 	esac
 done
@@ -52,6 +52,8 @@ sed -i -r \
 "${filename}" || exit 1
 
 emerge -uDN @world || exit 1
+
+etc-update -p
 
 filename="/tmp/my.cnf.insert.1"
 echo "--- ${filename} (replace)"
@@ -233,7 +235,7 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/etc/mysql/configure_as_slave.sql"
+filename="/etc/mysql/configure_as_standalone.sql"
 echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%BMOORMAN_HASH%|${bmoorman_mysql_hash}|" \

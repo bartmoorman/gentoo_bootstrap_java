@@ -1,10 +1,14 @@
 #!/bin/bash
-while getopts "p:" OPTNAME; do
+while getopts "p:b:" OPTNAME; do
 	case $OPTNAME in
 		p)
 			echo "Peers: ${OPTARG}"
 			peers=(${OPTARG//,/ })
 			lpeers=(${OPTARG//,/ })
+			;;
+		b)
+			echo "Bucket Name: ${OPTARG}"
+			bucket_name="${OPTARG}"
 			;;
 	esac
 done

@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "m:i:o:" OPTNAME; do
+while getopts "m:i:o:b:" OPTNAME; do
 	case $OPTNAME in
 		m)
 			echo "Master: ${OPTARG}"
@@ -12,6 +12,10 @@ while getopts "m:i:o:" OPTNAME; do
 		o)
 			echo "Offset: ${OPTARG}"
 			offset="${OPTARG}"
+			;;
+		b)
+			echo "Bucket Name: ${OPTARG}"
+			bucket_name="${OPTARG}"
 			;;
 	esac
 done
