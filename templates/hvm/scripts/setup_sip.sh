@@ -9,6 +9,11 @@ while getopts "p:" OPTNAME; do
 	esac
 done
 
+if [ ${#peers[0]} -eq 0 ]; then
+	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip[,peer_name:peer_ip,...]"
+	exit 1
+fi
+
 name="$(hostname)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
@@ -131,7 +136,7 @@ echo "--- ${filename} (modify)"
 cp "${filename}.default" "${filename}"
 sed -r -i \
 -e "s|^#(allowrsync)|\1|" \
-"${filename}"
+"${filename}" || exit 1
 
 usermod -s /usr/bin/rssh asterisk
 

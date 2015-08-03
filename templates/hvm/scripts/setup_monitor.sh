@@ -383,31 +383,31 @@ sed -i -r \
 "${filename}" || exit 1
 
 user="bmoorman"
-app="nagios"
+app="ganglia"
 type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 user="npeterson"
-app="nagios"
+app="ganglia"
 type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 user="sdibb"
-app="nagios"
+app="ganglia"
 type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 user="tlosee"
-app="nagios"
+app="ganglia"
 type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 user="tpurdy"
-app="nagios"
+app="ganglia"
 type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
@@ -415,11 +415,11 @@ declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 filename="/etc/ganglia/auth.users"
 echo "--- ${filename} (create)"
 cat <<EOF>"${filename}"
-bmoorman:${bmoorman_nagios_hash}
-npeterson:${npeterson_nagios_hash}
-sdibb:${sdibb_nagios_hash}
-tlosee:${tlosee_nagios_hash}
-tpurdy:${tpurdy_nagios_hash}
+bmoorman:${bmoorman_ganglia_hash}
+npeterson:${npeterson_ganglia_hash}
+sdibb:${sdibb_ganglia_hash}
+tlosee:${tlosee_ganglia_hash}
+tpurdy:${tpurdy_ganglia_hash}
 EOF
 
 filename="/var/www/localhost/htdocs/ganglia/conf.php"

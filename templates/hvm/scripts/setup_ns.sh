@@ -1,19 +1,15 @@
 #!/bin/bash
-while getopts "i:n:" OPTNAME; do
+while getopts "p:" OPTNAME; do
 	case $OPTNAME in
-		i)
-			echo "Peer IP: ${OPTARG}"
-			peer_ip="${OPTARG}"
-			;;
-		n)
-			echo "Peer Name: ${OPTARG}"
-			peer_name="${OPTARG}"
+		p)
+			echo "Peer: ${OPTARG}"
+			peer="${OPTARG}"
 			;;
 	esac
 done
 
-if [ -z "${peer_ip}" -o -z "${peer_name}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -n peer_name -i peer_ip"
+if [ -z "${peer}" ]; then
+	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip"
 	exit 1
 fi
 
@@ -91,7 +87,7 @@ filename="/etc/hosts"
 echo "--- ${filename} (append)"
 cat <<EOF>>"${filename}"
 
-${peer_ip}	${peer_name}.salesteamautomation.com ${peer_name}
+${peer#*:}	${peer%:*}.salesteamautomation.com ${peer%:*}
 EOF
 
 filename="/var/lib/portage/world"
@@ -129,9 +125,9 @@ echo -n "Sleeping..."
 sleep $(bc <<< "${RANDOM} % 30")
 echo "done! :)"
 
-echo -n "Waiting for ${peer_name}..."
+echo -n "Waiting for ${peer%:*}..."
 
-while ! gluster peer probe ${peer_name} &> /dev/null; do
+while ! gluster peer probe ${peer%:*} &> /dev/null; do
 	if [ "${counter}" -ge "${timeout}" ]; then
 		echo "failed! :("
 		exit 1
@@ -150,7 +146,7 @@ echo "done! :)"
 
 if ! gluster volume info ${volume} &> /dev/null; then
 	echo "--- $volume (manage)"
-	gluster volume create ${volume} replica 2 ${name}:/var/glusterfs/${volume} ${peer_name}:/var/glusterfs/${volume} force || exit 1
+	gluster volume create ${volume} replica 2 ${name}:/var/glusterfs/${volume} ${peer%:*}:/var/glusterfs/${volume} force || exit 1
 	gluster volume set ${volume} auth.allow 127.*,10.12.*
 	gluster volume start ${volume} || exit 1
 fi

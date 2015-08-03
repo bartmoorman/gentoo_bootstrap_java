@@ -1,17 +1,13 @@
 #!/bin/bash
-while getopts "d:i:n:o:" OPTNAME; do
+while getopts "m:i:o:" OPTNAME; do
 	case $OPTNAME in
-		d)
-			echo "Server ID: ${OPTARG}"
-			server_id="${OPTARG}"
+		m)
+			echo "Master: ${OPTARG}"
+			master="${OPTARG}"
 			;;
 		i)
-			echo "Peer IP: ${OPTARG}"
-			master_ip="${OPTARG}"
-			;;
-		n)
-			echo "Peer Name: ${OPTARG}"
-			master_name="${OPTARG}"
+			echo "Server ID: ${OPTARG}"
+			server_id="${OPTARG}"
 			;;
 		o)
 			echo "Offset: ${OPTARG}"
@@ -20,8 +16,8 @@ while getopts "d:i:n:o:" OPTNAME; do
 	esac
 done
 
-if [ -z "${master_ip}" -o -z "${master_name}" -o -z "${server_id}" -o -z "${offset}"]; then
-	echo "Usage: ${BASH_SOURCE[0]} -n master_name -i master_ip -d server_id -o offset"
+if [ -z "${master}" -o -z "${server_id}" -o -z "${offset}" ]; then
+	echo "Usage: ${BASH_SOURCE[0]} -m master_name:master_ip -i server_id -o offset"
 	exit 1
 fi
 
@@ -36,7 +32,7 @@ filename="/etc/hosts"
 echo "--- ${filename} (append)"
 cat <<EOF>>"${filename}"
 
-${master_ip}	${master_name}.salesteamautomation.com ${master_name}
+${master#*:}	${master%:*}.salesteamautomation.com ${master%:*}
 EOF
 
 filename="/var/lib/portage/world"
@@ -208,6 +204,30 @@ type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
+user="ecall"
+app="mysql"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="jstubbs"
+app="mysql"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="tpurdy"
+app="mysql"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="npeterson"
+app="mysql"
+type="hash"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
 user="replication"
 app="mysql"
 type="auth"
@@ -237,10 +257,14 @@ echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%BMOORMAN_HASH%|${bmoorman_mysql_hash}|" \
 -e "s|%CPLUMMER_HASH%|${cplummer_mysql_hash}|" \
+-e "s|%ECALL_HASH%|${ecall_mysql_hash}|" \
+-e "s|%JSTUBBS_HASH%|${jstubbs_mysql_hash}|" \
+-e "s|%TPURDY_HASH%|${tpurdy_mysql_hash}|" \
+-e "s|%NPETERSON_HASH%|${npeterson_mysql_hash}|" \
 -e "s|%REPLICATION_AUTH%|${replication_mysql_auth}|" \
 -e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
 -e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
--e "s|%MASTER_HOST%|${master_name}|" \
+-e "s|%MASTER_HOST%|${master%:*}|" \
 -e "s|%MASTER_AUTH%|${master_mysql_auth}|" \
 "${filename}" || exit 1
 

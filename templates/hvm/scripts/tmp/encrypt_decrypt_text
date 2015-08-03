@@ -1,10 +1,10 @@
 #!/bin/bash
-encrypt_user_text() {
-	local token_table="TokenData"
-	local encryption_key="alias/Automation"
-	local availability_zone="$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)"
-	#local availability_zone="eu-west-1z"
+token_table="TokenData"
+encryption_key="alias/Automation"
+availability_zone="$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)"
+#availability_zone="eu-west-1z"
 
+encrypt_user_text() {
 	local token="$1"
 	local user="$2"
 	local decrypted_text="$3"
@@ -20,11 +20,6 @@ encrypt_user_text() {
 }
 
 decrypt_user_text() {
-	local token_table="TokenData"
-	local encryption_key="alias/Automation"
-	local availability_zone="$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)"
-	#local availability_zone="eu-west-1z"
-
 	local token="$1"
 	local user="$2"
 

@@ -1,27 +1,16 @@
 #!/bin/bash
-while getopts "i:j:n:o:" OPTNAME; do
+while getopts "p:" OPTNAME; do
 	case $OPTNAME in
-		i)
-			echo "Peer1 IP: ${OPTARG}"
-			peer1_ip="${OPTARG}"
-			;;
-		j)
-			echo "Peer2 ID: ${OPTARG}"
-			peer2_ip="${OPTARG}"
-			;;
-		n)
-			echo "Peer1 Name: ${OPTARG}"
-			peer1_name="${OPTARG}"
-			;;
-		o)
-			echo "Peer2 Name: ${OPTARG}"
-			peer2_name="${OPTARG}"
+		p)
+			echo "Peers: ${OPTARG}"
+			peers=(${OPTARG//,/ })
+			lpeers=(${OPTARG//,/ })
 			;;
 	esac
 done
 
-if [ -z "${peer1_ip}" -o -z "${peer1_name}" -o -z "${peer2_ip}" -o -z "${peer2_name}"]; then
-	echo "Usage: ${BASH_SOURCE[0]} -n peer1_name -i peer1_ip -o peer2_name -j peer2_ip"
+if [ ${#peers[@]} -eq 0 ]; then
+	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip[,peer_name:peer_ip,...]"
 	exit 1
 fi
 
@@ -33,12 +22,17 @@ echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 source "${filename}"
 
+n=$'\n'
+t=$'\t'
+
+for peer in "${peers[@]}"; do
+	hosts+="${n}${peer#*:}${t}${peer%:*}.salesteamautomation.com ${peer%:*}"
+done
+
 filename="/etc/hosts"
 echo "--- ${filename} (append)"
 cat <<EOF>>"${filename}"
-
-${peer1_ip}	${peer1_name}.salesteamautomation.com ${peer1_name}
-${peer2_ip}	${peer2_name}.salesteamautomation.com ${peer2_name}
+${hosts}
 EOF
 
 filename="/var/lib/portage/world"
