@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "i:o:" OPTNAME; do
+while getopts "i:o:b:" OPTNAME; do
 	case $OPTNAME in
 		i)
 			echo "Server ID: ${OPTARG}"
