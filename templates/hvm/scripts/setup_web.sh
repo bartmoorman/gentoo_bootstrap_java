@@ -86,9 +86,10 @@ sed -i -r \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
 "${filename}" || exit 1
 
+dirname="/usr/share/php/smarty"
 linkname="/usr/share/php/Smarty"
-echo "--- ${linkname} (softlink)"
-ln -s "/usr/share/php/smarty/" "${linkname}"
+echo "--- ${linkname} -> ${dirname} (softlink)"
+ln -s "${dirname}/" "${linkname}"
 
 filename="/etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
@@ -97,7 +98,7 @@ sed -i -r \
 -e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"-D INFO -D SSL -D LANGUAGE -D PHP5 -D FCGID\"|" \
 "${filename}" || exit 1
 
-filename="/etc/apache/modules.d/00_default_settings.conf"
+filename="/etc/apache2/modules.d/00_default_settings.conf"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
@@ -123,14 +124,14 @@ ForensicLog /var/log/apache2/forensic_log
 
 EOF
 
-filename="/etc/apache/modules.d/00_mod_log_config.conf"
+filename="/etc/apache2/modules.d/00_mod_log_config.conf"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "\|log_config_module|r /tmp/00_mod_log_config.conf.insert" \
 "${filename}" || exit 1
 
-filename="/etc/apache/modules.d/00_mpm.conf"
+filename="/etc/apache2/modules.d/00_mpm.conf"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
@@ -182,7 +183,22 @@ sed -i -r \
 
 rc-update add apache2 default
 
-yes "" | pecl install memcache memcached mongo oauth ssh2-beta || exit 1
+for i in memcache memcached mongo oauth ssh2-beta; do
+        yes "" | pecl install "${i}" || exit 1
+
+        for j in apache2 cgi cli; do
+		filename="/etc/php/${j}-php5.6/ext/${i%-*}.ini"
+                echo "--- ${filename} (replace)"
+		cat <<EOF>"${filename}"
+extension=${i%-*}.so
+EOF
+
+		filename="/etc/php/${j}-php5.6/ext/${i%-*}.ini"
+		linkname="/etc/php/${j}-php5.6/ext-active/${i%-*}.ini"
+		echo "--- ${linkname} -> ${filename} (softlink)"
+		ln -s "${filename}" "${linkname}"
+        done
+done
 
 filename="/usr/local/bin/wkhtmltopdf"
 echo "--- ${filename} (replace)"
