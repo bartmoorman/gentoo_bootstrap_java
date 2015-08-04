@@ -21,8 +21,11 @@ cat <<'EOF'>>"${filename}"
 dev-libs/libmemcached
 dev-php/PEAR-Mail
 dev-php/PEAR-Mail_Mime
+dev-php/PEAR-Spreadsheet_Excel_Writer
 dev-php/smarty
+dev-qt/qtwebkit
 net-libs/libssh2
+media-video/ffmpeg
 sys-apps/miscfiles
 sys-fs/s3fs
 www-apache/mod_fcgid
@@ -58,7 +61,7 @@ cat <<'EOF'>"${filename}"
 dev-libs/libmemcached
 EOF
 
-emerge -uDN @world || exit 1
+emerge -uDN @system @world || exit 1
 
 filename="/etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
@@ -139,6 +142,77 @@ sed -i -r \
 -e "\|^<IfModule mpm_prefork_module>|,\|^</IfModule>|s|^(\s+MaxClients\s+).*|\11024|" \
 "${filename}" || exit 1
 
+filename="/etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+Listen 80
+Listen 8443
+
+NameVirtualHost *:80
+NameVirtualHost *:8443
+
+ExpiresActive On
+ExpiresByType text/css "access plus 2 hours"
+ExpiresByType image/gif "access plus 2 hours"
+ExpiresByType image/png "access plus 2 hours"
+ExpiresByType image/jpeg "access plus 2 hours"
+ExpiresByType image/x-icon "access plus 2 hours"
+ExpiresByType application/x-javascript "access plus 2 hours"
+ExpiresByType application/x-shockwave-flash "access plus 2 hours"
+
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/x-javascript
+
+Include /var/www/sta/conf/insidesales.com.conf
+Include /var/www/sta2/conf/beta.insidesales.com.conf
+EOF
+
+filename="/etc/apache2/vhosts.d/02_isdc_other_vhost.conf"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+Include /var/www/cdn/conf/insidesales.com.conf
+
+Include /var/www/iswsi/conf/insidesales.com.conf
+Include /var/www/iswsi2/conf/beta.insidesales.com.conf
+
+Include /var/www/arkapi/conf/insidesales.com.conf
+Include /var/www/arkapi2/conf/beta.insidesales.com.conf
+
+Include /var/www/nvapi/conf/insidesales.com.conf
+Include /var/www/nvapi2/conf/beta.insidesales.com.conf
+
+Include /var/www/idm/conf/insidesales.com.conf
+Include /var/www/idm2/conf/beta.insidesales.com.conf
+
+Include /var/www/accounting/conf/insidesales.com.conf
+Include /var/www/accounting2/conf/beta.insidesales.com.conf
+
+Include /var/www/dialerapp2/conf/beta.insidesales.com.conf
+Include /var/www/dialerapp/conf/insidesales.com.conf
+
+Include /var/www/is/atom/conf/insidesales.com.conf
+Include /var/www/is/atom2/conf/beta.insidesales.com.conf
+
+Include /var/www/is/billing/conf/insidesales.com.conf
+Include /var/www/is/billing2/conf/beta.insidesales.com.conf
+EOF
+
+for d in $(grep -h ^Include /etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf /etc/apache2/vhosts.d/02_isdc_other_vhost.conf | cut -d' ' -f2); do
+	dirname="${d%/*}"
+	echo "--- ${dirname} (create)"
+	mkdir -p "${dirname}"
+
+	filename="${d}"
+	echo "--- ${filename} (create)"
+	touch "${filename}"
+done
+
 dirname="/usr/local/lib64/apache2/include"
 echo "--- ${dirname} (create)"
 mkdir -p "${dirname}"
@@ -184,20 +258,23 @@ sed -i -r \
 rc-update add apache2 default
 
 for i in memcache memcached mongo oauth ssh2-beta; do
-        yes "" | pecl install "${i}" || exit 1
+	yes "" | pecl install "${i}" || exit 1
 
-        for j in apache2 cgi cli; do
-		filename="/etc/php/${j}-php5.6/ext/${i%-*}.ini"
-                echo "--- ${filename} (replace)"
+	dirname="/etc/php"
+	echo "--- ${dirname} (processing)"
+
+	for j in $(ls "${dirname}"); do
+		filename="${dirname}/${j}/ext/${i%-*}.ini"
+		echo "--- ${filename} (replace)"
 		cat <<EOF>"${filename}"
 extension=${i%-*}.so
 EOF
 
-		filename="/etc/php/${j}-php5.6/ext/${i%-*}.ini"
-		linkname="/etc/php/${j}-php5.6/ext-active/${i%-*}.ini"
+		filename="${dirname}/${j}/ext/${i%-*}.ini"
+		linkname="${dirname}/${j}/ext-active/${i%-*}.ini"
 		echo "--- ${linkname} -> ${filename} (softlink)"
 		ln -s "${filename}" "${linkname}"
-        done
+	done
 done
 
 filename="/usr/local/bin/wkhtmltopdf"

@@ -51,7 +51,7 @@ sed -i -r \
 -e "s|minimal|extraengine profiling|" \
 "${filename}" || exit 1
 
-emerge -uDN @world || exit 1
+emerge -uDN @system @world || exit 1
 
 filename="/tmp/my.cnf.insert.1"
 echo "--- ${filename} (replace)"

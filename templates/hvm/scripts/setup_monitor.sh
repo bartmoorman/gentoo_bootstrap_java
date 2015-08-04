@@ -40,7 +40,7 @@ cat <<'EOF'>"${filename}"
 sys-cluster/ganglia python
 EOF
 
-emerge -uDN @world || exit 1
+emerge -uDN @system @world || exit 1
 
 filename="/etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"

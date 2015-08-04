@@ -64,7 +64,7 @@ dev-db/mongodb
 app-admin/mongo-tools
 EOF
 
-emerge -uDN @world || exit 1
+emerge -uDN @system @world || exit 1
 
 filename="/etc/mongodb.conf"
 echo "--- ${filename} (modify)"

@@ -61,7 +61,7 @@ cat <<'EOF'>"${filename}"
 app-shells/rssh
 EOF
 
-emerge -uDN @world || exit 1
+emerge -uDN @system @world || exit 1
 
 counter=0
 sleep=30
