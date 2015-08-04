@@ -182,7 +182,7 @@ pip install awscli
 
 <#assign filename = "/tmp/aws-cfn-bootstrap-latest.tar.gz">
 echo "--- ${filename} (replace)"
-curl -s -o "${filename}" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
+curl -sf -o "${filename}" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
 easy_install "${filename}"
 
 <#assign filename = "/etc/logrotate.conf">

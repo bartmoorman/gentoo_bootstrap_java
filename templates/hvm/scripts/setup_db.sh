@@ -80,6 +80,7 @@ skip-name-resolve
 open_files_limit		= 65536
 myisam_repair_threads		= 2
 table_definition_cache		= 4096
+sql-mode			= NO_AUTO_CREATE_USER
 EOF
 
 filename="/tmp/my.cnf.insert.2"
@@ -192,7 +193,7 @@ n
 y
 EOF
 
-filename="/etc/mysql/configure_as_slave.sql"
+filename="/tmp/configure_as_slave.sql"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
@@ -256,7 +257,7 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/etc/mysql/configure_as_slave.sql"
+filename="/tmp/configure_as_slave.sql"
 echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%BMOORMAN_HASH%|${bmoorman_mysql_hash}|" \
@@ -272,6 +273,8 @@ sed -i -r \
 -e "s|%MASTER_AUTH%|${master_mysql_auth}|" \
 "${filename}" || exit 1
 
+filename="/tmp/configure_as_slave.sql"
+echo "--- ${filename} (run)"
 mysql < "${filename}" || exit 1
 
 filename="/etc/skel/.mytop"

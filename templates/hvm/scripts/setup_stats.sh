@@ -53,13 +53,10 @@ sed -i -r \
 
 emerge -uDN @world || exit 1
 
-etc-update -p
-
 filename="/tmp/my.cnf.insert.1"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 
-des-key-file			= /etc/mysql/sta.key
 thread_cache_size		= 64
 query_cache_size		= 128M
 query_cache_limit		= 32M
@@ -71,6 +68,7 @@ skip-name-resolve
 open_files_limit		= 65536
 myisam_repair_threads		= 2
 table_definition_cache		= 4096
+sql-mode			= NO_AUTO_CREATE_USER
 EOF
 
 filename="/tmp/my.cnf.insert.2"
@@ -118,36 +116,11 @@ sed -i -r \
 -e "\|^innodb_file_per_table|r /tmp/my.cnf.insert.3" \
 "${filename}" || exit 1
 
-filename="/etc/mysql/sta.key"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-0 
-1 
-2 
-3 
-4 
-5 
-6 
-7 
-8 
-9 
-EOF
-chmod 600 "${filename}"
-chown mysql: "${filename}"
-
 dirname="/var/log/mysql/binary"
 echo "--- ${dirname} (create)"
 mkdir -p "${dirname}"
 chmod 700 "${dirname}"
 chown mysql: "${dirname}"
-
-filename="/usr/lib64/mysql/plugin/libmysql_strip_phone.so"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-
-filename="/usr/lib64/mysql/plugin/libmysql_format_phone.so"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 yes "" | emerge --config dev-db/mysql || exit 1
 
@@ -183,7 +156,27 @@ n
 y
 EOF
 
-filename="/etc/mysql/configure_as_standalone.sql"
+filename="/tmp/configure_stats.sql"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+user="stats"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/tmp/configure_stats.sql"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%STATS_AUTH%|${stats_mysql_auth}|" \
+"${filename}" || exit 1
+
+filename="/tmp/configure_stats.sql"
+echo "--- ${filename} (run)"
+mysql < "${filename}" || exit 1
+
+filename="/tmp/configure_as_standalone.sql"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
@@ -235,7 +228,7 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/etc/mysql/configure_as_standalone.sql"
+filename="/tmp/configure_as_standalone.sql"
 echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%BMOORMAN_HASH%|${bmoorman_mysql_hash}|" \
@@ -248,6 +241,8 @@ sed -i -r \
 -e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
 "${filename}" || exit 1
 
+filename="/tmp/configure_as_standalone.sql"
+echo "--- ${filename} (run)"
 mysql < "${filename}" || exit 1
 
 filename="/etc/skel/.mytop"
@@ -339,4 +334,28 @@ filename="/usr/local/lib64/mysql/include/settings.inc"
 echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
+"${filename}" || exit 1
+
+dirname="/usr/local/lib64/apache2/include"
+echo "--- ${dirname} (create)"
+mkdir -p "${dirname}"
+
+filename="/usr/local/lib64/apache2/summarize_stats.php"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+filename="/usr/local/lib64/apache2/include/settings.inc"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+user="stats"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/usr/local/lib64/apache2/include/settings.inc"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%STATS_AUTH%|${stats_mysql_auth}|" \
 "${filename}" || exit 1

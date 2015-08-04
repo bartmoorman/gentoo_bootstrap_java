@@ -1,10 +1,12 @@
-USE mysql;
+USE `mysql`;
 
 DELETE
-FROM user;
+FROM `user`
+WHERE `User` LIKE 'root';
 
 DELETE
-FROM db;
+FROM `db`
+WHERE `User` LIKE '';
 
 GRANT
 ALL PRIVILEGES
@@ -40,6 +42,11 @@ ON *.*
 TO 'npeterson'@'%' IDENTIFIED BY PASSWORD '%NPETERSON_HASH%';
 
 GRANT
+REPLICATION SLAVE
+ON *.*
+TO 'replication'@'10.%' IDENTIFIED BY '%REPLICATION_AUTH%';
+
+GRANT
 PROCESS, SUPER, REPLICATION CLIENT
 ON *.*
 TO 'monitoring'@'localhost' IDENTIFIED BY '%MONITORING_AUTH%';
@@ -52,3 +59,10 @@ TO 'mytop'@'localhost' IDENTIFIED BY '%MYTOP_AUTH%';
 FLUSH PRIVILEGES;
 
 RESET MASTER;
+
+CHANGE MASTER TO
+master_host = '%MASTER_HOST%',
+master_user = 'replication',
+master_password = '%MASTER_AUTH%';
+
+START SLAVE;

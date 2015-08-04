@@ -29,16 +29,16 @@ echo "--- Download stage3"
     <#assign archDir = "amd64">
     <#assign archFile = "amd64">
 </#if>
-curl -s -o /tmp/stage3.tar.bz2 "${mirror}releases/${archDir}/autobuilds/`curl -s "${mirror}releases/${archDir}/autobuilds/latest-stage3-${archFile}.txt" | grep stage3-${archFile}`"
+curl -sf -o "/tmp/stage3.tar.bz2" "${mirror}releases/${archDir}/autobuilds/$(curl -sf "${mirror}releases/${archDir}/autobuilds/latest-stage3-${archFile}.txt" | grep stage3-${archFile})"
 
 echo "--- Download portage"
-curl -s -o /tmp/portage.tar.bz2 "${mirror}snapshots/portage-latest.tar.bz2"
+curl -sf -o "/tmp/portage.tar.bz2" "${mirror}snapshots/portage-latest.tar.bz2"
 
 echo "--- Unpack stage3"
-tar -xjpf /tmp/stage3.tar.bz2 -C ${mountPoint}
+tar -xjpf "/tmp/stage3.tar.bz2" -C ${mountPoint}
 
 echo "--- Unpack portage"
-tar -xjf /tmp/portage.tar.bz2 -C ${mountPoint}/usr
+tar -xjf "/tmp/portage.tar.bz2" -C ${mountPoint}/usr
 
 echo "--- /etc/resolv.conf (copy)"
 cp -L /etc/resolv.conf ${mountPoint}/etc/resolv.conf
