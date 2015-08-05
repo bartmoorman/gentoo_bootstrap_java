@@ -267,7 +267,6 @@ cat <<'EOF'>"${filename}"
 
 command[check_mysql_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var/lib/mysql
 command[check_mysql_connections]=/usr/lib64/nagios/plugins/custom/check_mysql_connections
-command[check_mysql_slave]=/usr/lib64/nagios/plugins/custom/check_mysql_slave
 EOF
 
 filename="/etc/nagios/nrpe.cfg"
@@ -281,11 +280,6 @@ echo "--- ${dirname} (create)"
 mkdir -p "${dirname}"
 
 filename="/usr/lib64/nagios/plugins/custom/check_mysql_connections"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
-
-filename="/usr/lib64/nagios/plugins/custom/check_mysql_slave"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 chmod 755 "${filename}"
@@ -311,11 +305,6 @@ echo "--- ${dirname} (create)"
 mkdir -p "${dirname}"
 
 filename="/usr/local/lib64/mysql/watch_mysql_connections.php"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
-
-filename="/usr/local/lib64/mysql/watch_mysql_slave.php"
 echo "--- ${filename} (replace)"
 curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 chmod 755 "${filename}"

@@ -73,6 +73,23 @@ EOF
 
 emerge -uDN @system @world || exit 1
 
+filename="/etc/conf.d/memcached"
+echo "--- ${filename} (modify)"
+cp "${filename}" "${filename}.orig"
+sed -i -r \
+-e "s|^MEMUSAGE=.*|MEMUSAGE=\"512\"|" \
+-e "s|^MAXCON=.*|MAXCON=\"2048\"|" \
+-e "s|^LISTENON=.*|LISTENON=\"0.0.0.0\"|" \
+"${filename}"
+
+/etc/init.d/memcached start || exit 1
+
+rc-update add memcached default
+
+/etc/init.d/atd start || exit 1
+
+rc-update add atd default
+
 filename="/tmp/my.cnf.insert.1"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
@@ -197,6 +214,86 @@ filename="/tmp/configure_as_standalone.sql"
 echo "--- ${filename} (run)"
 mysql < "${filename}" || exit 1
 
+filename="/etc/skel/.mytop"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+user="mytop"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/etc/skel/.mytop"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
+"${filename}" || exit 1
+
+filename="/tmp/nrpe.cfg.insert"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+
+command[check_mysql_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var/lib/mysql
+command[check_mysql_connections]=/usr/lib64/nagios/plugins/custom/check_mysql_connections
+EOF
+
+filename="/etc/nagios/nrpe.cfg"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "\|^command\[check_total_procs\]|r /tmp/nrpe.cfg.insert" \
+"${filename}" || exit 1
+
+dirname="/usr/lib64/nagios/plugins/custom/include"
+echo "--- ${dirname} (create)"
+mkdir -p "${dirname}"
+
+filename="/usr/lib64/nagios/plugins/custom/check_mysql_connections"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+chmod 755 "${filename}"
+
+filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+user="monitoring"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
+"${filename}" || exit 1
+
+dirname="/usr/local/lib64/mysql/include"
+echo "--- ${dirname} (create)"
+mkdir -p "${dirname}"
+
+filename="/usr/local/lib64/mysql/watch_mysql_connections.php"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+chmod 755 "${filename}"
+
+filename="/usr/local/lib64/mysql/include/settings.inc"
+echo "--- ${filename} (replace)"
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+
+user="monitoring"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="/usr/local/lib64/mysql/include/settings.inc"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
+"${filename}" || exit 1
+
 for i in memcache memcached mongo oauth ssh2-beta; do
 	yes "" | pecl install "${i}" || exit 1
 
@@ -216,3 +313,19 @@ EOF
 		ln -s "${filename}" "${linkname}"
         done
 done
+
+filename="/usr/local/bin/wkhtmltopdf"
+echo "--- ${filename} (replace)"
+compressed_file="$(mktemp)"
+curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
+tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
+mv "${filename}-amd64" "${filename}"
+ln -s "${filename}" "/usr/bin/${filename##*/}"
+
+filename="/usr/local/bin/wkhtmltoimage"
+echo "--- ${filename} (replace)"
+compressed_file="$(mktemp)"
+curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
+tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
+mv "${filename}-amd64" "${filename}"
+ln -s "${filename}" "/usr/bin/${filename##*/}"

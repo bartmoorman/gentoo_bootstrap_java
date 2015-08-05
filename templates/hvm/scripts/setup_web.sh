@@ -131,6 +131,8 @@ filename="/etc/apache2/modules.d/00_mod_log_config.conf"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
+-e "s|^(LogFormat)|#\1|" \
+-e "s|^(CustomLog)|#\1|" \
 -e "\|log_config_module|r /tmp/00_mod_log_config.conf.insert" \
 "${filename}" || exit 1
 
@@ -144,64 +146,11 @@ sed -i -r \
 
 filename="/etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-Listen 80
-Listen 8443
-
-NameVirtualHost *:80
-NameVirtualHost *:8443
-
-ExpiresActive On
-ExpiresByType text/css "access plus 2 hours"
-ExpiresByType image/gif "access plus 2 hours"
-ExpiresByType image/png "access plus 2 hours"
-ExpiresByType image/jpeg "access plus 2 hours"
-ExpiresByType image/x-icon "access plus 2 hours"
-ExpiresByType application/x-javascript "access plus 2 hours"
-ExpiresByType application/x-shockwave-flash "access plus 2 hours"
-
-AddOutputFilterByType DEFLATE text/plain
-AddOutputFilterByType DEFLATE text/html
-AddOutputFilterByType DEFLATE text/xml
-AddOutputFilterByType DEFLATE text/css
-AddOutputFilterByType DEFLATE application/xml
-AddOutputFilterByType DEFLATE application/xhtml+xml
-AddOutputFilterByType DEFLATE application/rss+xml
-AddOutputFilterByType DEFLATE application/x-javascript
-
-Include /var/www/sta/conf/insidesales.com.conf
-Include /var/www/sta2/conf/beta.insidesales.com.conf
-EOF
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 filename="/etc/apache2/vhosts.d/02_isdc_other_vhost.conf"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-Include /var/www/cdn/conf/insidesales.com.conf
-
-Include /var/www/iswsi/conf/insidesales.com.conf
-Include /var/www/iswsi2/conf/beta.insidesales.com.conf
-
-Include /var/www/arkapi/conf/insidesales.com.conf
-Include /var/www/arkapi2/conf/beta.insidesales.com.conf
-
-Include /var/www/nvapi/conf/insidesales.com.conf
-Include /var/www/nvapi2/conf/beta.insidesales.com.conf
-
-Include /var/www/idm/conf/insidesales.com.conf
-Include /var/www/idm2/conf/beta.insidesales.com.conf
-
-Include /var/www/accounting/conf/insidesales.com.conf
-Include /var/www/accounting2/conf/beta.insidesales.com.conf
-
-Include /var/www/dialerapp2/conf/beta.insidesales.com.conf
-Include /var/www/dialerapp/conf/insidesales.com.conf
-
-Include /var/www/is/atom/conf/insidesales.com.conf
-Include /var/www/is/atom2/conf/beta.insidesales.com.conf
-
-Include /var/www/is/billing/conf/insidesales.com.conf
-Include /var/www/is/billing2/conf/beta.insidesales.com.conf
-EOF
+curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
 
 for d in $(grep -h ^Include /etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf /etc/apache2/vhosts.d/02_isdc_other_vhost.conf | cut -d' ' -f2); do
 	dirname="${d%/*}"
@@ -279,12 +228,16 @@ done
 
 filename="/usr/local/bin/wkhtmltopdf"
 echo "--- ${filename} (replace)"
-curl -sf --compressed -o "${filename}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
-chmod 755 "${filename}"
-ln -s "${filename}" /usr/bin
+compressed_file="$(mktemp)"
+curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
+tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
+mv "${filename}-amd64" "${filename}"
+ln -s "${filename}" "/usr/bin/${filename##*/}"
 
 filename="/usr/local/bin/wkhtmltoimage"
 echo "--- ${filename} (replace)"
-curl -sf --compressed -o "${filename}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
-chmod 755 "${filename}"
-ln -s "${filename}" /usr/bin
+compressed_file="$(mktemp)"
+curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
+tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
+mv "${filename}-amd64" "${filename}"
+ln -s "${filename}" "/usr/bin/${filename##*/}"

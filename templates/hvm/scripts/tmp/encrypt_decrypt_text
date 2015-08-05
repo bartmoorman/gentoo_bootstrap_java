@@ -33,5 +33,7 @@ decrypt_user_text() {
 	base64 -d <<< "${encrypted_text}" > "${encrypted_file}"
 	local decrypted_text="$(aws kms decrypt --region "${availability_zone%?}" --ciphertext-blob "fileb://${encrypted_file}" --query "Plaintext" --output text | base64 -d)"
 
+	rm "${encrypted_file}"
+
 	echo -n "${decrypted_text}"
 }
