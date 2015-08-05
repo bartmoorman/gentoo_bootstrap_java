@@ -27,6 +27,7 @@ dev-libs/libmemcached
 dev-php/PEAR-Mail
 dev-php/PEAR-Mail_Mime
 dev-php/PEAR-Spreadsheet_Excel_Writer
+dev-php/pear
 dev-php/smarty
 dev-qt/qtwebkit
 net-libs/libssh2

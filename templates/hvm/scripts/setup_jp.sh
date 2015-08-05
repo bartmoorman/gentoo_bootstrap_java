@@ -20,8 +20,7 @@ echo "--- ${filename} (append)"
 cat <<'EOF'>>"${filename}"
 dev-lang/go
 dev-libs/libmemcached
-dev-php/PEAR-Mail
-dev-php/PEAR-Mail_Mime
+dev-php/pear
 net-libs/libssh2
 sys-fs/s3fs
 EOF

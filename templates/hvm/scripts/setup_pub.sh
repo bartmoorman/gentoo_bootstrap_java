@@ -50,6 +50,7 @@ dev-libs/libmemcached
 dev-php/PEAR-Mail
 dev-php/PEAR-Mail_Mime
 dev-php/PEAR-Spreadsheet_Excel_Writer
+dev-php/pear
 dev-php/smarty
 dev-python/mysql-python
 dev-qt/qtwebkit
@@ -124,7 +125,9 @@ echo "done! :)"
 
 echo -n "Waiting for ${peer%:*}..."
 
-while ! gluster peer probe ${peer%:*} &> /dev/null; do
+while true; do
+	gluster peer probe ${peer%:*} &> /dev/null && break
+
 	if [ "${counter}" -ge "${timeout}" ]; then
 		echo "failed! :("
 		exit 1

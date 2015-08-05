@@ -127,7 +127,9 @@ echo "done! :)"
 
 echo -n "Waiting for ${peer%:*}..."
 
-while ! gluster peer probe ${peer%:*} &> /dev/null; do
+while true; do
+	gluster peer probe ${peer%:*} &> /dev/null && break
+
 	if [ "${counter}" -ge "${timeout}" ]; then
 		echo "failed! :("
 		exit 1
