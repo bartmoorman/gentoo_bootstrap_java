@@ -57,7 +57,6 @@ net-libs/libssh2
 sys-apps/miscfiles
 sys-apps/pv
 sys-cluster/glusterfs
-sys-fs/lvm2
 sys-fs/s3fs
 www-apache/mod_fcgid
 www-servers/apache
@@ -73,12 +72,6 @@ filename="/etc/portage/package.use/libmemcachd"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 dev-libs/libmemcached sasl
-EOF
-
-filename="/etc/portage/package.use/lvm2"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-sys-fs/lvm2 -thin
 EOF
 
 filename="/etc/portage/package.use/mysql"
@@ -382,25 +375,6 @@ chmod 700 "${dirname}"
 chown mysql: "${dirname}"
 
 yes "" | emerge --config dev-db/mysql || exit 1
-
-pvcreate /dev/xvd[fg] || exit 1
-vgcreate vg0 /dev/xvd[fg] || exit 1
-lvcreate -l 100%VG -n lvol0 vg0 || exit 1
-mkfs.ext4 /dev/vg0/lvol0 || exit 1
-
-filename="/etc/fstab"
-echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
-
-/dev/vg0/lvol0		/var/lib/mysql	ext4		noatime		0 0
-EOF
-
-dirname="/var/lib/mysql"
-echo "--- ${dirname} (mount)"
-mv "${dirname}" "${dirname}.bak" || exit 1
-mkdir -p "${dirname}"
-mount "${dirname}" || exit 1
-rsync -a "${dirname}.bak/" "${dirname}/" || exit 1
 
 /etc/init.d/mysql start || exit 1
 
