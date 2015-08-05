@@ -165,7 +165,10 @@ mkdir -p "${dirname}"
 mount "${dirname}" || exit 1
 rsync -a "${dirname}.bak/" "${dirname}/" || exit 1
 
-ln -s /var/tinydns/ /service/tinydns
+dirname="/var/tinydns"
+linkname="/service/tinydns"
+echo "--- ${linkname} -> ${dirname} (softlink)"
+ln -s "${dirname}/" "${linkname}"
 
 dirname="/usr/local/lib64/nsupdater"
 echo "--- $dirname (create)"

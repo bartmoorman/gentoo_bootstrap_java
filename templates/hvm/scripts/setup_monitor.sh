@@ -365,7 +365,10 @@ cat <<'EOF'>"${filename}"
 EOF
 touch /var/spool/cron/crontabs
 
-ln -s /var/www/localhost/htdocs/ganglia-web/ /var/www/localhost/htdocs/ganglia
+dirname="/var/www/localhost/htdocs/ganglia-web"
+linkname="/var/www/localhost/htdocs/ganglia"
+echo "--- ${linkname} -> ${dirname} (softlink)"
+ln -s "${dirname}/" "${linkname}"
 
 filename="/var/www/localhost/htdocs/ganglia/.htaccess"
 echo "--- ${filename} (replace)"

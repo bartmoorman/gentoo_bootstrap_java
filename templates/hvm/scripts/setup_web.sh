@@ -232,7 +232,11 @@ compressed_file="$(mktemp)"
 curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
 tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
 mv "${filename}-amd64" "${filename}"
-ln -s "${filename}" "/usr/bin/${filename##*/}"
+
+filename="/usr/local/bin/wkhtmltopdf"
+linkname="/usr/bin/wkhtmltopdf"
+echo "--- ${linkname} -> ${filename} (softlink)"
+ln -s "${filename}" "${linkname}"
 
 filename="/usr/local/bin/wkhtmltoimage"
 echo "--- ${filename} (replace)"
@@ -240,4 +244,8 @@ compressed_file="$(mktemp)"
 curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
 tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
 mv "${filename}-amd64" "${filename}"
-ln -s "${filename}" "/usr/bin/${filename##*/}"
+
+filename="/usr/local/bin/wkhtmltoimage"
+linkname="/usr/bin/wkhtmltoimage"
+echo "--- ${linkname} -> ${filename} (softlink)"
+ln -s "${filename}" "${linkname}"
