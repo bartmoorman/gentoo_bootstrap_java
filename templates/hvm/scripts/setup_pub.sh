@@ -491,7 +491,7 @@ sed -i -r \
 -e "s|%REPLICATION_AUTH%|${replication_mysql_auth}|" \
 -e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
 -e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
--e "s|%MASTER_HOST%|${master%:*}|" \
+-e "s|%MASTER_HOST%|${peer%:*}|" \
 -e "s|%MASTER_AUTH%|${master_mysql_auth}|" \
 "${filename}" || exit 1
 

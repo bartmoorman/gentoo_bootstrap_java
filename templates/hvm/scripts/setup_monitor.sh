@@ -1,4 +1,13 @@
 #!/bin/bash
+while getopts "b:" OPTNAME; do
+	case $OPTNAME in
+		b)
+			echo "Bucket Name: ${OPTARG}"
+			bucket_name="${OPTARG}"
+			;;
+	esac
+done
+
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="/tmp/encrypt_decrypt_text"

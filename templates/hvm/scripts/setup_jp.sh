@@ -28,7 +28,7 @@ EOF
 filename="/etc/portage/package.use/php"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
-dev-lang/php apache2 bcmath calendar cgi curl exif ftp gd inifile intl pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
+dev-lang/php bcmath calendar curl exif ftp gd inifile intl pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
 EOF
 
 dirname="/etc/portage/package.keywords"
