@@ -16,6 +16,11 @@ while getopts "i:o:b:" OPTNAME; do
 	esac
 done
 
+if [ -z "${server_id}" -o -z "${offset}" ]; then
+	echo "Usage: ${BASH_SOURCE[0]} -i server_id -o offset -b bucket_name"
+	exit 1
+fi
+
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="/tmp/encrypt_decrypt_text"

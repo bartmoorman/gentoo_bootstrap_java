@@ -8,6 +8,11 @@ while getopts "b:" OPTNAME; do
 	esac
 done
 
+if [ ]; then
+	echo "Usage: ${BASH_SOURCE[0]} -b bucket_name"
+	exit 1
+fi
+
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="/tmp/encrypt_decrypt_text"

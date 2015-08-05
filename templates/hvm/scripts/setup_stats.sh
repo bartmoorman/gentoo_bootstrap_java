@@ -17,7 +17,7 @@ while getopts "i:o:b:" OPTNAME; do
 done
 
 if [ -z "${server_id}" -o -z "${offset}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -i server_id -o offset"
+	echo "Usage: ${BASH_SOURCE[0]} -i server_id -o offset -b bucket_name"
 	exit 1
 fi
 

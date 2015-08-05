@@ -20,7 +20,7 @@ while getopts "p:i:o:b:" OPTNAME; do
 	esac
 done
 
-if [ -z "${peer}" -o -z "${server_id}" -o -z "${offset}" -o -z "${bucket_name}" ]; then
+if [ -z "${peer}" -o -z "${server_id}" -o -z "${offset}" ]; then
 	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip -i server_id -o offset -b bucket_name"
 	exit 1
 fi
@@ -90,6 +90,12 @@ EOF
 dirname="/etc/portage/package.keywords"
 echo "--- $dirname (create)"
 mkdir -p "${dirname}"
+
+filename="/etc/portage/package.keywords/glusterfs"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+sys-cluster/glusterfs
+EOF
 
 filename="/etc/portage/package.keywords/libmemcachd"
 echo "--- ${filename} (replace)"
