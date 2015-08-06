@@ -8,7 +8,7 @@
 * ~~setup_log.sh~~
 * ~~setup_backup.sh~~
 * setup_db.sh -m master_name:master_ip -i server_id -o offset [-b bucket_name]
-* setup_mdb.sh -p peer_name:peer_ip[,peer_name:peer_ip,...] [-b bucket_name]
+* **setup_mdb.sh -p peer_name:peer_ip[,peer_name:peer_ip,...] [-b bucket_name]**
 * ~~setup_rfs.sh~~
 * setup_sip.sh -p peer_name:peer_ip[,peer_name:peer_ip,...]
 * setup_stats.sh -i server_id -o offset [-b bucket_name]
