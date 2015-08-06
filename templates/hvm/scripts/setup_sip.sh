@@ -10,7 +10,7 @@ while getopts "p:" OPTNAME; do
 done
 
 if [ ${#peers[0]} -eq 0 ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip[,peer_name:peer_ip,...]"
+	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip[,peer_name:peer_ip,...] -b files_bucket_name"
 	exit 1
 fi
 
