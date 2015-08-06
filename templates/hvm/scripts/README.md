@@ -1,5 +1,3 @@
-# ISDC Setup Scripts
-
 ## Parameters
 
 * setup_ns.sh -p peer_name:peer_ip
@@ -25,11 +23,11 @@
 
 ## Databases
 
-| host | peer (-p) | server_id (-i) | offset (-o) |
-| ---- | --------- | -------------- | ----------- |
-| _0   | _1        | 1              | 1           |
-| _1   | _0        | 2              | 2           |
-| _2   | _1        | 3              | 1           |
+| host  | peer (-p) | server_id (-i) | offset (-o) |
+| ----- | --------- | -------------- | ----------- |
+| dbx_0 | dbx_1     | 1              | 1           |
+| dbx_1 | dbx_0     | 2              | 2           |
+| dbx_2 | dbx_1     | 3              | 1           |
 
 ## User Data
 
@@ -40,7 +38,7 @@ scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/t
 filename="/setup_%TYPE%.sh"
 echo "--- ${filename} (replace)"
 setup_file="$(mktemp)"
-curl -sf -o "${setup_file}" "${scripts}${filename}"
+curl -sf -o "${setup_file}" "${scripts}${filename}" || exit 1
 bash "${setup_file}" %PARAMETERS%
 rm "${setup_file}"
 

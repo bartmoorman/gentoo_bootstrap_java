@@ -57,7 +57,7 @@ cat <<EOF>"${filename}"
   {rabbit, [
     {cluster_nodes, {['rabbit@${name}', 'rabbit@${peer%:*}'], disc}},
     {loopback_users, []}
-  ]},
+  ]}
 ].
 EOF
 
@@ -72,6 +72,8 @@ echo "--- ${filename} (replace)"
 cat <<EOF>"${filename}"
 ${rabbitmq_erlang_cookie}
 EOF
+chmod 600 "${filename}"
+chown rabbitmq: "${filename}"
 
 /etc/init.d/rabbitmq start || exit 1
 
