@@ -17,6 +17,7 @@ if [ -z "${peer}" ]; then
 	exit 1
 fi
 
+name="$(hostname)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="/tmp/encrypt_decrypt_text"
@@ -49,12 +50,15 @@ EOF
 
 emerge -uDN @system @world || exit 1
 
-rabbitmq-plugins enable rabbitmq_management rabbitmq_stomp || exit 1
-
 filename="/etc/rabbitmq/rabbitmq.config"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-[{rabbit, [{loopback_users, []}]}].
+cat <<EOF>"${filename}"
+[
+  {rabbit, [
+    {cluster_nodes, {['rabbit@${name}', 'rabbit@${peer%:*}'], disc}},
+    {loopback_users, []}
+  ]},
+].
 EOF
 
 user="rabbitmq"
@@ -73,36 +77,4 @@ EOF
 
 rc-update add rabbitmq default
 
-counter=0
-sleep=30
-timeout=1800
-
-echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 30")
-echo "done! :)"
-
-echo -n "Waiting for ${peer%:*}..."
-
-while true; do
-	rabbitmqctl stop_app &> /dev/null || exit 1
-
-	if rabbitmqctl join_cluster rabbit@${peer%:*} &> /dev/null; then
-		rabbitmqctl start_app &> /dev/null || exit 1
-		break
-	else [ "${counter}" -ge "${timeout}" ]; then
-		echo "failed! :("
-		exit 1
-	fi
-
-	rabbitmqctl start_app &> /dev/null || exit 1
-
-	echo -n "."
-	sleep ${sleep}
-	counter=$(bc <<< "${counter} + ${sleep}")
-done
-
-echo "connected! :)"
-
-echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 30")
-echo "done! :)"
+rabbitmq-plugins enable rabbitmq_management rabbitmq_stomp || exit 1
