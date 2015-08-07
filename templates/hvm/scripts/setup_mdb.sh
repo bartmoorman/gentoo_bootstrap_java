@@ -186,14 +186,14 @@ EOF
 	for peer in "${peers[@]}"; do
 		mongo <<EOF
 use admin
-db.auth("bmoorman","${bmoorman_mongodb_pwd}")
+db.auth("bmoorman","${bmoorman_mongo_pwd}")
 rs.add("${peer%:*}")
 EOF
 	done
 
 	mongo <<'EOF'
 use admin
-db.auth("bmoorman","${bmoorman_mongodb_pwd}")
+db.auth("bmoorman","${bmoorman_mongo_pwd}")
 db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
 EOF
 fi
