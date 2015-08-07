@@ -212,7 +212,7 @@ sed -i -r \
 "/${filename}" || exit 1
 
 log_config_file="$(mktemp)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"${log_config_file}"
 LogFormat "%P %{Host}i %h %{%Y-%m-%d %H:%M:%S %z}t %m %U %H %>s %B %D" stats
 LogFormat "%P %{Host}i %h %{%Y-%m-%d %H:%M:%S %z}t %{User-Agent}i" agents
 LogFormat "%>s %h" status

@@ -62,6 +62,8 @@ echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-db/mongodb
 app-admin/mongo-tools
+dev-util/boost-build
+dev-libs/boost
 EOF
 
 emerge -uDN @system @world || exit 1
@@ -111,13 +113,81 @@ mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 rsync -a "/${dirname}.bak/" "/${dirname}/" || exit 1
 
+counter=0
+sleep=30
+timeout=1800
+
 /etc/init.d/mongodb start || exit 1
 
 rc-update add mongodb default
 
+echo -n "Sleeping..."
+sleep $(bc <<< "${RANDOM} % 30")
+echo "done! :)"
+
+echo -n "Waiting for ${#peers[@]} peers..."
+
+while [ "${#lpeers[@]}" -gt 0 ]; do
+	if [ "${counter}" -ge "${timeout}" ]; then
+		echo "failed! :("
+		exit 1
+	fi
+
+	for peer in "${!lpeers[@]}"; do
+		mongo --host ${lpeers[peer]%:*} <<'EOF'&>/dev/null
+{ping:1}
+EOF
+		if [ $? -eq 0 ]; then
+			echo -n "${lpeers[peer]%:*}..."
+			unset lpeers[peer]
+		fi
+	done
+
+	echo -n "."
+	sleep ${sleep}
+	counter=$(bc <<< "${counter} + ${sleep}")
+done
+
+echo "connected! :)"
+
+user="bmoorman"
+app="mongo"
+type="pwd"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="ecall"
+app="mongo"
+type="pwd"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+echo -n "Sleeping..."
+sleep $(bc <<< "${RANDOM} % 30")
+echo "done! :)"
+
 mongo <<'EOF'
-rs.add("${name}")
-rs.add("${peer1_name}")
-rs.add("${peer2_name}")
 rs.status()
 EOF
+
+if [ $? -eq 0 ]; then
+	mongo <<EOF
+rs.initiate()
+use admin
+db.createUser({"user":"bmoorman","pwd":"${bmoorman_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
+EOF
+
+	for peer in "${peers[@]}"; do
+		mongo <<EOF
+use admin
+db.auth("bmoorman","${bmoorman_mongodb_pwd}")
+rs.add("${peer%:*}")
+EOF
+	done
+
+	mongo <<'EOF'
+use admin
+db.auth("bmoorman","${bmoorman_mongodb_pwd}")
+db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
+EOF
+fi
