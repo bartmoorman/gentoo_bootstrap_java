@@ -281,24 +281,24 @@ rc-update add nagios default
 
 ganglia_file="$(mktemp)"
 cat <<'EOF'>"${ganglia_file}"
-data_source "Backup" backup1
-data_source "Database" db1_0 db1_1 db1_2 db2_0 db2_1 db2_2 db3_0 db3_1 db3_2 db4_0 db4_1 db4_2 db5_0 db5_1 db5_2
-data_source "Deplopy" deploy1
-data_source "Dialer"  sip1 sip2 sip3 sip4 sip5
-data_source "Event Handler" eh1 eh2
-data_source "Inbound" inbound1 inbound2
-data_source "Joule Processor" jp1 jp2
-data_source "Log" log1
-data_source "Message Queue" mq1 mq2
-data_source "MongoDB" mdb1 mdb2 mdb3
-data_source "Monitor" monitor1
-data_source "Name Server" ns1 ns2
-data_source "Public Web" pub1 pub2
-data_source "Socket" socket1 socket2
-data_source "Statistics" stats1
-data_source "Systems" systems1
-data_source "Web" web1 web2 web3 web4
-data_source "Worker" worker1
+data_source "Backup" eu1iec1backup1
+data_source "Database" eu1iec1db1_0 eu1iec1db1_1 eu1iec1db1_2 eu1iec1db2_0 eu1iec1db2_1 eu1iec1db2_2 eu1iec1db3_0 eu1iec1db3_1 eu1iec1db3_2 eu1iec1db4_0 eu1iec1db4_1 eu1iec1db4_2 eu1iec1db5_0 eu1iec1db5_1 eu1iec1db5_2
+data_source "Deplopy" eu1iec1deploy1
+data_source "Dialer"  eu1iec1sip1 eu1iec1sip2 eu1iec1sip3 eu1iec1sip4 eu1iec1sip5
+data_source "Event Handler" eu1iec1eh1 eu1iec1eh2
+data_source "Inbound" eu1iec1inbound1 eu1iec1inbound2
+data_source "Joule Processor" eu1iec1jp1 eu1iec1jp2
+data_source "Log" eu1iec1log1
+data_source "Message Queue" eu1iec1mq1 eu1iec1mq2
+data_source "MongoDB" eu1iec1mdb1 eu1iec1mdb2 eu1iec1mdb3
+data_source "Monitor" eu1iec1monitor1
+data_source "Name Server" eu1iec1ns1 eu1iec1ns2
+data_source "Public Web" eu1iec1pub1 eu1iec1pub2
+data_source "Socket" eu1iec1socket1 eu1iec1socket2
+data_source "Statistics" eu1iec1stats1
+data_source "Systems" eu1iec1systems1
+data_source "Web" eu1iec1web1 eu1iec1web2 eu1iec1web3 eu1iec1web4
+data_source "Worker" eu1iec1worker1
 EOF
 
 filename="etc/ganglia/gmetad.conf"

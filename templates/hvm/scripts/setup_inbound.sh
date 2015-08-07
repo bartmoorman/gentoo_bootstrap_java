@@ -58,6 +58,12 @@ cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached sasl
 EOF
 
+filename="etc/portage/package.use/mysql"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|minimal|extraengine profiling|" \
+"/${filename}" || exit 1
+
 filename="etc/portage/package.use/php"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
@@ -271,7 +277,7 @@ sed -i -r \
 "/${filename}" || exit 1
 
 nrpe_file="$(mktemp)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"${nrpe_file}"
 
 command[check_mysql_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var/lib/mysql
 command[check_mysql_connections]=/usr/lib64/nagios/plugins/custom/check_mysql_connections
