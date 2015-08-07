@@ -180,10 +180,9 @@ emerge -uDN @world
 easy_install pip
 pip install awscli
 
-<#assign filename = "/tmp/aws-cfn-bootstrap-latest.tar.gz">
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
-easy_install "${filename}"
+cfn_file="$(mktemp)"
+curl -sf -o "${cfn_file}" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
+easy_install "${cfn_file}"
 
 <#assign filename = "/etc/logrotate.conf">
 echo "--- ${filename} (modify)"
@@ -234,9 +233,8 @@ EOF
 
 rc-update add fail2ban default
 
-<#assign filename = "/tmp/nrpe.cfg.insert">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
 <#include "/etc/nagios/nrpe.cfg.ftl">
 EOF
 
@@ -246,7 +244,7 @@ cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "s|^(allowed_hosts=.*)|\1,10.0.0.0/8|" \
 -e "s|^(command\[check_load\]=.*)|#\1|" \
--e "\|^command\[check_total_procs\]|r /tmp/nrpe.cfg.insert" \
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
 "${filename}"
 
 <#assign dirname = "/usr/lib64/nagios/plugins/custom">
@@ -350,6 +348,22 @@ useradd -g users -G wheel -m sdibb
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
 <#include "/keys/sdibb.ftl">
+EOF
+
+useradd -g users -G wheel -m deployer
+
+<#assign filename = "/home/deployer/.ssh/authorized_keys">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/keys/deployer.ftl">
+EOF
+
+useradd -g users -G wheel -m security
+
+<#assign filename = "/home/security/.ssh/authorized_keys">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/keys/security.ftl">
 EOF
 
 <#assign dirname = "/usr/local/lib64/ganglia">

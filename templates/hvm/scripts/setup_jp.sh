@@ -15,9 +15,9 @@ fi
 
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-filename="/var/lib/portage/world"
+filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 dev-lang/go
 dev-libs/libmemcached
 dev-php/pear
@@ -25,25 +25,25 @@ net-libs/libssh2
 sys-fs/s3fs
 EOF
 
-filename="/etc/portage/package.use/libmemcachd"
+filename="etc/portage/package.use/libmemcachd"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached sasl
 EOF
 
-filename="/etc/portage/package.use/php"
+filename="etc/portage/package.use/php"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-lang/php bcmath calendar curl exif ftp gd inifile intl pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
 EOF
 
-dirname="/etc/portage/package.keywords"
+dirname="etc/portage/package.keywords"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/etc/portage/package.keywords/libmemcachd"
+filename="etc/portage/package.keywords/libmemcachd"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
 
@@ -52,19 +52,18 @@ emerge -uDN @system @world || exit 1
 for i in memcache memcached mongo oauth ssh2-beta; do
 	yes "" | pecl install "${i}" || exit 1
 
-	dirname="/etc/php"
+	dirname="etc/php"
 	echo "--- ${dirname} (processing)"
 
-	for j in $(ls "${dirname}"); do
+	for j in $(ls "/${dirname}"); do
 		filename="${dirname}/${j}/ext/${i%-*}.ini"
 		echo "--- ${filename} (replace)"
-		cat <<EOF>"${filename}"
+		cat <<EOF>"/${filename}"
 extension=${i%-*}.so
 EOF
 
-		filename="${dirname}/${j}/ext/${i%-*}.ini"
 		linkname="${dirname}/${j}/ext-active/${i%-*}.ini"
 		echo "--- ${linkname} -> ${filename} (softlink)"
-		ln -s "${filename}" "${linkname}"
+		ln -s "/${filename}" "/${linkname}" || exit 1
 	done
 done

@@ -17,17 +17,17 @@ ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
 name="$(hostname)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-filename="/etc/resolv.conf.head"
+filename="etc/resolv.conf.head"
 echo "--- ${filename} (delete)"
-rm "${filename}"
+rm "/${filename}" || exit 1
 
-filename="/etc/ntp.conf"
+filename="etc/ntp.conf"
 echo "--- ${filename} (restore)"
-cp "${filename}.orig" "${filename}"
+mv "/${filename}.orig" "/${filename}" || exit 1
 
-filename="/etc/ntp.conf"
+filename="etc/ntp.conf"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 restrict 10.12.0.0 mask 255.255.0.0 nomodify nopeer notrap
 EOF
 
@@ -35,19 +35,19 @@ kill -HUP $(pgrep ^dhcpcd) || exit 1
 
 svc -d /service/dnscache || exit 1
 
-filename="/var/dnscache/env/FORWARDONLY"
+filename="var/dnscache/env/FORWARDONLY"
 echo "--- ${filename} (delete)"
-rm "${filename}"
+rm "/${filename}" || exit 1
 
-filename="/var/dnscache/env/IP"
+filename="var/dnscache/env/IP"
 echo "--- ${filename} (replace)"
-cat <<EOF>"${filename}"
+cat <<EOF>"/${filename}"
 ${ip}
 EOF
 
-filename="/var/dnscache/root/servers/@"
+filename="var/dnscache/root/servers/@"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 198.41.0.4
 192.228.79.201
 192.33.4.12
@@ -63,46 +63,46 @@ cat <<'EOF'>"${filename}"
 202.12.27.33
 EOF
 
-filename="/var/dnscache/root/servers/salesteamautomation.com"
+filename="var/dnscache/root/servers/salesteamautomation.com"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 127.0.0.1
 EOF
 
-filename="/var/dnscache/root/servers/12.10.in-addr.arpa"
+filename="var/dnscache/root/servers/12.10.in-addr.arpa"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 127.0.0.1
 EOF
 
-filename="/var/dnscache/root/ip/10.12"
+filename="var/dnscache/root/ip/10.12"
 echo "--- ${filename} (create)"
-touch "${filename}"
+touch "/${filename}" || exit 1
 
 svc -u /service/dnscache || exit 1
 
 tinydns-conf tinydns dnslog /var/tinydns 127.0.0.1 || exit 1
 
-filename="/etc/hosts"
+filename="etc/hosts"
 echo "--- ${filename} (append)"
-cat <<EOF>>"${filename}"
+cat <<EOF>>"/${filename}"
 
 ${peer#*:}	${peer%:*}.salesteamautomation.com ${peer%:*}
 EOF
 
-filename="/var/lib/portage/world"
+filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 sys-cluster/glusterfs
 EOF
 
-dirname="/etc/portage/package.keywords"
+dirname="etc/portage/package.keywords"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/etc/portage/package.keywords/glusterfs"
+filename="etc/portage/package.keywords/glusterfs"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 sys-cluster/glusterfs
 EOF
 
@@ -113,9 +113,9 @@ sleep=30
 timeout=1800
 volume="tinydns"
 
-dirname="/var/glusterfs/${volume}"
+dirname="var/glusterfs/${volume}"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
 /etc/init.d/glusterd start || exit 1
 
@@ -153,37 +153,37 @@ if ! gluster volume info ${volume} &> /dev/null; then
 	gluster volume start ${volume} || exit 1
 fi
 
-filename="/etc/fstab"
+filename="etc/fstab"
 echo "--- ${filename} (append)"
-cat <<EOF>>"${filename}"
+cat <<EOF>>"/${filename}"
 
 localhost:/${volume}	/var/tinydns/root	glusterfs	_netdev		0 0
 EOF
 
-dirname="/var/tinydns/root"
+dirname="var/tinydns/root"
 echo "--- $dirname (mount)"
-mv "${dirname}" "${dirname}.bak" || exit 1
-mkdir -p "${dirname}"
-mount "${dirname}" || exit 1
-rsync -a "${dirname}.bak/" "${dirname}/" || exit 1
+mv "/${dirname}" "/${dirname}.bak" || exit 1
+mkdir -p "/${dirname}"
+mount "/${dirname}" || exit 1
+rsync -a "/${dirname}.bak/" "/${dirname}/" || exit 1
 
-dirname="/var/tinydns"
-linkname="/service/tinydns"
+dirname="var/tinydns"
+linkname="service/tinydns"
 echo "--- ${linkname} -> ${dirname} (softlink)"
-ln -s "${dirname}/" "${linkname}"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
 
-dirname="/usr/local/lib64/nsupdater"
+dirname="usr/local/lib64/nsupdater"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/usr/local/lib64/nsupdater/index.php"
+filename="usr/local/lib64/nsupdater/index.php"
 echo "--- ${filename} (replacee)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/init.d/nsupdater"
+filename="etc/init.d/nsupdater"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
 /etc/init.d/nsupdater start || exit 1
 

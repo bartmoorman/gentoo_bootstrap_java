@@ -25,25 +25,24 @@ if [ -z "${peer}" -o -z "${server_id}" -o -z "${offset}" ]; then
 	exit 1
 fi
 
-ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
 name="$(hostname)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-filename="/tmp/encrypt_decrypt_text"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-source "${filename}"
+filename="usr/local/bin/encrypt_decrypt"
+functions_file="$(mktemp)"
+curl -sf -o "${functions_file}" "${scripts}/${filename}" || exit 1
+source "${functions_file}"
 
-filename="/etc/hosts"
+filename="etc/hosts"
 echo "--- ${filename} (append)"
-cat <<EOF>>"${filename}"
+cat <<EOF>>"/${filename}"
 
 ${peer#*:}	${peer%:*}.salesteamautomation.com ${peer%:*}
 EOF
 
-filename="/var/lib/portage/world"
+filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 dev-db/mysql
 dev-db/mytop
 dev-libs/libmemcached
@@ -63,44 +62,44 @@ www-apache/mod_fcgid
 www-servers/apache
 EOF
 
-filename="/etc/portage/package.use/apache"
+filename="etc/portage/package.use/apache"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 www-servers/apache apache2_modules_log_forensic
 EOF
 
-filename="/etc/portage/package.use/libmemcachd"
+filename="etc/portage/package.use/libmemcachd"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached sasl
 EOF
 
-filename="/etc/portage/package.use/mysql"
+filename="etc/portage/package.use/mysql"
 echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|minimal|extraengine profiling|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/portage/package.use/php"
+filename="etc/portage/package.use/php"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-lang/php apache2 bcmath calendar cgi curl exif ftp gd inifile intl pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
 app-eselect/eselect-php apache2
 EOF
 
-dirname="/etc/portage/package.keywords"
+dirname="etc/portage/package.keywords"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/etc/portage/package.keywords/glusterfs"
+filename="etc/portage/package.keywords/glusterfs"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 sys-cluster/glusterfs
 EOF
 
-filename="/etc/portage/package.keywords/libmemcachd"
+filename="etc/portage/package.keywords/libmemcachd"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
 
@@ -111,9 +110,9 @@ sleep=30
 timeout=1800
 volume="www"
 
-dirname="/var/glusterfs/${volume}"
+dirname="var/glusterfs/${volume}"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
 /etc/init.d/glusterd start || exit 1
 
@@ -151,23 +150,23 @@ if ! gluster volume info ${volume} &> /dev/null; then
 	gluster volume start ${volume} || exit 1
 fi
 
-filename="/etc/fstab"
+filename="etc/fstab"
 echo "--- ${filename} (append)"
-cat <<EOF>>"${filename}"
+cat <<EOF>>"/${filename}"
 
 localhost:/${volume}	/var/www		glusterfs	_netdev		0 0
 EOF
 
-dirname="/var/www"
+dirname="var/www"
 echo "--- $dirname (mount)"
-mv "${dirname}" "${dirname}.bak" || exit 1
-mkdir -p "${dirname}"
-mount "${dirname}" || exit 1
-rsync -a "${dirname}.bak/" "${dirname}/" || exit 1
+mv "/${dirname}" "/${dirname}.bak" || exit 1
+mkdir -p "/${dirname}"
+mount "/${dirname}" || exit 1
+rsync -a "/${dirname}.bak/" "/${dirname}/" || exit 1
 
-filename="/etc/php/apache2-php5.6/php.ini"
+filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(short_open_tag\s+=\s+).*|\1On|" \
 -e "s|^(expose_php\s+=\s+).*|\1Off|" \
@@ -176,11 +175,11 @@ sed -i -r \
 -e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
 -e "s|^(track_errors\s+=\s+).*|\1Off|" \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/php/cgi-php5.6/php.ini"
+filename="etc/php/cgi-php5.6/php.ini"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(short_open_tag\s+=\s+).*|\1On|" \
 -e "s|^(expose_php\s+=\s+).*|\1Off|" \
@@ -189,31 +188,30 @@ sed -i -r \
 -e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
 -e "s|^(track_errors\s+=\s+).*|\1Off|" \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-dirname="/usr/share/php/smarty"
-linkname="/usr/share/php/Smarty"
+dirname="usr/share/php/smarty"
+linkname="usr/share/php/Smarty"
 echo "--- ${linkname} -> ${dirname} (softlink)"
-ln -s "${dirname}/" "${linkname}"
+ln -s "/${dirname}/" "/${linkname}"
 
-filename="/etc/conf.d/apache2"
+filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"-D INFO -D SSL -D LANGUAGE -D PHP5 -D FCGID\"|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/apache2/modules.d/00_default_settings.conf"
+filename="etc/apache2/modules.d/00_default_settings.conf"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(Timeout\s+).*|\130|" \
 -e "s|^(KeepAliveTimeout\s+).*|\13|" \
 -e "s|^(ServerSignature\s+).*|\1Off|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/tmp/00_mod_log_config.conf.insert"
-echo "--- ${filename} (replace)"
+log_config_file="$(mktemp)"
 cat <<'EOF'>"${filename}"
 LogFormat "%P %{Host}i %h %{%Y-%m-%d %H:%M:%S %z}t %m %U %H %>s %B %D" stats
 LogFormat "%P %{Host}i %h %{%Y-%m-%d %H:%M:%S %z}t %{User-Agent}i" agents
@@ -229,54 +227,54 @@ ForensicLog /var/log/apache2/forensic_log
 
 EOF
 
-filename="/etc/apache2/modules.d/00_mod_log_config.conf"
+filename="etc/apache2/modules.d/00_mod_log_config.conf"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(LogFormat)|#\1|" \
 -e "s|^(CustomLog)|#\1|" \
--e "\|log_config_module|r /tmp/00_mod_log_config.conf.insert" \
-"${filename}" || exit 1
+-e "\|log_config_module|r ${log_config_file}" \
+"/${filename}" || exit 1
 
-filename="/etc/apache2/modules.d/00_mpm.conf"
+filename="etc/apache2/modules.d/00_mpm.conf"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "\|prefork MPM|i ServerLimit 1024\n" \
 -e "\|^<IfModule mpm_prefork_module>|,\|^</IfModule>|s|^(\s+MaxClients\s+).*|\11024|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/apache2/vhosts.d/01_isdc_pub_vhost.conf"
+filename="etc/apache2/vhosts.d/01_isdc_pub_vhost.conf"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-dirname="/usr/local/lib64/apache2/include"
+dirname="usr/local/lib64/apache2/include"
 echo "--- ${dirname} (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/usr/local/lib64/apache2/agents.php"
+filename="usr/local/lib64/apache2/agents.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/apache2/error.php"
+filename="usr/local/lib64/apache2/error.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/apache2/stats.php"
+filename="usr/local/lib64/apache2/stats.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/apache2/status.php"
+filename="usr/local/lib64/apache2/status.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/apache2/include/settings.inc"
+filename="usr/local/lib64/apache2/include/settings.inc"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 user="stats"
 app="mysql"
@@ -284,11 +282,9 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/usr/local/lib64/apache2/include/settings.inc"
-echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%STATS_AUTH%|${stats_mysql_auth}|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
 /etc/init.d/apache2 start || exit 1
 
@@ -297,26 +293,24 @@ rc-update add apache2 default
 for i in memcache memcached mongo oauth ssh2-beta; do
 	yes "" | pecl install "${i}" || exit 1
 
-	dirname="/etc/php"
+	dirname="etc/php"
 	echo "--- ${dirname} (processing)"
 
-	for j in $(ls "${dirname}"); do
+	for j in $(ls "/${dirname}"); do
 		filename="${dirname}/${j}/ext/${i%-*}.ini"
 		echo "--- ${filename} (replace)"
-		cat <<EOF>"${filename}"
+		cat <<EOF>"/${filename}"
 extension=${i%-*}.so
 EOF
 
-		filename="${dirname}/${j}/ext/${i%-*}.ini"
 		linkname="${dirname}/${j}/ext-active/${i%-*}.ini"
 		echo "--- ${linkname} -> ${filename} (softlink)"
-		ln -s "${filename}" "${linkname}"
+		ln -s "/${filename}" "/${linkname}" || exit 1
 	done
 done
 
-filename="/tmp/my.cnf.insert.1"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+my_first_file="$(mktemp)"
+cat <<'EOF'>"${my_first_file}"
 
 thread_cache_size		= 64
 query_cache_size		= 128M
@@ -332,9 +326,8 @@ table_definition_cache		= 4096
 sql-mode			= NO_AUTO_CREATE_USER
 EOF
 
-filename="/tmp/my.cnf.insert.2"
-echo "--- ${filename} (replace)"
-cat <<EOF>"${filename}"
+my_second_file="$(mktemp)"
+cat <<EOF>"${my_second_file}"
 
 expire_logs_days		= 2
 slow_query_log
@@ -344,9 +337,8 @@ auto_increment_increment	= 2
 auto_increment_offset		= ${offset}
 EOF
 
-filename="/tmp/my.cnf.insert.3"
-echo "--- ${filename} (replace)"
-cat <<EOF>"${filename}"
+my_third_file="$(mktemp)"
+cat <<EOF>"${my_third_file}"
 
 innodb_flush_method		= O_DIRECT
 innodb_thread_concurrency	= 48
@@ -354,9 +346,9 @@ innodb_concurrency_tickets	= 5000
 innodb_io_capacity		= 1000
 EOF
 
-filename="/etc/mysql/my.cnf"
+filename="etc/mysql/my.cnf"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(key_buffer_size\s+=\s+).*|\112288M|" \
 -e "s|^(max_allowed_packet\s+=\s+).*|\116M|" \
@@ -365,23 +357,23 @@ sed -i -r \
 -e "s|^(read_buffer_size\s+=\s+).*|\1128K|" \
 -e "s|^(read_rnd_buffer_size\s+=\s+).*|\1128K|" \
 -e "s|^(myisam_sort_buffer_size\s+=\s+).*|\164M|" \
--e "\|^lc_messages\s+=\s+|r /tmp/my.cnf.insert.1" \
+-e "\|^lc_messages\s+=\s+|r ${my_first_file}" \
 -e "s|^(bind-address\s+=\s+.*)|#\1|" \
 -e "s|^(log-bin)|\1\t\t\t\t= /var/log/mysql/binary/mysqld-bin|" \
 -e "s|^(server-id\s+=\s+).*|\1${server_id}|" \
--e "\|^server-id\s+=\s+|r /tmp/my.cnf.insert.2" \
+-e "\|^server-id\s+=\s+|r ${my_second_file}" \
 -e "s|^(innodb_buffer_pool_size\s+=\s+).*|\116384M|" \
 -e "s|^(innodb_data_file_path\s+=\s+.*)|#\1|" \
 -e "s|^(innodb_log_file_size\s+=\s+).*|\11024M|" \
 -e "s|^(innodb_flush_log_at_trx_commit\s+=\s+).*|\12|" \
--e "\|^innodb_file_per_table|r /tmp/my.cnf.insert.3" \
-"${filename}" || exit 1
+-e "\|^innodb_file_per_table|r ${my_third_file}" \
+"/${filename}" || exit 1
 
-dirname="/var/log/mysql/binary"
+dirname="var/log/mysql/binary"
 echo "--- ${dirname} (create)"
-mkdir -p "${dirname}"
-chmod 700 "${dirname}"
-chown mysql: "${dirname}"
+mkdir -p "/${dirname}"
+chmod 700 "/${dirname}" || exit 1
+chown mysql: "/${dirname}" || exit 1
 
 yes "" | emerge --config dev-db/mysql || exit 1
 
@@ -398,9 +390,9 @@ n
 y
 EOF
 
-filename="/tmp/configure_as_slave.sql"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+filename="etc/mysql/configure_as_slave.sql"
+configure_slave_file="$(mktemp)"
+curl -sf -o "${configure_slave_file}" "${scripts}/${filename}" || exit 1
 
 user="bmoorman"
 app="mysql"
@@ -462,8 +454,6 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/tmp/configure_as_slave.sql"
-echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%BMOORMAN_HASH%|${bmoorman_mysql_hash}|" \
 -e "s|%CPLUMMER_HASH%|${cplummer_mysql_hash}|" \
@@ -476,15 +466,13 @@ sed -i -r \
 -e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
 -e "s|%MASTER_HOST%|${peer%:*}|" \
 -e "s|%MASTER_AUTH%|${master_mysql_auth}|" \
-"${filename}" || exit 1
+"${configure_slave_file}" || exit 1
 
-filename="/tmp/configure_as_slave.sql"
-echo "--- ${filename} (run)"
-mysql < "${filename}" || exit 1
+mysql < "${configure_slave_file}" || exit 1
 
-filename="/etc/skel/.mytop"
+filename="etc/skel/.mytop"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 user="mytop"
 app="mysql"
@@ -492,44 +480,41 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/etc/skel/.mytop"
-echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/tmp/nrpe.cfg.insert"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
 
 command[check_mysql_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var/lib/mysql
 command[check_mysql_connections]=/usr/lib64/nagios/plugins/custom/check_mysql_connections
 command[check_mysql_slave]=/usr/lib64/nagios/plugins/custom/check_mysql_slave
 EOF
 
-filename="/etc/nagios/nrpe.cfg"
+filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
--e "\|^command\[check_total_procs\]|r /tmp/nrpe.cfg.insert" \
-"${filename}" || exit 1
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
+"/${filename}" || exit 1
 
-dirname="/usr/lib64/nagios/plugins/custom/include"
+dirname="usr/lib64/nagios/plugins/custom/include"
 echo "--- ${dirname} (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/usr/lib64/nagios/plugins/custom/check_mysql_connections"
+filename="usr/lib64/nagios/plugins/custom/check_mysql_connections"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/lib64/nagios/plugins/custom/check_mysql_slave"
+filename="usr/lib64/nagios/plugins/custom/check_mysql_slave"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
+filename="usr/lib64/nagios/plugins/custom/include/settings.inc"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 user="monitoring"
 app="mysql"
@@ -537,29 +522,27 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/usr/lib64/nagios/plugins/custom/include/settings.inc"
-echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-dirname="/usr/local/lib64/mysql/include"
+dirname="usr/local/lib64/mysql/include"
 echo "--- ${dirname} (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/usr/local/lib64/mysql/watch_mysql_connections.php"
+filename="usr/local/lib64/mysql/watch_mysql_connections.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/mysql/watch_mysql_slave.php"
+filename="usr/local/lib64/mysql/watch_mysql_slave.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/mysql/include/settings.inc"
+filename="usr/local/lib64/mysql/include/settings.inc"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 user="monitoring"
 app="mysql"
@@ -567,32 +550,53 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/usr/local/lib64/mysql/include/settings.inc"
-echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%MONITORING_AUTH%|${monitoring_mysql_auth}|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/usr/local/bin/wkhtmltopdf"
+filename="usr/lib64/ganglia/python_modules/DBUtil.py"
 echo "--- ${filename} (replace)"
-compressed_file="$(mktemp)"
-curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
-tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
-mv "${filename}-amd64" "${filename}"
+curl -sf -o "/${filename}" "https://raw.githubusercontent.com/ganglia/monitor-core/master/gmond/python_modules/db/mysql.py" || exit 1
 
-filename="/usr/local/bin/wkhtmltopdf"
-linkname="/usr/bin/wkhtmltopdf"
-echo "--- ${linkname} -> ${filename} (softlink)"
-ln -s "${filename}" "${linkname}"
-
-filename="/usr/local/bin/wkhtmltoimage"
+filename="usr/lib64/ganglia/python_modules/mysql.py"
 echo "--- ${filename} (replace)"
-compressed_file="$(mktemp)"
-curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
-tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
-mv "${filename}-amd64" "${filename}"
+curl -sf -o "/${filename}" "https://raw.githubusercontent.com/ganglia/monitor-core/master/gmond/python_modules/db/DBUtil.py" || exit 1
 
-filename="/usr/local/bin/wkhtmltoimage"
-linkname="/usr/bin/wkhtmltoimage"
+filename="etc/ganglia/conf.d/mysql.pyconf"
+echo "--- ${filename} (replace)"
+curl -sf -o "/${filename}" "https://raw.githubusercontent.com/ganglia/monitor-core/master/gmond/python_modules/conf.d/mysql.pyconf.disabled" || exit 1
+
+user="monitoring"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+sed -i -r \
+-e "s|your_user|monitoring|" \
+-e "s|your_password|${monitoring_mysql_auth}|" \
+-e "\|param get_master|,\|}|s|False|True|" \
+-e "\|param get_slave|,\|}|s|False|True|" \
+"/${filename}"
+
+filename="usr/local/bin/wkhtmltopdf"
+echo "--- ${filename} (replace)"
+wkhtmltopdf_file="$(mktemp)"
+curl -sf -o "${wkhtmltopdf_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
+tar xjf "${wkhtmltopdf_file}" -C "/${filename%/*}" || exit 1
+mv "/${filename}-amd64" "/${filename}" || exit 1
+
+linkname="usr/bin/wkhtmltopdf"
 echo "--- ${linkname} -> ${filename} (softlink)"
-ln -s "${filename}" "${linkname}"
+ln -s "/${filename}" "/${linkname}" || exit 1
+
+filename="usr/local/bin/wkhtmltoimage"
+echo "--- ${filename} (replace)"
+wkhtmltoimage_file="$(mktemp)"
+curl -sf -o "${wkhtmltoimage_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
+tar xjf "${wkhtmltoimage_file}" -C "/${filename%/*}" || exit 1
+mv "/${filename}-amd64" "/${filename}"
+
+linkname="usr/bin/wkhtmltoimage"
+echo "--- ${linkname} -> ${filename} (softlink)"
+ln -s "/${filename}" "/${linkname}"

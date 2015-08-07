@@ -20,39 +20,39 @@ fi
 name="$(hostname)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-filename="/tmp/encrypt_decrypt_text"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-source "${filename}"
+filename="usr/local/bin/encrypt_decrypt"
+functions_file="$(mktemp)"
+curl -sf -o "${functions_file}" "${scripts}/${filename}" || exit 1
+source "${functions_file}"
 
-filename="/etc/hosts"
+filename="etc/hosts"
 echo "--- ${filename} (append)"
-cat <<EOF>>"${filename}"
+cat <<EOF>>"/${filename}"
 
 ${peer#*:}	${peer%:*}.salesteamautomation.com ${peer%:*}
 EOF
 
-filename="/var/lib/portage/world"
+filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 net-misc/rabbitmq-server
 EOF
 
-dirname="/etc/portage/package.keywords"
+dirname="etc/portage/package.keywords"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/etc/portage/package.keywords/rabbitmq-server"
+filename="etc/portage/package.keywords/rabbitmq-server"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 net-misc/rabbitmq-server
 EOF
 
 emerge -uDN @system @world || exit 1
 
-filename="/etc/rabbitmq/rabbitmq.config"
+filename="etc/rabbitmq/rabbitmq.config"
 echo "--- ${filename} (replace)"
-cat <<EOF>"${filename}"
+cat <<EOF>"/${filename}"
 [
   {rabbit, [
     {cluster_nodes, {['rabbit@${name}', 'rabbit@${peer%:*}'], disc}},
@@ -67,13 +67,13 @@ type="cookie"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/var/lib/rabbitmq/.erlang.cookie"
+filename="var/lib/rabbitmq/.erlang.cookie"
 echo "--- ${filename} (replace)"
-cat <<EOF>"${filename}"
+cat <<EOF>"/${filename}"
 ${rabbitmq_erlang_cookie}
 EOF
-chmod 600 "${filename}"
-chown rabbitmq: "${filename}"
+chmod 600 "/${filename}" || exit 1
+chown rabbitmq: "/${filename}" || exit 1
 
 /etc/init.d/rabbitmq start || exit 1
 

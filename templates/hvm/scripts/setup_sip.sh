@@ -24,40 +24,47 @@ for peer in "${peers[@]}"; do
         hosts+="${n}${peer#*:}${t}${peer%:*}.salesteamautomation.com ${peer%:*}"
 done
 
-filename="/etc/hosts"
+filename="etc/hosts"
 echo "--- ${filename} (append)"
-cat <<EOF>>"${filename}"
+cat <<EOF>>"/${filename}"
 ${hosts}
 EOF
 
-filename="/var/lib/portage/world"
+filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 app-shells/rssh
+media-sound/sox
 net-misc/asterisk
 sys-cluster/glusterfs
 sys-fs/s3fs
 EOF
 
-filename="/etc/portage/package.use/asterisk"
+filename="etc/portage/package.use/asterisk"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 net-misc/asterisk lua
 EOF
 
-dirname="/etc/portage/package.keywords"
-echo "--- $dirname (create)"
-mkdir -p "${dirname}"
-
-filename="/etc/portage/package.keywords/glusterfs"
+filename="etc/portage/package.use/sox"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
+media-sound/sox mad
+EOF
+
+dirname="etc/portage/package.keywords"
+echo "--- $dirname (create)"
+mkdir -p "/${dirname}"
+
+filename="etc/portage/package.keywords/glusterfs"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
 sys-cluster/glusterfs
 EOF
 
-filename="/etc/portage/package.keywords/rssh"
+filename="etc/portage/package.keywords/rssh"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 app-shells/rssh
 EOF
 
@@ -68,9 +75,9 @@ sleep=30
 timeout=1800
 volume="vmprompts"
 
-dirname="/var/glusterfs/${volume}"
+dirname="var/glusterfs/${volume}"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
 /etc/init.d/glusterd start || exit 1
 
@@ -119,31 +126,31 @@ if ! gluster volume info ${volume} &> /dev/null; then
 	gluster volume start ${volume} || exit 1
 fi
 
-filename="/etc/fstab"
+filename="etc/fstab"
 echo "--- ${filename} (append)"
-cat <<EOF>>"${filename}"
+cat <<EOF>>"/${filename}"
 
 localhost:/${volume}	/var/lib/asterisk/sounds/vmprompts	glusterfs	_netdev		0 0
 EOF
 
-dirname="/var/lib/asterisk/sounds/vmprompts"
+dirname="var/lib/asterisk/sounds/vmprompts"
 echo "--- $dirname (mount)"
-mkdir -p "${dirname}"
-mount "${dirname}" || exit 1
+mkdir -p "/${dirname}"
+mount "/${dirname}" || exit 1
 
-filename="/etc/rssh.conf"
+filename="etc/rssh.conf"
 echo "--- ${filename} (modify)"
-cp "${filename}.default" "${filename}"
+cp "/${filename}.default" "/${filename}"
 sed -r -i \
 -e "s|^#(allowrsync)|\1|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-usermod -s /usr/bin/rssh asterisk
+usermod -s /usr/bin/rssh asterisk || exit 1
 
-dirname="/var/lib/asterisk/.ssh"
+dirname="var/lib/asterisk/.ssh"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/var/lib/asterisk/.ssh/authorized_keys"
+filename="var/lib/asterisk/.ssh/authorized_keys"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}/keys/asterisk" || exit 1
+curl -sf -o "/${filename}" "/${scripts}/keys/asterisk" || exit 1

@@ -15,14 +15,14 @@ fi
 
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-filename="/tmp/encrypt_decrypt_text"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-source "${filename}"
+filename="usr/local/bin/encrypt_decrypt"
+functions_file="$(mktemp)"
+curl -sf -o "${functions_file}" "${scripts}/${filename}" || exit 1
+source "${functions_file}"
 
-filename="/var/lib/portage/world"
+filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 dev-libs/libmemcached
 dev-php/PEAR-Mail
 dev-php/PEAR-Mail_Mime
@@ -38,40 +38,40 @@ www-apache/mod_fcgid
 www-servers/apache
 EOF
 
-filename="/etc/portage/package.use/apache"
+filename="etc/portage/package.use/apache"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 www-servers/apache apache2_modules_log_forensic
 EOF
 
-filename="/etc/portage/package.use/libmemcachd"
+filename="etc/portage/package.use/libmemcachd"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached sasl
 EOF
 
-filename="/etc/portage/package.use/php"
+filename="etc/portage/package.use/php"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-lang/php apache2 bcmath calendar cgi curl exif ftp gd inifile intl pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
 app-eselect/eselect-php apache2
 EOF
 
-dirname="/etc/portage/package.keywords"
+dirname="etc/portage/package.keywords"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "$/{dirname}"
 
-filename="/etc/portage/package.keywords/libmemcachd"
+filename="etc/portage/package.keywords/libmemcachd"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
 
 emerge -uDN @system @world || exit 1
 
-filename="/etc/php/apache2-php5.6/php.ini"
+filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(short_open_tag\s+=\s+).*|\1On|" \
 -e "s|^(expose_php\s+=\s+).*|\1Off|" \
@@ -80,11 +80,11 @@ sed -i -r \
 -e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
 -e "s|^(track_errors\s+=\s+).*|\1Off|" \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/php/cgi-php5.6/php.ini"
+filename="etc/php/cgi-php5.6/php.ini"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(short_open_tag\s+=\s+).*|\1On|" \
 -e "s|^(expose_php\s+=\s+).*|\1Off|" \
@@ -93,32 +93,31 @@ sed -i -r \
 -e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
 -e "s|^(track_errors\s+=\s+).*|\1Off|" \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-dirname="/usr/share/php/smarty"
-linkname="/usr/share/php/Smarty"
+dirname="usr/share/php/smarty"
+linkname="usr/share/php/Smarty"
 echo "--- ${linkname} -> ${dirname} (softlink)"
-ln -s "${dirname}/" "${linkname}"
+ln -s "/${dirname}/" "/${linkname}"
 
-filename="/etc/conf.d/apache2"
+filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"-D INFO -D SSL -D LANGUAGE -D PHP5 -D FCGID\"|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/apache2/modules.d/00_default_settings.conf"
+filename="etc/apache2/modules.d/00_default_settings.conf"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(Timeout\s+).*|\130|" \
 -e "s|^(KeepAliveTimeout\s+).*|\13|" \
 -e "s|^(ServerSignature\s+).*|\1Off|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/tmp/00_mod_log_config.conf.insert"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+log_config_file="$(mktemp)"
+cat <<'EOF'>"${log_config_file}"
 LogFormat "%P %{Host}i %h %{%Y-%m-%d %H:%M:%S %z}t %m %U %H %>s %B %D" stats
 LogFormat "%P %{Host}i %h %{%Y-%m-%d %H:%M:%S %z}t %{User-Agent}i" agents
 LogFormat "%>s %h" status
@@ -133,30 +132,30 @@ ForensicLog /var/log/apache2/forensic_log
 
 EOF
 
-filename="/etc/apache2/modules.d/00_mod_log_config.conf"
+filename="etc/apache2/modules.d/00_mod_log_config.conf"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(LogFormat)|#\1|" \
 -e "s|^(CustomLog)|#\1|" \
--e "\|log_config_module|r /tmp/00_mod_log_config.conf.insert" \
-"${filename}" || exit 1
+-e "\|log_config_module|r ${log_config_file}" \
+"/${filename}" || exit 1
 
-filename="/etc/apache2/modules.d/00_mpm.conf"
+filename="etc/apache2/modules.d/00_mpm.conf"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "\|prefork MPM|i ServerLimit 1024\n" \
 -e "\|^<IfModule mpm_prefork_module>|,\|^</IfModule>|s|^(\s+MaxClients\s+).*|\11024|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf"
+filename="etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/apache2/vhosts.d/02_isdc_other_vhost.conf"
+filename="etc/apache2/vhosts.d/02_isdc_other_vhost.conf"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 for d in $(grep -h ^Include /etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf /etc/apache2/vhosts.d/02_isdc_other_vhost.conf | cut -d' ' -f2); do
 	dirname="${d%/*}"
@@ -165,36 +164,36 @@ for d in $(grep -h ^Include /etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf /etc/ap
 
 	filename="${d}"
 	echo "--- ${filename} (create)"
-	touch "${filename}"
+	touch "${filename}" || exit 1
 done
 
-dirname="/usr/local/lib64/apache2/include"
+dirname="usr/local/lib64/apache2/include"
 echo "--- ${dirname} (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/usr/local/lib64/apache2/agents.php"
+filename="usr/local/lib64/apache2/agents.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/apache2/error.php"
+filename="usr/local/lib64/apache2/error.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/apache2/stats.php"
+filename="usr/local/lib64/apache2/stats.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/apache2/status.php"
+filename="usr/local/lib64/apache2/status.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/usr/local/lib64/apache2/include/settings.inc"
+filename="usr/local/lib64/apache2/include/settings.inc"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 user="stats"
 app="mysql"
@@ -202,11 +201,9 @@ type="auth"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/usr/local/lib64/apache2/include/settings.inc"
-echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%STATS_AUTH%|${stats_mysql_auth}|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
 /etc/init.d/apache2 start || exit 1
 
@@ -215,43 +212,40 @@ rc-update add apache2 default
 for i in memcache memcached mongo oauth ssh2-beta; do
 	yes "" | pecl install "${i}" || exit 1
 
-	dirname="/etc/php"
+	dirname="etc/php"
 	echo "--- ${dirname} (processing)"
 
-	for j in $(ls "${dirname}"); do
+	for j in $(ls "/${dirname}"); do
 		filename="${dirname}/${j}/ext/${i%-*}.ini"
 		echo "--- ${filename} (replace)"
-		cat <<EOF>"${filename}"
+		cat <<EOF>"/${filename}"
 extension=${i%-*}.so
 EOF
 
-		filename="${dirname}/${j}/ext/${i%-*}.ini"
 		linkname="${dirname}/${j}/ext-active/${i%-*}.ini"
 		echo "--- ${linkname} -> ${filename} (softlink)"
-		ln -s "${filename}" "${linkname}"
+		ln -s "/${filename}" "/${linkname}" || exit 1
 	done
 done
 
-filename="/usr/local/bin/wkhtmltopdf"
+filename="usr/local/bin/wkhtmltopdf"
 echo "--- ${filename} (replace)"
-compressed_file="$(mktemp)"
-curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
-tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
-mv "${filename}-amd64" "${filename}"
+wkhtmltopdf_file="$(mktemp)"
+curl -sf -o "${wkhtmltopdf_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
+tar xjf "${wkhtmltopdf_file}" -C "/${filename%/*}" || exit 1
+mv "/${filename}-amd64" "/${filename}" || exit 1
 
-filename="/usr/local/bin/wkhtmltopdf"
-linkname="/usr/bin/wkhtmltopdf"
+linkname="usr/bin/wkhtmltopdf"
 echo "--- ${linkname} -> ${filename} (softlink)"
-ln -s "${filename}" "${linkname}"
+ln -s "/${filename}" "/${linkname}" || exit 1
 
-filename="/usr/local/bin/wkhtmltoimage"
+filename="usr/local/bin/wkhtmltoimage"
 echo "--- ${filename} (replace)"
-compressed_file="$(mktemp)"
-curl -sf -o "${compressed_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
-tar xjf "${compressed_file}" -C "${filename%/*}" && rm "${compressed_file}" || exit 1
-mv "${filename}-amd64" "${filename}"
+wkhtmltoimage_file="$(mktemp)"
+curl -sf -o "${wkhtmltoimage_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
+tar xjf "${wkhtmltoimage_file}" -C "/${filename%/*}" || exit 1
+mv "/${filename}-amd64" "/${filename}" || exit 1
 
-filename="/usr/local/bin/wkhtmltoimage"
-linkname="/usr/bin/wkhtmltoimage"
+linkname="usr/bin/wkhtmltoimage"
 echo "--- ${linkname} -> ${filename} (softlink)"
-ln -s "${filename}" "${linkname}"
+ln -s "/${filename}" "/${linkname}" || exit 1

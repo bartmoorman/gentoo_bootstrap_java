@@ -15,50 +15,50 @@ fi
 
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-filename="/tmp/encrypt_decrypt_text"
-echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-source "${filename}"
+filename="usr/local/bin/encrypt_decrypt"
+functions_file="$(mktemp)"
+curl -sf -o "${functions_file}" "${scripts}/${filename}" || exit 1
+source "${functions_file}"
 
-filename="/var/lib/portage/world"
+filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 net-analyzer/nagios
 sys-cluster/ganglia-web
 sys-fs/s3fs
 www-servers/apache
 EOF
 
-filename="/etc/portage/package.use/nagios"
+filename="etc/portage/package.use/nagios"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 net-analyzer/nagios-core apache2
 EOF
 
-filename="/etc/portage/package.use/php"
+filename="etc/portage/package.use/php"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 dev-lang/php apache2 cgi gd
 app-eselect/eselect-php apache2
 EOF
 
-filename="/etc/portage/package.use/gd"
+filename="etc/portage/package.use/gd"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 media-libs/gd jpeg png
 EOF
 
-filename="/etc/portage/package.use/ganglia"
+filename="etc/portage/package.use/ganglia"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 sys-cluster/ganglia python
 EOF
 
 emerge -uDN @system @world || exit 1
 
-filename="/etc/php/apache2-php5.6/php.ini"
+filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(short_open_tag\s+=\s+).*|\1On|" \
 -e "s|^(expose_php\s+=\s+).*|\1Off|" \
@@ -67,26 +67,26 @@ sed -i -r \
 -e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
 -e "s|^(track_errors\s+=\s+).*|\1Off|" \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/conf.d/apache2"
+filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"\1 -D PHP5 -D NAGIOS\"|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
 /etc/init.d/apache2 start || exit 1
 
 rc-update add apache2 default
 
-filename="/usr/lib64/nagios/cgi-bin/.htaccess"
+filename="usr/lib64/nagios/cgi-bin/.htaccess"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/usr/share/nagios/htdocs/.htaccess"
+filename="usr/share/nagios/htdocs/.htaccess"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 user="bmoorman"
 app="nagios"
@@ -118,9 +118,9 @@ type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/etc/nagios/auth.users"
+filename="etc/nagios/auth.users"
 echo "--- ${filename} (create)"
-cat <<EOF>"${filename}"
+cat <<EOF>"/${filename}"
 bmoorman:${bmoorman_nagios_hash}
 npeterson:${npeterson_nagios_hash}
 sdibb:${sdibb_nagios_hash}
@@ -128,47 +128,46 @@ tlosee:${tlosee_nagios_hash}
 tpurdy:${tpurdy_nagios_hash}
 EOF
 
-filename="/etc/nagios/cgi.cfg"
+filename="etc/nagios/cgi.cfg"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|nagiosadmin|bmoorman,npeterson,sdibb,tlosee,tpurdy|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/tmp/nagios.cfg.insert"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+nagios_file="$(mktemp)"
+cat <<'EOF'>"${nagios_file}"
 
 cfg_dir=/etc/nagios/global
 cfg_dir=/etc/nagios/aws
 EOF
 
-filename="/etc/nagios/nagios.cfg"
+filename="etc/nagios/nagios.cfg"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(cfg_file=.*)|#\1|" \
--e "\|^#cfg_dir=/etc/nagios/routers|r /tmp/nagios.cfg.insert" \
+-e "\|^#cfg_dir=/etc/nagios/routers|r ${nagios_file}" \
 -e "s|^(check_result_reaper_frequency=).*|\12|" \
 -e "s|^(use_large_installation_tweaks=).*|\11|" \
 -e "s|^(enable_environment_macros=).*|\10|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-dirname="/etc/nagios/global"
+dirname="etc/nagios/global"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/etc/nagios/global/commands.cfg"
+filename="etc/nagios/global/commands.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/global/contact_groups.cfg"
+filename="etc/nagios/global/contact_groups.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/global/contacts.cfg"
+filename="etc/nagios/global/contacts.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 user="bmoorman"
 app="nagios"
@@ -200,91 +199,88 @@ type="nma"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/etc/nagios/global/contacts.cfg"
-echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%BMOORMAN_PROWL%|${bmoorman_nagios_prowl}|" \
 -e "s|%NPETERSON_NMA%|${npeterson_nagios_nma}|" \
 -e "s|%SDIBB_NMA%|${sdibb_nagios_nma}|" \
 -e "s|%TLOSEE_PROWL%|${tlosee_nagios_prowl}|" \
 -e "s|%TPURDY_NMA%|${tpurdy_nagios_nma}|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/nagios/global/hosts.cfg"
+filename="etc/nagios/global/hosts.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/global/services.cfg"
+filename="etc/nagios/global/services.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/global/time_periods.cfg"
+filename="etc/nagios/global/time_periods.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-dirname="/etc/nagios/aws"
+dirname="etc/nagios/aws"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/etc/nagios/aws/host_groups.cfg"
+filename="etc/nagios/aws/host_groups.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/aws/hosts.cfg"
+filename="etc/nagios/aws/hosts.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/aws/service_groups.cfg"
+filename="etc/nagios/aws/service_groups.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/aws/services.cfg"
+filename="etc/nagios/aws/services.cfg"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-dirname="/etc/nagios/scripts/include"
+dirname="etc/nagios/scripts/include"
 echo "--- $dirname (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/etc/nagios/scripts/build_host_email_message.php"
+filename="etc/nagios/scripts/build_host_email_message.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/scripts/build_host_push_message.php"
+filename="etc/nagios/scripts/build_host_push_message.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/scripts/build_service_email_message.php"
+filename="etc/nagios/scripts/build_service_email_message.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/scripts/build_service_push_message.php"
+filename="etc/nagios/scripts/build_service_push_message.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/scripts/nma.php"
+filename="etc/nagios/scripts/nma.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/scripts/prowl.php"
+filename="etc/nagios/scripts/prowl.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="/etc/nagios/scripts/include/nma.php"
+filename="etc/nagios/scripts/include/nma.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "https://raw.githubusercontent.com/iVirus/NMA-PHP/master/nma.php" || exit 1
+curl -sf -o "/${filename}" "https://raw.githubusercontent.com/iVirus/NMA-PHP/master/nma.php" || exit 1
 
-filename="/etc/nagios/scripts/include/prowl.php"
+filename="etc/nagios/scripts/include/prowl.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "https://raw.githubusercontent.com/iVirus/Prowl-PHP/master/prowl.php" || exit 1
+curl -sf -o "/${filename}" "https://raw.githubusercontent.com/iVirus/Prowl-PHP/master/prowl.php" || exit 1
 
 /etc/init.d/nagios start || exit 1
 
 rc-update add nagios default
 
-filename="/tmp/gmetad.conf.insert"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+ganglia_file="$(mktemp)"
+cat <<'EOF'>"${ganglia_file}"
 data_source "Backup" backup1
 data_source "Database" db1_0 db1_1 db1_2 db2_0 db2_1 db2_2 db3_0 db3_1 db3_2 db4_0 db4_1 db4_2 db5_0 db5_1 db5_2
 data_source "Deplopy" deploy1
@@ -305,32 +301,31 @@ data_source "Web" web1 web2 web3 web4
 data_source "Worker" worker1
 EOF
 
-filename="/etc/ganglia/gmetad.conf"
+filename="etc/ganglia/gmetad.conf"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(data_source .*)|#\1|" \
--e "\|^#data_source|r /tmp/gmetad.conf.insert" \
+-e "\|^#data_source|r ${ganglia_file}" \
 -e "s|^(# gridname .*)|\1\ngridname \"ISDC-EU\"|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
-filename="/etc/fstab"
+filename="etc/fstab"
 echo "--- ${filename} (append)"
-cat <<'EOF'>>"${filename}"
+cat <<'EOF'>>"/${filename}"
 
 tmpfs		/var/lib/ganglia/rrds	tmpfs		size=16G	0 0
 EOF
 
-dirname="/var/lib/ganglia/rrds"
+dirname="var/lib/ganglia/rrds"
 echo "--- ${dirname} (mount)"
-mv "${dirname}" "${dirname}-disk" || exit 1
-mkdir -p "${dirname}"
-mount "${dirname}" || exit 1
-rsync -a "${dirname}-disk/" "${dirname}/" || exit 1
+mv "/${dirname}" "/${dirname}-disk" || exit 1
+mkdir -p "/${dirname}"
+mount "/${dirname}" || exit 1
+rsync -a "/${dirname}-disk/" "/${dirname}/" || exit 1
 
-filename="/tmp/gmetad.start"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+gmetad_start_file="$(mktemp)"
+cat <<'EOF'>"${gmetad_start_file}"
 	ebegin "Syncing disk to tmpfs: "
 	if [ -f "/var/lib/ganglia/rrds-disk/.keep_sys-cluster_ganglia-0" ]; then
 		rsync -aq --del /var/lib/ganglia/rrds-disk/ /var/lib/ganglia/rrds/
@@ -339,9 +334,8 @@ cat <<'EOF'>"${filename}"
 
 EOF
 
-filename="/tmp/gmetad.stop"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+gmetad_stop_file="$(mktemp)"
+cat <<'EOF'>"${gmetad_stop_file}"
 
 	ebegin "Syncing tmpfs to disk: "
 	if [ -f "/var/lib/ganglia/rrds/.keep_sys-cluster_ganglia-0" ]; then
@@ -350,54 +344,52 @@ cat <<'EOF'>"${filename}"
 	eend $?
 EOF
 
-filename="/etc/init.d/gmetad"
+filename="etc/init.d/gmetad"
 echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
+cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "\|^start|r /tmp/gmetad.start" \
--e "\|Failed to stop gmetad|r /tmp/gmetad.stop" \
-"${filename}" || exit 1
+-e "\|^start|r ${gmetad_start_file}" \
+-e "\|Failed to stop gmetad|r ${gmetad_stop_file}" \
+"/${filename}" || exit 1
 
 /etc/init.d/gmetad start || exit 1
 
 rc-update add gmetad default
 
-dirname="/usr/local/lib64/ganglia"
+dirname="usr/local/lib64/ganglia"
 echo "--- ${dirname} (create)"
-mkdir -p "${dirname}"
+mkdir -p "/${dirname}"
 
-filename="/usr/local/lib64/ganglia/persist.sh"
+filename="usr/local/lib64/ganglia/persist.sh"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
-chmod 755 "${filename}"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
 
-filename="/var/spool/cron/crontabs/root"
+filename="var/spool/cron/crontabs/root"
 echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
+cat <<'EOF'>"/${filename}"
 
 45 */3 * * *	bash /usr/local/lib64/ganglia/persist.sh
 EOF
-touch /var/spool/cron/crontabs
+touch "/${filename%/*}" || exit 1
 
-dirname="/var/www/localhost/htdocs/ganglia-web"
-linkname="/var/www/localhost/htdocs/ganglia"
+dirname="var/www/localhost/htdocs/ganglia-web"
+linkname="var/www/localhost/htdocs/ganglia"
 echo "--- ${linkname} -> ${dirname} (softlink)"
-ln -s "${dirname}/" "${linkname}"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
 
-filename="/var/www/localhost/htdocs/ganglia/.htaccess"
+filename="var/www/localhost/htdocs/ganglia/.htaccess"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 user="ganglia"
 type="secret"
 echo "-- ${user} ${type} (decrypt)"
 declare "${user}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/var/www/localhost/htdocs/ganglia/.htaccess"
-echo "--- ${filename} (modify)"
 sed -i -r \
 -e "s|%GANGLIA_SECRET%|${ganglia_secret}|" \
-"${filename}" || exit 1
+"/${filename}" || exit 1
 
 user="bmoorman"
 app="ganglia"
@@ -429,9 +421,9 @@ type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-filename="/etc/ganglia/auth.users"
+filename="etc/ganglia/auth.users"
 echo "--- ${filename} (create)"
-cat <<EOF>"${filename}"
+cat <<EOF>"/${filename}"
 bmoorman:${bmoorman_ganglia_hash}
 npeterson:${npeterson_ganglia_hash}
 sdibb:${sdibb_ganglia_hash}
@@ -439,6 +431,6 @@ tlosee:${tlosee_ganglia_hash}
 tpurdy:${tpurdy_ganglia_hash}
 EOF
 
-filename="/var/www/localhost/htdocs/ganglia/conf.php"
+filename="var/www/localhost/htdocs/ganglia/conf.php"
 echo "--- ${filename} (replace)"
-curl -sf -o "${filename}" "${scripts}${filename}" || exit 1
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
