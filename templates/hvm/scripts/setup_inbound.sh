@@ -77,7 +77,7 @@ EOF
 emerge -uDN @system @world || exit 1
 
 for i in memcache memcached mongo oauth ssh2-beta; do
-	yes "" | pecl install "${i}" || exit 1
+	yes "" | pecl install "${i}" > /dev/null || exit 1
 
 	dirname="etc/php"
 	echo "--- ${dirname} (processing)"

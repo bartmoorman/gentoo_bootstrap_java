@@ -169,12 +169,6 @@ cat <<'EOF'>"${filename}"
 <#include "/etc/portage/package.use/mysql.ftl">
 EOF
 
-<#assign filename = "/etc/portage/package.mask/fail2ban">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/etc/portage/package.mask/fail2ban.ftl">
-EOF
-
 emerge -uDN @world
 
 easy_install pip
@@ -211,18 +205,6 @@ sed -i -r \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
 "${filename}"
 
-<#assign filename = "/etc/fail2ban/jail.conf">
-echo "--- ${filename} (modify)"
-cp "${filename}" "${filename}.orig"
-sed -i -r \
--e "\|^\[DEFAULT\]|,\|^\[.*\]|s|^(ignoreip\s+=\s+.*)|\1 10.0.0.0/8|" \
--e "\|^\[DEFAULT\]|,\|^\[.*\]|s|^(bantime\s+=\s+).*|\1-1|" \
--e "\|^\[ssh-tcpwrapper\]|,\|^\[.*\]|s|^(enabled\s+=\s+).*|\1true|" \
--e "\|^\[ssh-tcpwrapper\]|,\|^\[.*\]|s|^(\s+sendmail-whois)|#\1|" \
--e "\|^\[ssh-tcpwrapper\]|,\|^\[.*\]|s|^(ignoreregex)|#\1|" \
--e "\|^\[ssh-tcpwrapper\]|,\|^\[.*\]|s|^(logpath\s+=\s+).*|\1/var/log/messages|" \
-"${filename}"
-
 <#assign filename = "/etc/hosts.allow">
 echo "--- ${filename} (append)"
 cp "${filename}" "${filename}.orig"
@@ -230,8 +212,6 @@ cat <<'EOF'>>"${filename}"
 
 nrpe: 10.0.0.0/8
 EOF
-
-rc-update add fail2ban default
 
 nrpe_file="$(mktemp)"
 cat <<'EOF'>"<#noparse>${nrpe_file}</#noparse>"
