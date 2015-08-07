@@ -71,7 +71,6 @@ EOF
 emerge -uDN @system @world || exit 1
 
 counter=0
-sleep=30
 timeout=1800
 volume="vmprompts"
 
@@ -84,7 +83,7 @@ mkdir -p "/${dirname}"
 rc-update add glusterd default
 
 echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 30")
+sleep $(bc <<< "${RANDOM} % 60")
 echo "done! :)"
 
 echo -n "Waiting for ${#peers[@]} peers..."
@@ -103,14 +102,14 @@ while [ "${#lpeers[@]}" -gt 0 ]; do
 	done
 
 	echo -n "."
-	sleep ${sleep}
+	sleep $(bc <<< "${RANDOM} % 60")
 	counter=$(bc <<< "${counter} + ${sleep}")
 done
 
 echo "connected! :)"
 
 echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 30")
+sleep $(bc <<< "${RANDOM} % 60")
 echo "done! :)"
 
 hosts="${name}:/var/glusterfs/${volume}"

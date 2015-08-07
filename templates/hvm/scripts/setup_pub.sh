@@ -106,7 +106,6 @@ EOF
 emerge -uDN @system @world || exit 1
 
 counter=0
-sleep=30
 timeout=1800
 volume="www"
 
@@ -119,7 +118,7 @@ mkdir -p "/${dirname}"
 rc-update add glusterd default
 
 echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 30")
+sleep $(bc <<< "${RANDOM} % 60")
 echo "done! :)"
 
 echo -n "Waiting for ${peer%:*}..."
@@ -133,14 +132,14 @@ while true; do
 	fi
 
 	echo -n "."
-	sleep ${sleep}
+	sleep $(bc <<< "${RANDOM} % 60")
 	counter=$(bc <<< "${counter} + ${sleep}")
 done
 
 echo "connected! :)"
 
 echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 30")
+sleep $(bc <<< "${RANDOM} % 60")
 echo "done! :)"
 
 if ! gluster volume info ${volume} &> /dev/null; then
