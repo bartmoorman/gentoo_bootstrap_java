@@ -181,8 +181,8 @@ easy_install pip
 pip install awscli
 
 cfn_file="$(mktemp)"
-curl -sf -o "${cfn_file}" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
-easy_install "${cfn_file}"
+curl -sf -o "<#noparse>${cfn_file}</#noparse>" "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
+easy_install "<#noparse>${cfn_file}</#noparse>"
 
 <#assign filename = "/etc/logrotate.conf">
 echo "--- ${filename} (modify)"
@@ -234,7 +234,7 @@ EOF
 rc-update add fail2ban default
 
 nrpe_file="$(mktemp)"
-cat <<'EOF'>"${nrpe_file}"
+cat <<'EOF'>"<#noparse>${nrpe_file}</#noparse>"
 <#include "/etc/nagios/nrpe.cfg.ftl">
 EOF
 
@@ -244,7 +244,7 @@ cp "${filename}" "${filename}.orig"
 sed -i -r \
 -e "s|^(allowed_hosts=.*)|\1,10.0.0.0/8|" \
 -e "s|^(command\[check_load\]=.*)|#\1|" \
--e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
+-e "\|^command\[check_total_procs\]|r <#noparse>${nrpe_file}</#noparse>" \
 "${filename}"
 
 <#assign dirname = "/usr/lib64/nagios/plugins/custom">

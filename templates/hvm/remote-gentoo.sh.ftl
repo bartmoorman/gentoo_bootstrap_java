@@ -30,33 +30,33 @@ echo "--- Download stage3"
     <#assign archFile = "amd64">
 </#if>
 stage3_file="$(mktemp)"
-curl -sf -o "${stage3_file}" "${mirror}releases/${archDir}/autobuilds/$(curl -sf "${mirror}releases/${archDir}/autobuilds/latest-stage3-${archFile}.txt" | grep stage3-${archFile})"
+curl -sf -o "<#noparse>${stage3_file}</#noparse>" "${mirror}releases/${archDir}/autobuilds/$(curl -sf "${mirror}releases/${archDir}/autobuilds/latest-stage3-${archFile}.txt" | grep stage3-${archFile})"
 
 echo "--- Unpack stage3"
-tar -xjpf "${stage3_file}" -C ${mountPoint}
+tar xjpf "<#noparse>${stage3_file}</#noparse>" -C ${mountPoint}
 
 echo "--- Download portage"
 portage_file="$(mktemp)"
-curl -sf -o "${portage_file}" "${mirror}snapshots/portage-latest.tar.bz2"
+curl -sf -o "<#noparse>${portage_file}</#noparse>" "${mirror}snapshots/portage-latest.tar.bz2"
 
 echo "--- Unpack portage"
-tar -xjf "${portage_file}" -C ${mountPoint}/usr
+tar xjf "<#noparse>${portage_file}</#noparse>" -C ${mountPoint}/usr
 
 echo "--- /etc/resolv.conf (copy)"
 cp -L /etc/resolv.conf ${mountPoint}/etc/resolv.conf
 
 build_file="$(mktemp)"
-cat <<'END_OF_FILE'>${mountPoint}${build_file}
+cat <<'END_OF_FILE'>${mountPoint}<#noparse>${build_file}</#noparse>
 <#include "/usr/local/bin/build.sh.ftl">
 END_OF_FILE
-chmod 755 ${mountPoint}${build_file}
+chmod 755 ${mountPoint}<#noparse>${build_file}</#noparse>
 
 mount -t proc none ${mountPoint}/proc
 mount --rbind /dev ${mountPoint}/dev
 mount --rbind /dev/pts ${mountPoint}/dev/pts
 
 echo "--- chroot and start building"
-chroot ${mountPoint} ${build_file}
+chroot ${mountPoint} <#noparse>${build_file}</#noparse>
 
 rm -fR ${mountPoint}/tmp/*
 rm -fR ${mountPoint}/var/tmp/*

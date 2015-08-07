@@ -23,6 +23,7 @@
 
 ## Databases
 
+setup_db.sh
 
 | host  | master (-m) | server_id (-i) | offset (-o) |
 | ----- | ----------- | -------------- | ----------- |
@@ -30,19 +31,27 @@
 | dbx_1 | dbx_0       | 2              | 2           |
 | dbx_2 | dbx_1       | 3              | 1           |
 
+setup_pub.sh
+
 | host | peer (-p) | server_id (-i) | offset (-o) |
 | ---- | --------- | -------------- | ----------- |
 | pub1 | pub2      | 1              | 1           |
 | pub2 | pub1      | 2              | 2           |
+
+setup_inbound.sh
 
 | host     | master (-m) | server_id (-i) | offset (-o) |
 | -------- | ----------- | -------------- | ----------- |
 | inbound1 | inbound2    | 1              | 1           |
 | inbound2 | inbound1    | 2              | 2           |
 
+setup_stats.sh
+
 | host  | server_id (-i) | offset (-o) |
 | ----- | -------------- | ----------- |
 | stats | 1              | 1           |
+
+setup_worker.sh
 
 | host   | server_id (-i) | offset (-o) |
 | ------ | -------------- | ----------- |
