@@ -114,6 +114,7 @@ mount "/${dirname}" || exit 1
 rsync -a "/${dirname}.bak/" "/${dirname}/" || exit 1
 
 counter=0
+sleep=$(bc <<< "${RANDOM} % 60")
 timeout=1800
 
 /etc/init.d/mongodb start || exit 1
@@ -121,7 +122,7 @@ timeout=1800
 rc-update add mongodb default
 
 echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 60")
+sleep ${sleep}
 echo "done! :)"
 
 echo -n "Waiting for ${#peers[@]} peers..."
@@ -143,7 +144,7 @@ EOF
 	done
 
 	echo -n "."
-	sleep $(bc <<< "${RANDOM} % 60")
+	sleep ${sleep}
 	counter=$(bc <<< "${counter} + ${sleep}")
 done
 
@@ -162,7 +163,7 @@ echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 echo -n "Sleeping..."
-sleep $(bc <<< "${RANDOM} % 60")
+sleep ${sleep}
 echo "done! :)"
 
 mongo <<'EOF'
@@ -175,7 +176,7 @@ rs.initiate()
 EOF
 
 	echo -n "Sleeping..."
-	sleep $(bc <<< "${RANDOM} % 10")
+	sleep $(bc <<< "${RANDOM} % 5")
 	echo "done! :)"
 
 	mongo <<EOF
@@ -189,6 +190,10 @@ use admin
 db.auth("bmoorman","${bmoorman_mongo_pwd}")
 rs.add("${peer%:*}")
 EOF
+
+		echo -n "Sleeping..."
+		sleep $(bc <<< "${RANDOM} % 5")
+		echo "done! :)"
 	done
 
 	mongo <<'EOF'
