@@ -26,6 +26,12 @@ sys-fs/s3fs
 www-servers/tomcat
 EOF
 
+filename="etc/portage/package.use/icedtea-bin"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+dev-java/icedtea-bin -X -cups
+EOF
+
 filename="etc/portage/package.use/libmemcachd"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"

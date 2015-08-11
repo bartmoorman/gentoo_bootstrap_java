@@ -16,7 +16,7 @@
 - [x] setup_worker.sh -i server_id -o offset [-b files_bucket_name]
 - [x] setup_jp.sh [-b files_bucket_name]
 - [x] setup_pub.sh -p peer_name:peer_ip -i server_id -o offset [-b backup_bucket_name]
-- [ ] setup_eh.sh
+- [ ] setup_eh.sh [-b files_bucket_name]
 - [x] setup_mq.sh -p peer_name:peer_ip [-b files_bucket_name]
 - [x] setup_inbound.sh -m master_name:master_ip -i server_id -o offset [-b files_bucket_name]
 - [ ] setup_socket.sh [-b files_bucket_name]
