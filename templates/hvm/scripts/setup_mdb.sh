@@ -135,7 +135,11 @@ while [ "${#lpeers[@]}" -gt 0 ]; do
 
 	for peer in "${!lpeers[@]}"; do
 		mongo --host ${lpeers[peer]%:*} <<'EOF'&>/dev/null
-{ping:1}
+if ({ping:1}) {
+quit(0)
+} else {
+quit(1)
+}
 EOF
 		if [ $? -eq 0 ]; then
 			echo -n "${lpeers[peer]%:*}..."
@@ -167,37 +171,33 @@ sleep ${sleep}
 echo "done! :)"
 
 mongo <<'EOF'
-rs.status()
+if (rs.status().code == 94) {
+quit(0)
+} else {
+quit(1)
+}
 EOF
 
 if [ $? -eq 0 ]; then
-	mongo <<EOF
+	mongo <<'EOF'
 rs.initiate()
+sleep(500)
 EOF
 
-	echo -n "Sleeping..."
-	sleep $(bc <<< "${RANDOM} % 5")
-	echo "done! :)"
-
-	mongo <<EOF
-use admin
+	mongo admin <<EOF
 db.createUser({"user":"bmoorman","pwd":"${bmoorman_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
+sleep(500)
 EOF
 
 	for peer in "${peers[@]}"; do
-		mongo <<EOF
-use admin
+		mongo admin <<EOF
 db.auth("bmoorman","${bmoorman_mongo_pwd}")
 rs.add("${peer%:*}")
+sleep(500)
 EOF
-
-		echo -n "Sleeping..."
-		sleep $(bc <<< "${RANDOM} % 5")
-		echo "done! :)"
 	done
 
-	mongo <<'EOF'
-use admin
+	mongo admin <<EOF
 db.auth("bmoorman","${bmoorman_mongo_pwd}")
 db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
 EOF
