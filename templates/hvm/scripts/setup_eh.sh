@@ -47,3 +47,22 @@ dev-libs/libmemcached
 EOF
 
 emerge -uDN @system @world || exit 1
+
+for i in memcache memcached mongo oauth ssh2-beta; do
+	yes "" | pecl install "${i}" > /dev/null || exit 1
+
+	dirname="etc/php"
+	echo "--- ${dirname} (processing)"
+
+	for j in $(ls "/${dirname}"); do
+		filename="${dirname}/${j}/ext/${i%-*}.ini"
+		echo "--- ${filename} (replace)"
+		cat <<EOF>"/${filename}"
+extension=${i%-*}.so
+EOF
+
+		linkname="${dirname}/${j}/ext-active/${i%-*}.ini"
+		echo "--- ${linkname} -> ${filename} (softlink)"
+		ln -s "/${filename}" "/${linkname}" || exit 1
+	done
+done
