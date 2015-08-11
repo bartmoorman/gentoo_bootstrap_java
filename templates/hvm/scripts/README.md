@@ -8,7 +8,7 @@
 - [ ] ~~setup_log.sh~~
 - [ ] ~~setup_backup.sh~~
 - [x] setup_db.sh -m master_name:master_ip -i server_id -o offset [-b backup_bucket_name]
-- [ ] setup_mdb.sh -p peer_name:peer_ip[,peer_name:peer_ip,...] [-b backup_bucket_name]
+- [x] setup_mdb.sh -p peer_name:peer_ip[,peer_name:peer_ip,...] [-b backup_bucket_name]
 - [ ] ~~setup_rfs.sh~~
 - [x] setup_sip.sh -p peer_name:peer_ip[,peer_name:peer_ip,...] [-b files_bucket_name]
 - [x] setup_stats.sh -i server_id -o offset [-b backup_bucket_name]
@@ -19,7 +19,7 @@
 - [ ] setup_eh.sh
 - [x] setup_mq.sh -p peer_name:peer_ip [-b files_bucket_name]
 - [x] setup_inbound.sh -m master_name:master_ip -i server_id -o offset [-b files_bucket_name]
-- [ ] setup_socket.sh
+- [ ] setup_socket.sh [-b files_bucket_name]
 
 ## Databases
 
