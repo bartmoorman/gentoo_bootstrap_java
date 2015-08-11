@@ -121,7 +121,7 @@ mkdir -p "/${dirname}"
 
 rc-update add glusterd default
 
-echo -n "Sleeping..."
+echo -n "Sleeping (${sleep}s)..."
 sleep ${sleep}
 echo "done! :)"
 
@@ -142,7 +142,7 @@ done
 
 echo "connected! :)"
 
-echo -n "Sleeping..."
+echo -n "Sleeping (${sleep}s)..."
 sleep ${sleep}
 echo "done! :)"
 

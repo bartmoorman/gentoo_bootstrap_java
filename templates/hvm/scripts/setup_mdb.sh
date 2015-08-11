@@ -121,7 +121,7 @@ timeout=1800
 
 rc-update add mongodb default
 
-echo -n "Sleeping..."
+echo -n "Sleeping (${sleep}s)..."
 sleep ${sleep}
 echo "done! :)"
 
@@ -166,7 +166,7 @@ type="pwd"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-echo -n "Sleeping..."
+echo -n "Sleeping (${sleep}s)..."
 sleep ${sleep}
 echo "done! :)"
 
@@ -181,13 +181,13 @@ EOF
 if [ $? -eq 0 ]; then
 	mongo <<'EOF'
 rs.initiate()
-sleep(500)
+sleep(1500)
 EOF
 
 	mongo <<EOF
 use admin
 db.createUser({"user":"bmoorman","pwd":"${bmoorman_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
-sleep(500)
+sleep(1000)
 EOF
 
 	for peer in "${peers[@]}"; do
@@ -195,7 +195,7 @@ EOF
 use admin
 db.auth("bmoorman","${bmoorman_mongo_pwd}")
 rs.add("${peer%:*}")
-sleep(500)
+sleep(1000)
 EOF
 	done
 
