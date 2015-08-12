@@ -13,6 +13,7 @@ if [ -z "${bucket_name}" ]; then
 	exit 1
 fi
 
+iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="var/lib/portage/world"
@@ -64,7 +65,7 @@ filename="etc/fstab"
 echo "--- ${filename} (append)"
 cat <<EOF>>"/${filename}"
 
-s3fs#${bucket_name}	/mnt/s3		fuse	_netdev		0 0
+s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.com,iam_role=${iam_role}	0 0
 EOF
 
 filename="etc/php/apache2-php5.6/php.ini"

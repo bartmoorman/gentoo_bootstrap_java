@@ -20,11 +20,12 @@ while getopts "m:i:o:b:" OPTNAME; do
 	esac
 done
 
-if [ -z "${master}" -o -z "${server_id}" -o -z "${offset}" ]; then
+if [ -z "${master}" -o -z "${server_id}" -o -z "${offset}" -o -z "${bucket_name}" ]; then
         echo "Usage: ${BASH_SOURCE[0]} -m master_name:master_ip -i server_id -o offset -b bucket_name"
         exit 1
 fi
 
+iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="usr/local/bin/encrypt_decrypt"
@@ -81,6 +82,17 @@ dev-libs/libmemcached
 EOF
 
 emerge -uDN @system @world || exit 1
+
+dirname="mnt/s3"
+echo "--- $dirname (create)"
+mkdir -p "/${dirname}"
+
+filename="etc/fstab"
+echo "--- ${filename} (append)"
+cat <<EOF>>"/${filename}"
+
+s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.com,iam_role=${iam_role}	0 0
+EOF
 
 for i in memcache memcached mongo oauth ssh2-beta; do
 	yes "" | pecl install "${i}" > /dev/null || exit 1

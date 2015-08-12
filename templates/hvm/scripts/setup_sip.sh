@@ -6,15 +6,20 @@ while getopts "p:" OPTNAME; do
 			peers=(${OPTARG//,/ })
 			lpeers=(${OPTARG//,/ })
 			;;
+		b)
+			echo "Bucket Name: ${OPTARG}"
+			bucket_name="${OPTARG}"
+			;;
 	esac
 done
 
-if [ ${#peers[0]} -eq 0 ]; then
+if [ ${#peers[0]} -eq 0 -o -z "${bucket_name}" ]; then
 	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip[,peer_name:peer_ip,...] -b files_bucket_name"
 	exit 1
 fi
 
 name="$(hostname)"
+iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 n=$'\n'
@@ -69,6 +74,17 @@ app-shells/rssh
 EOF
 
 emerge -uDN @system @world || exit 1
+
+dirname="mnt/s3"
+echo "--- $dirname (create)"
+mkdir -p "/${dirname}"
+
+filename="etc/fstab"
+echo "--- ${filename} (append)"
+cat <<EOF>>"/${filename}"
+
+s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.com,iam_role=${iam_role}	0 0
+EOF
 
 counter=0
 sleep=$(bc <<< "${RANDOM} % 60")
