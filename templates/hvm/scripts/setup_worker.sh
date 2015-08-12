@@ -80,10 +80,6 @@ EOF
 
 emerge -uDN @system @world || exit 1
 
-dirname="mnt/s3"
-echo "--- $dirname (create)"
-mkdir -p "/${dirname}"
-
 filename="etc/fstab"
 echo "--- ${filename} (append)"
 cat <<EOF>>"/${filename}"
@@ -91,12 +87,17 @@ cat <<EOF>>"/${filename}"
 s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.com,iam_role=${iam_role}	0 0
 EOF
 
+dirname="mnt/s3"
+echo "--- $dirname (mount)"
+mkdir -p "/${dirname}"
+mount "/${dirname}" || exit 1
+
 filename="etc/conf.d/memcached"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^MEMUSAGE=.*|MEMUSAGE=\"512\"|" \
--e "s|^MAXCON=.*|MAXCON=\"2048\"|" \
+-e "s|^MAXCONN=.*|MAXCONN=\"2048\"|" \
 -e "s|^LISTENON=.*|LISTENON=\"0.0.0.0\"|" \
 "/${filename}"
 

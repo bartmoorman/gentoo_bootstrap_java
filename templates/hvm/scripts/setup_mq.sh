@@ -37,6 +37,7 @@ filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
 net-misc/rabbitmq-server
+sys-fs/s3fs
 EOF
 
 dirname="etc/portage/package.keywords"
@@ -51,16 +52,17 @@ EOF
 
 emerge -uDN @system @world || exit 1
 
-dirname="mnt/s3"
-echo "--- $dirname (create)"
-mkdir -p "/${dirname}"
-
 filename="etc/fstab"
 echo "--- ${filename} (append)"
 cat <<EOF>>"/${filename}"
 
 s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.com,iam_role=${iam_role}	0 0
 EOF
+
+dirname="mnt/s3"
+echo "--- $dirname (mount)"
+mkdir -p "/${dirname}"
+mount "/${dirname}" || exit 1
 
 filename="etc/rabbitmq/rabbitmq.config"
 echo "--- ${filename} (replace)"
