@@ -8,7 +8,7 @@ while getopts "b:" OPTNAME; do
 	esac
 done
 
-if [ ]; then
+if [ -z "${bucket_name}" ]; then
 	echo "Usage: ${BASH_SOURCE[0]} -b bucket_name"
 	exit 1
 fi
@@ -31,7 +31,7 @@ cat <<'EOF'>"/${filename}"
 www-servers/apache apache2_modules_log_forensic
 EOF
 
-filename="etc/portage/package.use/libmemcachd"
+filename="etc/portage/package.use/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached sasl
@@ -48,13 +48,24 @@ dirname="etc/portage/package.keywords"
 echo "--- $dirname (create)"
 mkdir -p "/${dirname}"
 
-filename="etc/portage/package.keywords/libmemcachd"
+filename="etc/portage/package.keywords/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
 
 emerge -uDN @system @world || exit 1
+
+dirname="mnt/s3"
+echo "--- $dirname (create)"
+mkdir -p "/${dirname}"
+
+filename="etc/fstab"
+echo "--- ${filename} (append)"
+cat <<EOF>>"/${filename}"
+
+s3fs#${bucket_name}	/mnt/s3		fuse	_netdev		0 0
+EOF
 
 filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"

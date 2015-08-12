@@ -18,7 +18,6 @@ scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/t
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
-dev-lang/go
 dev-libs/libmemcached
 dev-php/pear
 net-libs/libssh2
@@ -32,7 +31,7 @@ cat <<'EOF'>"/${filename}"
 dev-java/icedtea-bin -X -cups
 EOF
 
-filename="etc/portage/package.use/libmemcachd"
+filename="etc/portage/package.use/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached sasl
@@ -42,7 +41,7 @@ dirname="etc/portage/package.keywords"
 echo "--- $dirname (create)"
 mkdir -p "/${dirname}"
 
-filename="etc/portage/package.keywords/libmemcachd"
+filename="etc/portage/package.keywords/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached

@@ -25,7 +25,7 @@ net-libs/libssh2
 sys-fs/s3fs
 EOF
 
-filename="etc/portage/package.use/libmemcachd"
+filename="etc/portage/package.use/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached sasl
@@ -41,7 +41,7 @@ dirname="etc/portage/package.keywords"
 echo "--- $dirname (create)"
 mkdir -p "/${dirname}"
 
-filename="etc/portage/package.keywords/libmemcachd"
+filename="etc/portage/package.keywords/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
