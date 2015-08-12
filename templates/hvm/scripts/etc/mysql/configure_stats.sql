@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `summary_stats` (
 
 GRANT
 SELECT, INSERT, UPDATE, CREATE
-ON 'web\_stats'.*
+ON `web\_stats`.*
 TO 'stats'@'10.%' IDENTIFIED BY '%STATS_AUTH%'; 
 
 CREATE DATABASE IF NOT EXISTS `public_web_stats`;
@@ -129,5 +129,5 @@ CREATE TABLE IF NOT EXISTS `summary_stats` (
 
 GRANT
 SELECT, INSERT, UPDATE, CREATE
-ON 'public\_web\_stats'.*
+ON `public\_web\_stats`.*
 TO 'stats'@'10.%' IDENTIFIED BY '%STATS_AUTH%';
