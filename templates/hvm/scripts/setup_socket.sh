@@ -39,7 +39,7 @@ dev-libs/libmemcached sasl
 EOF
 
 dirname="etc/portage/package.keywords"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="etc/portage/package.keywords/libmemcached"
@@ -58,7 +58,7 @@ s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.c
 EOF
 
 dirname="mnt/s3"
-echo "--- $dirname (mount)"
+echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 

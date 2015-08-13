@@ -58,7 +58,7 @@ media-sound/sox mad
 EOF
 
 dirname="etc/portage/package.keywords"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="etc/portage/package.keywords/glusterfs"
@@ -83,7 +83,7 @@ s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.c
 EOF
 
 dirname="mnt/s3"
-echo "--- $dirname (mount)"
+echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 
@@ -93,7 +93,7 @@ timeout=1800
 volume="vmprompts"
 
 dirname="var/glusterfs/${volume}"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 /etc/init.d/glusterd start || exit 1
@@ -137,7 +137,7 @@ for peer in "${peers[@]}"; do
 done
 
 if ! gluster volume info ${volume} &> /dev/null; then
-	echo "--- $volume (manage)"
+	echo "--- ${volume} (manage)"
 	gluster volume create ${volume} replica $(bc <<< "${#peers[@]} + 1") ${hosts} force || exit 1
 	gluster volume set ${volume} auth.allow 127.*,10.12.*
 	gluster volume start ${volume} || exit 1
@@ -151,7 +151,7 @@ localhost:/${volume}	/var/lib/asterisk/sounds/vmprompts	glusterfs	_netdev		0 0
 EOF
 
 dirname="var/lib/asterisk/sounds/vmprompts"
-echo "--- $dirname (mount)"
+echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 
@@ -165,7 +165,7 @@ sed -r -i \
 usermod -s /usr/bin/rssh asterisk || exit 1
 
 dirname="var/lib/asterisk/.ssh"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="var/lib/asterisk/.ssh/authorized_keys"

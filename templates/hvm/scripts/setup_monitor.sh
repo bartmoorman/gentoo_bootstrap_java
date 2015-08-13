@@ -30,6 +30,12 @@ sys-fs/s3fs
 www-servers/apache
 EOF
 
+filename="etc/portage/package.use/apache"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+www-servers/apache apache2_modules_log_forensic
+EOF
+
 filename="etc/portage/package.use/nagios"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
@@ -65,7 +71,7 @@ s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.c
 EOF
 
 dirname="mnt/s3"
-echo "--- $dirname (mount)"
+echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 
@@ -167,7 +173,7 @@ sed -i -r \
 "/${filename}" || exit 1
 
 dirname="etc/nagios/global"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="etc/nagios/global/commands.cfg"
@@ -233,7 +239,7 @@ echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 dirname="etc/nagios/aws"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="etc/nagios/aws/host_groups.cfg"
@@ -253,7 +259,7 @@ echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
 dirname="etc/nagios/scripts/include"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="etc/nagios/scripts/build_host_email_message.php"

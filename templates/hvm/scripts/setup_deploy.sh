@@ -4,7 +4,7 @@ scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/t
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
-dev-lang/ruby
+dev-lang/ruby:2.0
 dev-libs/libmemcached
 dev-php/pear
 dev-vcs/git
@@ -18,7 +18,7 @@ dev-libs/libmemcached sasl
 EOF
 
 dirname="etc/portage/package.keywords"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="etc/portage/package.keywords/libmemcached"

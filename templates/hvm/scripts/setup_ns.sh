@@ -97,7 +97,7 @@ sys-cluster/glusterfs
 EOF
 
 dirname="etc/portage/package.keywords"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="etc/portage/package.keywords/glusterfs"
@@ -114,7 +114,7 @@ timeout=1800
 volume="tinydns"
 
 dirname="var/glusterfs/${volume}"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 /etc/init.d/glusterd start || exit 1
@@ -147,7 +147,7 @@ sleep ${sleep}
 echo "done! :)"
 
 if ! gluster volume info ${volume} &> /dev/null; then
-	echo "--- $volume (manage)"
+	echo "--- ${volume} (manage)"
 	gluster volume create ${volume} replica 2 ${name}:/var/glusterfs/${volume} ${peer%:*}:/var/glusterfs/${volume} force || exit 1
 	gluster volume set ${volume} auth.allow 127.*,10.12.*
 	gluster volume start ${volume} || exit 1
@@ -161,7 +161,7 @@ localhost:/${volume}	/var/tinydns/root	glusterfs	_netdev		0 0
 EOF
 
 dirname="var/tinydns/root"
-echo "--- $dirname (mount)"
+echo "--- ${dirname} (mount)"
 mv "/${dirname}" "/${dirname}.bak" || exit 1
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
@@ -173,7 +173,7 @@ echo "--- ${linkname} -> ${dirname} (softlink)"
 ln -s "/${dirname}/" "/${linkname}" || exit 1
 
 dirname="usr/local/lib64/nsupdater"
-echo "--- $dirname (create)"
+echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
 filename="usr/local/lib64/nsupdater/index.php"
