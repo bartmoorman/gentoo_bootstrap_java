@@ -18,6 +18,7 @@ if [ ${#peers[0]} -eq 0 -o -z "${bucket_name}" ]; then
 	exit 1
 fi
 
+ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
 name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
@@ -172,3 +173,5 @@ mkdir -p "/${dirname}"
 filename="var/lib/asterisk/.ssh/authorized_keys"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "/${scripts}/keys/asterisk" || exit 1
+
+curl -sf "http://10.12.16.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://10.12.32.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

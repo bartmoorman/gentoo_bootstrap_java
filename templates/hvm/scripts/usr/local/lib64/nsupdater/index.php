@@ -81,21 +81,21 @@ function commit($dir = '/var/tinydns/root') {
 // Determine which type of record we need to update/create
 switch ($type) {
 	// Create A and PTR
-	case PTR:
+	case 'PTR':
 		$args = array('prefix' => '=', 'name' => $name, 'domain' => $domain, 'address' => $address, 'ttl' => $ttl, 'location' => 'lo');
 		if (!check_args($args)) bad_request($args);
 		$fmt = '%s%s.%s:%s:%u::%s';
 		check_name($args, $fmt);
 		break;
 	// Create A
-	case A:
+	case 'A':
 		$args = array('prefix' => '+', 'name' => $name, 'domain' => $domain, 'address' => $address, 'ttl' => $ttl, 'location' => 'lo');
 		if (!check_args($args)) bad_request($args);
 		$fmt = '%s%s.%s:%s:%u::%s';
 		check_name($args, $fmt);
 		break;
 	// Create CNAME
-	case CNAME:
+	case 'CNAME':
 		$args = array('prefix' => 'C', 'name' => $name, 'domain' => $domain, 'alias' => $alias, 'ttl' => $ttl, 'location' => 'lo');
 		if (!check_args($args)) bad_request($args);
 		$fmt = '%s%s.%s:%s:%u::%s';

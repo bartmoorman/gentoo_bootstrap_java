@@ -18,6 +18,7 @@ if [ ${#peers[@]} -eq 0 -o -z "${bucket_name}" ]; then
 	exit 1
 fi
 
+ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
 name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
@@ -219,3 +220,5 @@ db.auth("bmoorman","${bmoorman_mongo_pwd}")
 db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
 EOF
 fi
+
+curl -sf "http://10.12.16.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://10.12.32.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

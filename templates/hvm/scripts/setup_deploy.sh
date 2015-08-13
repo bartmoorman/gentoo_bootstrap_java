@@ -1,4 +1,7 @@
 #!/bin/bash
+ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
+name="$(hostname)"
+iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 filename="var/lib/portage/world"
@@ -35,3 +38,5 @@ echo "--- ${filename} (replace)"
 composer_file="$(mktemp)"
 curl -sf -o "${composer_file}" "https://getcomposer.org/installer" || exit 1
 php "${composer_file}" -- --install-dir="/${filename%/*}" --filename="${filename##*/}" || exit 1
+
+curl -sf "http://10.12.16.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://10.12.32.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
