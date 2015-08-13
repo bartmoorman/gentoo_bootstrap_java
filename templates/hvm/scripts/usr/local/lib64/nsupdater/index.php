@@ -32,80 +32,74 @@ function check_args($args = array()) {
 }
 
 // Get data file
-function read_data() {
+function read_data(&$data, $file = '/var/tinydns/root/data') {
+	$data = file_get_contents($file);
 }
 
 // Check if record exists
-function check_name() {
-}
+function check_name($args, $fmt) {
+	read_data($data);
 
-// Update a record
-function update_name() {
+	if (preg_match(sprintf('/%s%s\.%s/', preg_quote($args['prefix']), $args['name'], preg_quote($args['domain'])), $data)) {
+		update_name($data, $args, $fmt);
+		echo 'Updating' . PHP_EOL;
+	} else {
+		echo 'Inserting' . PHP_EOL;
+		insert_name($data, $args, $fmt);
+	}
+
+	write_data($data);
 }
 
 // Insert a record
-function insert_name() {
+function insert_name(&$data, $args, $fmt) {
+	$data .= vsprintf($fmt . PHP_EOL, $args);
 }
 
-// Delete a record
-function remove_record() {
+// Update a record
+function update_name(&$data, $args, $fmt) {
+	$data = preg_replace(sprintf('/%s%s\.%s.*/', preg_quote($args['prefix']), $args['name'], preg_quote($args['domain'])), vsprintf($fmt, $args), $data);
 }
 
 // Backup data file
-function backup_data() {
+function backup_data($file = '/var/tinydns/root/data') {
+	copy($file, sprintf('%s-%u', $file, date('YmdHis')));
 }
 
 // Write data file
-function write_data() {
+function write_data($data, $file = '/var/tinydns/root/data') {
+	backup_data();
+	file_put_contents($file, $data);
+	commit();
 }
 
 // Make
-function commit() {
+function commit($dir = '/var/tinydns/root') {
+	shell_exec("cd {$dir} && make");
 }
 
 // Determine which type of record we need to update/create
 switch ($type) {
-	// Create NS, A, and SOA
-	case SOA:
-		$args = array('domain' => $domain, 'address' => $address, 'name' => $name, 'ttl' => $ttl);
-		if (!check_args($args)) bad_request($args);
-		$fmt = '.%s:%s:%s:%u::%s';
-		printf($fmt . PHP_EOL, $args['domain'], $args['address'], $args['name'], $args['ttl'], '');
-		break;
-	// Create NS and A
-	case NS:
-		$args = array('domain' => $domain, 'address' => $address, 'name' => $name, 'ttl' => $ttl);
-		if (!check_args($args)) bad_request($args);
-		$fmt = '&%s:%s:%s:%u::%s';
-		printf($fmt . PHP_EOL, $args['domain'], $args['address'], $args['name'], $args['ttl'], '');
-		break;
 	// Create A and PTR
 	case PTR:
-		$args = array('name' => $name, 'domain' => $domain, 'address' => $address, 'ttl' => $ttl);
+		$args = array('prefix' => '=', 'name' => $name, 'domain' => $domain, 'address' => $address, 'ttl' => $ttl, 'location' => 'lo');
 		if (!check_args($args)) bad_request($args);
-		$fmt = '=%s.%s:%s:%u::%s';
-		printf($fmt . PHP_EOL, $args['name'], $args['domain'], $args['address'], $args['ttl'], '');
+		$fmt = '%s%s.%s:%s:%u::%s';
+		check_name($args, $fmt);
 		break;
 	// Create A
 	case A:
-		$args = array('name' => $name, 'domain' => $domain, 'address' => $address, 'ttl' => $ttl);
+		$args = array('prefix' => '+', 'name' => $name, 'domain' => $domain, 'address' => $address, 'ttl' => $ttl, 'location' => 'lo');
 		if (!check_args($args)) bad_request($args);
-		$fmt = '+%s.%s:%s:%u::%s';
-		printf($fmt . PHP_EOL, $args['name'], $args['domain'], $args['address'], $args['ttl'], '');
-		break;
-	// Create MX and A
-	case MX:
-		$args = array('domain' => $domain, 'address' => $address, 'name' => $name, 'priority' => $priority, 'ttl' => $ttl);
-		if (!check_args($args)) bad_request($args);
-		$fmt = '@%s:%s:%s:%u:%u::%s';
-		printf($fmt . PHP_EOL, $args['domain'], $args['address'], $args['name'], $args['priority'], $args['ttl'], '');
+		$fmt = '%s%s.%s:%s:%u::%s';
+		check_name($args, $fmt);
 		break;
 	// Create CNAME
 	case CNAME:
-		$args = array('name' => $name, 'domain' => $domain, 'alias' => $alias, 'ttl' => $ttl);
+		$args = array('prefix' => 'C', 'name' => $name, 'domain' => $domain, 'alias' => $alias, 'ttl' => $ttl, 'location' => 'lo');
 		if (!check_args($args)) bad_request($args);
-		$fmt = 'C%s.%s:%s:%u::%s';
-		printf($fmt . PHP_EOL, $args['name'], $args['domain'], $args['alias'], $args['ttl'], '');
+		$fmt = '%s%s.%s:%s:%u::%s';
+		check_name($args, $fmt);
 		break;
 	// Unidentified
 	default:
