@@ -89,6 +89,19 @@ sed -i -r \
 -e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
+filename="etc/php/cgi-php5.6/php.ini"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "s|^(short_open_tag\s+=\s+).*|\1On|" \
+-e "s|^(expose_php\s+=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+"/${filename}" || exit 1
+
 filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
@@ -342,7 +355,7 @@ echo "--- ${dirname} (mount)"
 mv "/${dirname}" "/${dirname}-disk" || exit 1
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
-rsync -a "/${dirname}-disk/" "/${dirname}/" || exit 1
+rsync -au "/${dirname}-disk/" "/${dirname}/" || exit 1
 
 gmetad_start_file="$(mktemp)"
 cat <<'EOF'>"${gmetad_start_file}"

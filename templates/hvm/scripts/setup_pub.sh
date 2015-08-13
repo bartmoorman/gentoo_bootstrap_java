@@ -176,7 +176,7 @@ echo "--- ${dirname} (mount)"
 mv "/${dirname}" "/${dirname}.bak" || exit 1
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
-rsync -a "/${dirname}.bak/" "/${dirname}/" || exit 1
+rsync -au "/${dirname}.bak/" "/${dirname}/" || exit 1
 
 filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"

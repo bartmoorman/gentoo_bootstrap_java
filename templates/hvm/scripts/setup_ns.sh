@@ -35,10 +35,6 @@ kill -HUP $(pgrep ^dhcpcd) || exit 1
 
 svc -d /service/dnscache || exit 1
 
-filename="var/dnscache/env/FORWARDONLY"
-echo "--- ${filename} (delete)"
-rm "/${filename}" || exit 1
-
 filename="var/dnscache/env/IP"
 echo "--- ${filename} (replace)"
 cat <<EOF>"/${filename}"
@@ -154,6 +150,30 @@ if ! gluster volume info ${volume} &> /dev/null; then
 	gluster volume start ${volume} || exit 1
 fi
 
+filename="var/dnscache/root/data"
+echo "--- ${filename} (replace)"
+cat <<EOF>"/${filename}"
+#
+# loc
+#
+%lo:127
+%lo:10.12
+%ex:
+
+#
+# soa
+#
+.salesteamautomation.com:${ip}:${name}.salesteamautomation.com:3600::lo
+.salesteamautomation.com:${peer#*:}:${peer%:*}.salesteamautomation.com:3600::lo
+
+.12.10.in-addr.arpa:${ip}:${name}.salesteamautomation.com:3600::lo
+.12.10.in-addr.arpa:${peer#*:}:${peer%:*}.salesteamautomation.com:3600::lo
+
+#
+# a
+#
+EOF
+
 filename="etc/fstab"
 echo "--- ${filename} (append)"
 cat <<EOF>>"/${filename}"
@@ -166,7 +186,7 @@ echo "--- ${dirname} (mount)"
 mv "/${dirname}" "/${dirname}.bak" || exit 1
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
-rsync -a "/${dirname}.bak/" "/${dirname}/" || exit 1
+rsync -au "/${dirname}.bak/" "/${dirname}/" || exit 1
 
 dirname="var/tinydns"
 linkname="service/tinydns"
