@@ -73,6 +73,7 @@ cat <<'EOF'>"/${filename}"
 app-shells/rssh
 EOF
 
+emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 filename="etc/fstab"

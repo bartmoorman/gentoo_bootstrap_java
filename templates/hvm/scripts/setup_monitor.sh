@@ -61,6 +61,7 @@ cat <<'EOF'>"/${filename}"
 sys-cluster/ganglia python
 EOF
 
+emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 filename="etc/fstab"

@@ -52,6 +52,7 @@ sed -i -r \
 -e "s|minimal|extraengine profiling|" \
 "/${filename}" || exit 1
 
+emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 filename="etc/fstab"

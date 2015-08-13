@@ -106,6 +106,7 @@ cat <<'EOF'>"/${filename}"
 sys-cluster/glusterfs
 EOF
 
+emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 counter=0

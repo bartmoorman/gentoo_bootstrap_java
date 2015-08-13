@@ -47,6 +47,7 @@ cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
 
+emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 filename="etc/fstab"

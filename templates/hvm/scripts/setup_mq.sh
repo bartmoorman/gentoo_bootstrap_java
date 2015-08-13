@@ -50,6 +50,7 @@ cat <<'EOF'>"/${filename}"
 net-misc/rabbitmq-server
 EOF
 
+emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 filename="etc/fstab"

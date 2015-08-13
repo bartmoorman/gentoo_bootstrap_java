@@ -67,6 +67,7 @@ dev-util/boost-build
 dev-libs/boost
 EOF
 
+emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 filename="etc/fstab"
