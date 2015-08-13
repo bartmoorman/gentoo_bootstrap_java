@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "p:" OPTNAME; do
+while getopts "p:b:" OPTNAME; do
 	case $OPTNAME in
 		p)
 			echo "Peers: ${OPTARG}"
