@@ -85,6 +85,26 @@ echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 
+dirname="mnt/s3/repository/sta_files"
+linkname="var/www/sta_files"
+echo "--- ${linkname} -> ${dirname} (softlink)"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
+
+dirname="mnt/s3/repository/sta_files_recycle_bin"
+linkname="var/www/sta_files_recycle_bin"
+echo "--- ${linkname} -> ${dirname} (softlink)"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
+
+dirname="mnt/s3/repository/sta2_files"
+linkname="var/www/sta2_files"
+echo "--- ${linkname} -> ${dirname} (softlink)"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
+
+dirname="mnt/s3/repository/sta2_files_recycle_bin"
+linkname="var/www/sta2_files_recycle_bin"
+echo "--- ${linkname} -> ${dirname} (softlink)"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
+
 filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
@@ -114,7 +134,7 @@ sed -i -r \
 dirname="usr/share/php/smarty"
 linkname="usr/share/php/Smarty"
 echo "--- ${linkname} -> ${dirname} (softlink)"
-ln -s "/${dirname}/" "/${linkname}"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
 
 filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"

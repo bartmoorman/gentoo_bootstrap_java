@@ -208,7 +208,7 @@ sed -i -r \
 dirname="usr/share/php/smarty"
 linkname="usr/share/php/Smarty"
 echo "--- ${linkname} -> ${dirname} (softlink)"
-ln -s "/${dirname}/" "/${linkname}"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
 
 filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
@@ -610,10 +610,10 @@ echo "--- ${filename} (replace)"
 wkhtmltoimage_file="$(mktemp)"
 curl -sf -o "${wkhtmltoimage_file}" "http://download.gna.org/wkhtmltopdf/obsolete/linux/wkhtmltoimage-0.11.0_rc1-static-amd64.tar.bz2" || exit 1
 tar xjf "${wkhtmltoimage_file}" -C "/${filename%/*}" || exit 1
-mv "/${filename}-amd64" "/${filename}"
+mv "/${filename}-amd64" "/${filename}" || exit 1
 
 linkname="usr/bin/wkhtmltoimage"
 echo "--- ${linkname} -> ${filename} (softlink)"
-ln -s "/${filename}" "/${linkname}"
+ln -s "/${filename}" "/${linkname}" || exit 1
 
 curl -sf "http://10.12.16.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://10.12.32.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

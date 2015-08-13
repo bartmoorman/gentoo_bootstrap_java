@@ -41,10 +41,10 @@ function check_name($args, $fmt) {
 	read_data($data);
 
 	if (preg_match(sprintf('/%s%s\.%s/', preg_quote($args['prefix']), $args['name'], preg_quote($args['domain'])), $data)) {
+		echo "Updating DDNS record for {$args['name']}! :)" . PHP_EOL;
 		update_name($data, $args, $fmt);
-		echo 'Updating' . PHP_EOL;
 	} else {
-		echo 'Inserting' . PHP_EOL;
+		echo "Inserting DDNS record for {$args['name']}! :)" . PHP_EOL;
 		insert_name($data, $args, $fmt);
 	}
 
