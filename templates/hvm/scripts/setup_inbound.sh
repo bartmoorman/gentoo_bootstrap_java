@@ -42,6 +42,19 @@ cat <<EOF>>"/${filename}"
 ${master#*:}	${master%:*}.salesteamautomation.com ${master%:*}
 EOF
 
+dirname="etc/portage/repos.conf"
+echo "--- ${dirname} (create)"
+mkdir -p "/${dirname}"
+
+filename="etc/portage/repos.conf/gentoo.conf"
+echo "--- ${filename} (replace)"
+cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
+sed -i -r \
+-e "\|\[gentoo\]|,\|^$|s|^(sync-uri\s+=\s+rsync://).*|\1eu1iec1systems1/gentoo-portage|" \
+"/${filename}"
+
+emerge -q --sync
+
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
@@ -83,7 +96,6 @@ cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
 
-emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 filename="etc/fstab"
@@ -387,4 +399,4 @@ sed -i -r \
 -e "\|param get_slave|,\|}|s|False|True|" \
 "/${filename}"
 
-curl -sf "http://10.12.16.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://10.12.32.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
+curl -sf "http://eu1iec1ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://eu1iec1ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

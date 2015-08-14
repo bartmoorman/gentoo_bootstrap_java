@@ -87,6 +87,8 @@ cat <<EOF>>"/${filename}"
 ${peer#*:}	${peer%:*}.salesteamautomation.com ${peer%:*}
 EOF
 
+emerge -q --sync
+
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
@@ -103,7 +105,6 @@ cat <<'EOF'>"/${filename}"
 sys-cluster/glusterfs
 EOF
 
-emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 counter=0

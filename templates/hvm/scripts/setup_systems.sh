@@ -18,6 +18,8 @@ name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
+emerge -q --sync
+
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
@@ -57,7 +59,6 @@ cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
 
-emerge -q --sync
 emerge -uDN @system @world || exit 1
 
 filename="etc/fstab"
@@ -115,4 +116,15 @@ EOF
 	done
 done
 
-curl -sf "http://10.12.16.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://10.12.32.10:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
+filename="etc/rsyncd.conf"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "\|\[gentoo-portage\]|,\|^$|s|^#(\s+?.*)|\1|" \
+"/${filename}" || exit 1
+
+/etc/init.d/rsyncd start || exit 1
+
+rc-update add rsyncd default
+
+curl -sf "http://eu1iec1ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://eu1iec1ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
