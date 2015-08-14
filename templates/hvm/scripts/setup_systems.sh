@@ -127,4 +127,12 @@ sed -i -r \
 
 rc-update add rsyncd default
 
+filename="var/spool/cron/crontabs/root"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+
+45 5 * * *	emerge -q --sync
+EOF
+touch "/${filename%/*}" || exit 1
+
 curl -sf "http://eu1iec1ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://eu1iec1ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
