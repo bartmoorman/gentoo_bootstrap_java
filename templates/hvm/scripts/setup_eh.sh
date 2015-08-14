@@ -1,15 +1,19 @@
 #!/bin/bash
-while getopts "b:" OPTNAME; do
+while getopts "b:h:" OPTNAME; do
 	case $OPTNAME in
 		b)
 			echo "Bucket Name: ${OPTARG}"
 			bucket_name="${OPTARG}"
 			;;
+		h)
+			echo "Hostname Prefix: ${OPTARG}"
+			hostname_prefix="${OPTARG}"
+			;;
 	esac
 done
 
 if [ -z "${bucket_name}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -b bucket_name"
+	echo "Usage: ${BASH_SOURCE[0]} -b bucket_name -h hostname_prefix"
 	exit 1
 fi
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "i:o:b:" OPTNAME; do
+while getopts "i:o:b:h:" OPTNAME; do
 	case $OPTNAME in
 		i)
 			echo "Server ID: ${OPTARG}"
@@ -13,11 +13,15 @@ while getopts "i:o:b:" OPTNAME; do
 			echo "Bucket Name: ${OPTARG}"
 			bucket_name="${OPTARG}"
 			;;
+		h)
+			echo "Hostname Prefix: ${OPTARG}"
+			hostname_prefix="${OPTARG}"
+			;;
 	esac
 done
 
 if [ -z "${server_id}" -o -z "${offset}" -o -z "${bucket_name}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -i server_id -o offset -b bucket_name"
+	echo "Usage: ${BASH_SOURCE[0]} -i server_id -o offset -b bucket_name -h hostname_prefix"
 	exit 1
 fi
 

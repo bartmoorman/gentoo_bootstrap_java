@@ -1,4 +1,22 @@
 #!/bin/bash
+while getopts "b:h:" OPTNAME; do
+	case $OPTNAME in
+		b)
+			echo "Bucket Name: ${OPTARG}"
+			bucket_name="${OPTARG}"
+			;;
+		h)
+			echo "Hostname Prefix: ${OPTARG}"
+			hostname_prefix="${OPTARG}"
+			;;
+	esac
+done
+
+if [ ]; then
+	echo "Usage: ${BASH_SOURCE[0]} -b bucket_name -h hostname_prefix"
+	exit 1
+fi
+
 ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
 name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"

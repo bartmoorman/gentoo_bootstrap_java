@@ -1,15 +1,23 @@
 #!/bin/bash
-while getopts "p:" OPTNAME; do
+while getopts "p:b:h:" OPTNAME; do
 	case $OPTNAME in
 		p)
 			echo "Peer: ${OPTARG}"
 			peer="${OPTARG}"
 			;;
+		b)
+			echo "Bucket Name: ${OPTARG}"
+			bucket_name="${OPTARG}"
+			;;
+		h)
+			echo "Hostname Prefix: ${OPTARG}"
+			hostname_prefix="${OPTARG}"
+			;;
 	esac
 done
 
 if [ -z "${peer}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip"
+	echo "Usage: ${BASH_SOURCE[0]} -p peer_name:peer_ip -b bucket_name -h hostname_prefix"
 	exit 1
 fi
 
