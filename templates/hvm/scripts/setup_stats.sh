@@ -39,7 +39,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync-uri\s+=\s+rsync://).*|\1eu1iec1systems1/gentoo-portage|" \
+-e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo-portage|" \
 "/${filename}"
 
 emerge -q --sync
@@ -122,22 +122,22 @@ filename="etc/mysql/my.cnf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(key_buffer_size\s+=\s+).*|\124576M|" \
--e "s|^(max_allowed_packet\s+=\s+).*|\116M|" \
--e "s|^(table_open_cache\s+=\s+).*|\116384|" \
--e "s|^(sort_buffer_size\s+=\s+).*|\12M|" \
--e "s|^(read_buffer_size\s+=\s+).*|\1128K|" \
--e "s|^(read_rnd_buffer_size\s+=\s+).*|\1128K|" \
--e "s|^(myisam_sort_buffer_size\s+=\s+).*|\164M|" \
--e "\|^lc_messages\s+=\s+|r ${my_first_file}" \
--e "s|^(bind-address\s+=\s+.*)|#\1|" \
--e "s|^(log-bin)|\1\t\t\t\t= /var/log/mysql/binary/mysqld-bin|" \
--e "s|^(server-id\s+=\s+).*|\1${server_id}|" \
--e "\|^server-id\s+=\s+|r ${my_second_file}" \
--e "s|^(innodb_buffer_pool_size\s+=\s+).*|\132768M|" \
--e "s|^(innodb_data_file_path\s+=\s+.*)|#\1|" \
--e "s|^(innodb_log_file_size\s+=\s+).*|\11024M|" \
--e "s|^(innodb_flush_log_at_trx_commit\s+=\s+).*|\12|" \
+-e "s|^(key_buffer_size\s+\=\s+).*|\124576M|" \
+-e "s|^(max_allowed_packet\s+\=\s+).*|\116M|" \
+-e "s|^(table_open_cache\s+\=\s+).*|\116384|" \
+-e "s|^(sort_buffer_size\s+\=\s+).*|\12M|" \
+-e "s|^(read_buffer_size\s+\=\s+).*|\1128K|" \
+-e "s|^(read_rnd_buffer_size\s+\=\s+).*|\1128K|" \
+-e "s|^(myisam_sort_buffer_size\s+\=\s+).*|\164M|" \
+-e "\|^lc_messages\s+\=\s+|r ${my_first_file}" \
+-e "s|^(bind\-address\s+\=\s+.*)|#\1|" \
+-e "s|^(log\-bin)|\1\t\t\t\t\= /var/log/mysql/binary/mysqld\-bin|" \
+-e "s|^(server\-id\s+\=\s+).*|\1${server_id}|" \
+-e "\|^server\-id\s+\=\s+|r ${my_second_file}" \
+-e "s|^(innodb_buffer_pool_size\s+\=\s+).*|\132768M|" \
+-e "s|^(innodb_data_file_path\s+\=\s+.*)|#\1|" \
+-e "s|^(innodb_log_file_size\s+\=\s+).*|\11024M|" \
+-e "s|^(innodb_flush_log_at_trx_commit\s+\=\s+).*|\12|" \
 -e "\|^innodb_file_per_table|r ${my_third_file}" \
 "/${filename}" || exit 1
 

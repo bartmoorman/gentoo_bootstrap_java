@@ -77,20 +77,20 @@ filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(short_open_tag\s+=\s+).*|\1On|" \
--e "s|^(expose_php\s+=\s+).*|\1Off|" \
--e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
--e "s|^(display_errors\s+=\s+).*|\1Off|" \
--e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
--e "s|^(track_errors\s+=\s+).*|\1Off|" \
--e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+-e "s|^(short_open_tag\s+\=\s+).*|\1On|" \
+-e "s|^(expose_php\s+\=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+\=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+\=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
 filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"\1 -D PHP5\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"|APACHE2_OPTS\=\"\1 \-D PHP5\"|" \
 "/${filename}" || exit 1
 
 /etc/init.d/apache2 start || exit 1
@@ -120,7 +120,7 @@ filename="etc/rsyncd.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "\|\[gentoo-portage\]|,\|^$|s|^#(\s+?.*)|\1|" \
+-e "\|\[gentoo\-portage\]|,\|^$|s|^#(\s+?.*)|\1|" \
 "/${filename}" || exit 1
 
 /etc/init.d/rsyncd start || exit 1

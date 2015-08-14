@@ -31,7 +31,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync-uri\s+=\s+rsync://).*|\1eu1iec1systems1/gentoo-portage|" \
+-e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo-portage|" \
 "/${filename}"
 
 emerge -q --sync
@@ -121,26 +121,26 @@ filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(short_open_tag\s+=\s+).*|\1On|" \
--e "s|^(expose_php\s+=\s+).*|\1Off|" \
--e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
--e "s|^(display_errors\s+=\s+).*|\1Off|" \
--e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
--e "s|^(track_errors\s+=\s+).*|\1Off|" \
--e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+-e "s|^(short_open_tag\s+\=\s+).*|\1On|" \
+-e "s|^(expose_php\s+\=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+\=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+\=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
 filename="etc/php/cgi-php5.6/php.ini"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(short_open_tag\s+=\s+).*|\1On|" \
--e "s|^(expose_php\s+=\s+).*|\1Off|" \
--e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
--e "s|^(display_errors\s+=\s+).*|\1Off|" \
--e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
--e "s|^(track_errors\s+=\s+).*|\1Off|" \
--e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+-e "s|^(short_open_tag\s+\=\s+).*|\1On|" \
+-e "s|^(expose_php\s+\=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+\=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+\=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
 dirname="usr/share/php/smarty"
@@ -152,7 +152,7 @@ filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"-D INFO -D SSL -D LANGUAGE -D PHP5 -D FCGID\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"|APACHE2_OPTS\=\"\-D INFO \-D SSL \-D LANGUAGE \-D PHP5 \-D FCGID\"|" \
 "/${filename}" || exit 1
 
 filename="etc/apache2/modules.d/00_default_settings.conf"
@@ -194,7 +194,7 @@ echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "\|prefork MPM|i ServerLimit 1024\n" \
--e "\|^<IfModule mpm_prefork_module>|,\|^</IfModule>|s|^(\s+MaxClients\s+).*|\11024|" \
+-e "\|^\<IfModule mpm_prefork_module\>|,\|^\</IfModule\>|s|^(\s+MaxClients\s+).*|\11024|" \
 "/${filename}" || exit 1
 
 filename="etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf"

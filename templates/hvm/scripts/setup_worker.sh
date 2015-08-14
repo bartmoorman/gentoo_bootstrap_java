@@ -39,7 +39,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync-uri\s+=\s+rsync://).*|\1eu1iec1systems1/gentoo-portage|" \
+-e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo-portage|" \
 "/${filename}"
 
 emerge -q --sync
@@ -131,9 +131,9 @@ filename="etc/conf.d/memcached"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^MEMUSAGE=.*|MEMUSAGE=\"512\"|" \
--e "s|^MAXCONN=.*|MAXCONN=\"2048\"|" \
--e "s|^LISTENON=.*|LISTENON=\"0.0.0.0\"|" \
+-e "s|^MEMUSAGE\=.*|MEMUSAGE\=\"512\"|" \
+-e "s|^MAXCONN\=.*|MAXCONN\=\"2048\"|" \
+-e "s|^LISTENON\=.*|LISTENON\=\"0\.0\.0\.0\"|" \
 "/${filename}"
 
 /etc/init.d/memcached start || exit 1
@@ -168,12 +168,12 @@ filename="etc/mysql/my.cnf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "\|^lc_messages\s+=\s+|r ${my_first_file}" \
--e "s|^(bind-address\s+=\s+.*)|#\1|" \
--e "s|^(log-bin)|\1\t\t\t\t= /var/log/mysql/binary/mysqld-bin|" \
--e "s|^(server-id\s+=\s+).*|\1${server_id}|" \
--e "\|^server-id\s+=\s+|r ${my_second_file}" \
--e "s|^(innodb_data_file_path\s+=\s+.*)|#\1|" \
+-e "\|^lc_messages\s+\=\s+|r ${my_first_file}" \
+-e "s|^(bind\-address\s+\=\s+.*)|#\1|" \
+-e "s|^(log\-bin)|\1\t\t\t\t\= /var/log/mysql/binary/mysqld\-bin|" \
+-e "s|^(server\-id\s+\=\s+).*|\1${server_id}|" \
+-e "\|^server\-id\s+\=\s+|r ${my_second_file}" \
+-e "s|^(innodb_data_file_path\s+\=\s+.*)|#\1|" \
 "/${filename}" || exit 1
 
 dirname="var/log/mysql/binary"

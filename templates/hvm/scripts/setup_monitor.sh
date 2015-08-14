@@ -31,7 +31,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync-uri\s+=\s+rsync://).*|\1eu1iec1systems1/gentoo-portage|" \
+-e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo-portage|" \
 "/${filename}"
 
 emerge -q --sync
@@ -94,33 +94,33 @@ filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(short_open_tag\s+=\s+).*|\1On|" \
--e "s|^(expose_php\s+=\s+).*|\1Off|" \
--e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
--e "s|^(display_errors\s+=\s+).*|\1Off|" \
--e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
--e "s|^(track_errors\s+=\s+).*|\1Off|" \
--e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+-e "s|^(short_open_tag\s+\=\s+).*|\1On|" \
+-e "s|^(expose_php\s+\=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+\=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+\=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
 filename="etc/php/cgi-php5.6/php.ini"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(short_open_tag\s+=\s+).*|\1On|" \
--e "s|^(expose_php\s+=\s+).*|\1Off|" \
--e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
--e "s|^(display_errors\s+=\s+).*|\1Off|" \
--e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
--e "s|^(track_errors\s+=\s+).*|\1Off|" \
--e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+-e "s|^(short_open_tag\s+\=\s+).*|\1On|" \
+-e "s|^(expose_php\s+\=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+\=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+\=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
 filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"\1 -D PHP5 -D NAGIOS\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"|APACHE2_OPTS\=\"\1 \-D PHP5 \-D NAGIOS\"|" \
 "/${filename}" || exit 1
 
 /etc/init.d/apache2 start || exit 1
@@ -193,11 +193,11 @@ filename="etc/nagios/nagios.cfg"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(cfg_file=.*)|#\1|" \
--e "\|^#cfg_dir=/etc/nagios/routers|r ${nagios_file}" \
--e "s|^(check_result_reaper_frequency=).*|\12|" \
--e "s|^(use_large_installation_tweaks=).*|\11|" \
--e "s|^(enable_environment_macros=).*|\10|" \
+-e "s|^(cfg_file\=.*)|#\1|" \
+-e "\|^#cfg_dir\=/etc/nagios/routers|r ${nagios_file}" \
+-e "s|^(check_result_reaper_frequency\=).*|\12|" \
+-e "s|^(use_large_installation_tweaks\=).*|\11|" \
+-e "s|^(enable_environment_macros\=).*|\10|" \
 "/${filename}" || exit 1
 
 dirname="etc/nagios/global"
@@ -354,7 +354,7 @@ cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(data_source .*)|#\1|" \
 -e "\|^#data_source|r ${ganglia_file}" \
--e "s|^(# gridname .*)|\1\ngridname \"ISDC-EU\"|" \
+-e "s|^(# gridname .*)|\1\ngridname \"ISDC\-EU\"|" \
 "/${filename}" || exit 1
 
 filename="etc/fstab"

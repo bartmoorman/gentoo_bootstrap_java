@@ -50,7 +50,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync-uri\s+=\s+rsync://).*|\1eu1iec1systems1/gentoo-portage|" \
+-e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo-portage|" \
 "/${filename}"
 
 emerge -q --sync
@@ -195,26 +195,26 @@ filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(short_open_tag\s+=\s+).*|\1On|" \
--e "s|^(expose_php\s+=\s+).*|\1Off|" \
--e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
--e "s|^(display_errors\s+=\s+).*|\1Off|" \
--e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
--e "s|^(track_errors\s+=\s+).*|\1Off|" \
--e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+-e "s|^(short_open_tag\s+\=\s+).*|\1On|" \
+-e "s|^(expose_php\s+\=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+\=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+\=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
 filename="etc/php/cgi-php5.6/php.ini"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(short_open_tag\s+=\s+).*|\1On|" \
--e "s|^(expose_php\s+=\s+).*|\1Off|" \
--e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
--e "s|^(display_errors\s+=\s+).*|\1Off|" \
--e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
--e "s|^(track_errors\s+=\s+).*|\1Off|" \
--e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+-e "s|^(short_open_tag\s+\=\s+).*|\1On|" \
+-e "s|^(expose_php\s+\=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+\=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+\=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
 dirname="usr/share/php/smarty"
@@ -226,7 +226,7 @@ filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS=\"(.*)\"|APACHE2_OPTS=\"-D INFO -D SSL -D LANGUAGE -D PHP5 -D FCGID\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"|APACHE2_OPTS\=\"\-D INFO \-D SSL \-D LANGUAGE \-D PHP5 \-D FCGID\"|" \
 "/${filename}" || exit 1
 
 filename="etc/apache2/modules.d/00_default_settings.conf"
@@ -268,7 +268,7 @@ echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "\|prefork MPM|i ServerLimit 1024\n" \
--e "\|^<IfModule mpm_prefork_module>|,\|^</IfModule>|s|^(\s+MaxClients\s+).*|\11024|" \
+-e "\|^\<IfModule mpm_prefork_module\>|,\|^\</IfModule\>|s|^(\s+MaxClients\s+).*|\11024|" \
 "/${filename}" || exit 1
 
 filename="etc/apache2/vhosts.d/01_isdc_pub_vhost.conf"
@@ -377,22 +377,22 @@ filename="etc/mysql/my.cnf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(key_buffer_size\s+=\s+).*|\112288M|" \
--e "s|^(max_allowed_packet\s+=\s+).*|\116M|" \
--e "s|^(table_open_cache\s+=\s+).*|\116384|" \
--e "s|^(sort_buffer_size\s+=\s+).*|\12M|" \
--e "s|^(read_buffer_size\s+=\s+).*|\1128K|" \
--e "s|^(read_rnd_buffer_size\s+=\s+).*|\1128K|" \
--e "s|^(myisam_sort_buffer_size\s+=\s+).*|\164M|" \
--e "\|^lc_messages\s+=\s+|r ${my_first_file}" \
--e "s|^(bind-address\s+=\s+.*)|#\1|" \
--e "s|^(log-bin)|\1\t\t\t\t= /var/log/mysql/binary/mysqld-bin|" \
--e "s|^(server-id\s+=\s+).*|\1${server_id}|" \
--e "\|^server-id\s+=\s+|r ${my_second_file}" \
--e "s|^(innodb_buffer_pool_size\s+=\s+).*|\116384M|" \
--e "s|^(innodb_data_file_path\s+=\s+.*)|#\1|" \
--e "s|^(innodb_log_file_size\s+=\s+).*|\11024M|" \
--e "s|^(innodb_flush_log_at_trx_commit\s+=\s+).*|\12|" \
+-e "s|^(key_buffer_size\s+\=\s+).*|\112288M|" \
+-e "s|^(max_allowed_packet\s+\=\s+).*|\116M|" \
+-e "s|^(table_open_cache\s+\=\s+).*|\116384|" \
+-e "s|^(sort_buffer_size\s+\=\s+).*|\12M|" \
+-e "s|^(read_buffer_size\s+\=\s+).*|\1128K|" \
+-e "s|^(read_rnd_buffer_size\s+\=\s+).*|\1128K|" \
+-e "s|^(myisam_sort_buffer_size\s+\=\s+).*|\164M|" \
+-e "\|^lc_messages\s+\=\s+|r ${my_first_file}" \
+-e "s|^(bind\-address\s+\=\s+.*)|#\1|" \
+-e "s|^(log\-bin)|\1\t\t\t\t\= /var/log/mysql/binary/mysqld\-bin|" \
+-e "s|^(server\-id\s+\=\s+).*|\1${server_id}|" \
+-e "\|^server\-id\s+\=\s+|r ${my_second_file}" \
+-e "s|^(innodb_buffer_pool_size\s+\=\s+).*|\116384M|" \
+-e "s|^(innodb_data_file_path\s+\=\s+.*)|#\1|" \
+-e "s|^(innodb_log_file_size\s+\=\s+).*|\11024M|" \
+-e "s|^(innodb_flush_log_at_trx_commit\s+\=\s+).*|\12|" \
 -e "\|^innodb_file_per_table|r ${my_third_file}" \
 "/${filename}" || exit 1
 
@@ -602,8 +602,8 @@ declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 sed -i -r \
 -e "s|your_user|monitoring|" \
 -e "s|your_password|${monitoring_mysql_auth}|" \
--e "\|param get_master|,\|}|s|False|True|" \
--e "\|param get_slave|,\|}|s|False|True|" \
+-e "\|param get_master|,\|\}|s|False|True|" \
+-e "\|param get_slave|,\|\}|s|False|True|" \
 "/${filename}"
 
 filename="usr/local/bin/wkhtmltopdf"
