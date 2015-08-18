@@ -51,13 +51,12 @@ sed -i -r \
 -e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo\-portage|" \
 "/${filename}"
 
-emerge -q --sync
+emerge -q --sync || exit 1
 
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
 app-shells/rssh
-media-sound/sox
 net-misc/asterisk
 sys-cluster/glusterfs
 sys-fs/s3fs
@@ -67,12 +66,6 @@ filename="etc/portage/package.use/asterisk"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 net-misc/asterisk lua
-EOF
-
-filename="etc/portage/package.use/sox"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"/${filename}"
-media-sound/sox mad
 EOF
 
 dirname="etc/portage/package.keywords"
@@ -90,6 +83,8 @@ echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 app-shells/rssh
 EOF
+
+mirrorselect -s5 || exit 1
 
 emerge -uDN @system @world || exit 1
 

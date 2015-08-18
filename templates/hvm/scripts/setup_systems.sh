@@ -22,7 +22,7 @@ name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-emerge -q --sync
+emerge -q --sync || exit 1
 
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
@@ -62,6 +62,8 @@ echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
+
+mirrorselect -s5 || exit 1
 
 emerge -uDN @system @world || exit 1
 

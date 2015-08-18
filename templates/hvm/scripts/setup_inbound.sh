@@ -57,7 +57,7 @@ sed -i -r \
 -e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo\-portage|" \
 "/${filename}"
 
-emerge -q --sync
+emerge -q --sync || exit 1
 
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
@@ -99,6 +99,8 @@ echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
+
+mirrorselect -s5 || exit 1
 
 emerge -uDN @system @world || exit 1
 

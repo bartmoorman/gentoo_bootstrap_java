@@ -10,6 +10,7 @@ app-misc/screen
 app-misc/tmux
 app-portage/eix
 app-portage/gentoolkit
+app-portage/mirrorselect
 dev-lang/php
 dev-python/setuptools
 net-analyzer/fail2ban

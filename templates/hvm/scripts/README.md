@@ -67,4 +67,5 @@ filename="setup_%TYPE%.sh"
 setup_file="$(mktemp)"
 curl -sf -o "${setup_file}" "${scripts}/${filename}" || exit 1
 bash "${setup_file}" %PARAMETERS%
+cfn-signal --region=%REGION% --stack=%STACK% --resource=%RESOURCE% --exit-code=$?
 ```

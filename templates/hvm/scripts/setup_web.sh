@@ -38,7 +38,7 @@ sed -i -r \
 -e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo\-portage|" \
 "/${filename}"
 
-emerge -q --sync
+emerge -q --sync || exit 1
 
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
@@ -52,6 +52,7 @@ dev-php/smarty
 dev-qt/qtwebkit
 net-libs/libssh2
 media-video/ffmpeg
+media-sound/sox
 sys-apps/miscfiles
 sys-fs/s3fs
 www-apache/mod_fcgid
@@ -77,6 +78,12 @@ dev-lang/php apache2 bcmath calendar cgi curl exif ftp gd inifile intl pcntl pdo
 app-eselect/eselect-php apache2
 EOF
 
+filename="etc/portage/package.use/sox"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+media-sound/sox mad
+EOF
+
 dirname="etc/portage/package.keywords"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
@@ -86,6 +93,8 @@ echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
+
+mirrorselect -s5 || exit 1
 
 emerge -uDN @system @world || exit 1
 

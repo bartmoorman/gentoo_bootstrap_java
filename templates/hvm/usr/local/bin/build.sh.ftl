@@ -25,9 +25,9 @@ emerge --config timezone-data
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
--e "s|^(CXXFLAGS=.*)|\1\n|" \
--e "s|^(CHOST=.*)|\1\n|" \
--e "s|^USE=.*|USE=\"mmx sse sse2 mysql mysqli\"\n\nMAKEOPTS=\"-j3\"\nPORTAGE_NICENESS=\"10\"\nEMERGE_DEFAULT_OPTS=\"--jobs=2 --load-average=3.0\"\n|" \
+-e "s|^(CXXFLAGS=\".*\")|\1\n|" \
+-e "s|^(CHOST=\".*\")|\1\n|" \
+-e "s|^USE=\"(.*)\"|USE=\"\1 mysql mysqli\"\n\nMAKEOPTS=\"-j3\"\nPORTAGE_NICENESS=\"10\"\nEMERGE_DEFAULT_OPTS=\"--jobs=2 --load-average=3.0\"\n|" \
 "${filename}"
 
 <#assign filename = "/etc/local.d/makeopts.start">
