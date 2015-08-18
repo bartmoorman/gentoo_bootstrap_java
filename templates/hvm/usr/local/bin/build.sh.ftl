@@ -11,6 +11,8 @@ EOF
 env-update
 source /etc/profile
 
+eselect python set python2.7
+
 emerge -q --sync
 
 <#assign filename = "/etc/timezone">
