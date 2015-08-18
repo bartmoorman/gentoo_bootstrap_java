@@ -188,6 +188,6 @@ mkdir -p "/${dirname}"
 
 filename="var/lib/asterisk/.ssh/authorized_keys"
 echo "--- ${filename} (replace)"
-curl -sf -o "/${filename}" "/${scripts}/keys/asterisk" || exit 1
+curl -sf -o "/${filename}" "${scripts}/keys/asterisk" || exit 1
 
 curl -sf "http://eu1iec1ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://eu1iec1ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
