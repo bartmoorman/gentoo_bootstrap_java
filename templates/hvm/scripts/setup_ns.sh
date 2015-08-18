@@ -160,7 +160,7 @@ if ! gluster volume info ${volume} &> /dev/null; then
 	gluster volume start ${volume} || exit 1
 fi
 
-filename="var/dnscache/root/data"
+filename="var/tinydns/root/data"
 echo "--- ${filename} (replace)"
 cat <<EOF>"/${filename}"
 #
@@ -183,6 +183,7 @@ cat <<EOF>"/${filename}"
 # a
 #
 EOF
+(cd "${filename%/*}" && make) || exit 1
 
 filename="etc/fstab"
 echo "--- ${filename} (append)"
