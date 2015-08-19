@@ -113,21 +113,25 @@ mount "/${dirname}" || exit 1
 dirname="mnt/s3/repository/sta_files"
 linkname="var/www/sta_files"
 echo "--- ${linkname} -> ${dirname} (softlink)"
+mkdir -p "/${dirname}"
 ln -s "/${dirname}/" "/${linkname}" || exit 1
 
 dirname="mnt/s3/repository/sta_files_recycle_bin"
 linkname="var/www/sta_files_recycle_bin"
 echo "--- ${linkname} -> ${dirname} (softlink)"
+mkdir -p "/${dirname}"
 ln -s "/${dirname}/" "/${linkname}" || exit 1
 
 dirname="mnt/s3/repository/sta2_files"
 linkname="var/www/sta2_files"
 echo "--- ${linkname} -> ${dirname} (softlink)"
+mkdir -p "/${dirname}"
 ln -s "/${dirname}/" "/${linkname}" || exit 1
 
 dirname="mnt/s3/repository/sta2_files_recycle_bin"
 linkname="var/www/sta2_files_recycle_bin"
 echo "--- ${linkname} -> ${dirname} (softlink)"
+mkdir -p "/${dirname}"
 ln -s "/${dirname}/" "/${linkname}" || exit 1
 
 filename="etc/php/apache2-php5.6/php.ini"
