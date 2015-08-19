@@ -139,9 +139,21 @@ mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 
 counter=0
-sleep=$(bc <<< "${RANDOM} % 60")
 timeout=1800
 volume="www"
+
+part=30
+position=0
+
+if [ "${ip}" \> "${peer#*:}" ]; then
+	position=$(bc <<< "${position} + 1")
+fi
+
+low=$(bc <<< "(${part} * ${position}) + 5")
+high=$(bc <<< "((${part} * ${position}) + ${part}) - 5")
+range=($(seq -s' ' ${low} ${high}))
+index=$(bc <<< "${RANDOM} % (${#range[@]} - 1)")
+sleep=${range[${index}]}
 
 dirname="var/glusterfs/${volume}"
 echo "--- ${dirname} (create)"

@@ -147,8 +147,22 @@ mount "/${dirname}" || exit 1
 rsync -au "/${dirname}.bak/" "/${dirname}/" || exit 1
 
 counter=0
-sleep=$(bc <<< "${RANDOM} % 60")
 timeout=1800
+
+part=$(bc <<< "60 / (${#peers[@]} + 1)")
+position=0
+
+for peer in "${peers[@]}"; do
+	if [ "${ip}" \> "${peer#*:}" ]; then
+		position=$(bc <<< "${position} + 1")
+	fi
+done
+
+low=$(bc <<< "(${part} * ${position}) + 5")
+high=$(bc <<< "((${part} * ${position}) + ${part}) - 5")
+range=($(seq -s' ' ${low} ${high}))
+index=$(bc <<< "${RANDOM} % (${#range[@]} - 1)")
+sleep=${range[${index}]}
 
 /etc/init.d/mongodb start || exit 1
 
