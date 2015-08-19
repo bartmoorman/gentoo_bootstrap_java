@@ -102,7 +102,7 @@ EOF
 
 mirrorselect -s5 || exit 1
 
-emerge -uDN @system @world || exit 1
+emerge -uDN @system @world || emerge --resume || exit 1
 
 filename="etc/fstab"
 echo "--- ${filename} (append)"

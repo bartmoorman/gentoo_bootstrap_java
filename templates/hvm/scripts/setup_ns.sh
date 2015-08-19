@@ -115,7 +115,7 @@ EOF
 
 mirrorselect -s5 || exit 1
 
-emerge -uDN @system @world || exit 1
+emerge -uDN @system @world || emerge --resume || exit 1
 
 counter=0
 sleep=$(bc <<< "${RANDOM} % 60")

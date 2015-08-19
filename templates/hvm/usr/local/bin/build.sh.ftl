@@ -55,7 +55,7 @@ cat <<'EOF'>"${filename}"
 EOF
 chmod 755 "${filename}"
 
-emerge sys-kernel/gentoo-sources
+emerge sys-kernel/gentoo-sources || emerge --resume
 cd /usr/src/linux
 
 <#assign filename = "/usr/src/linux/.config">
@@ -112,7 +112,7 @@ cat <<'EOF'>>"${filename}"
 vm.swappiness = 10
 EOF
 
-emerge mail-mta/netqmail
+emerge mail-mta/netqmail || emerge --resume
 
 <#assign filename = "/var/qmail/control/servercert.cnf">
 echo "--- ${filename} (modify)"
@@ -127,11 +127,11 @@ sed -i -r \
 
 rc-update add svscan default
 
-emerge app-admin/syslog-ng sys-process/vixie-cron
+emerge app-admin/syslog-ng sys-process/vixie-cron || emerge --resume
 rc-update add syslog-ng default
 rc-update add vixie-cron default
 
-emerge sys-boot/grub-static
+emerge sys-boot/grub-static || emerge --resume
 
 <#assign filename = "/boot/grub/menu.lst">
 echo "--- ${filename} (replace)"
@@ -147,7 +147,7 @@ quit
 EOF
 </#if>
 
-emerge -1 sys-apps/portage
+emerge -1 sys-apps/portage || emerge --resume
 
 <#if architecture == "i386">
 emerge -C sys-apps/module-init-tools
@@ -171,7 +171,7 @@ cat <<'EOF'>"${filename}"
 <#include "/etc/portage/package.use/mysql.ftl">
 EOF
 
-emerge -uDN @world
+emerge -uDN @world || emerge --resume
 
 easy_install pip
 pip install awscli
