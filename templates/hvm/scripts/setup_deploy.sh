@@ -69,6 +69,18 @@ mirrorselect -s5 || exit 1
 
 emerge -uDN @system @world || emerge --resume || exit 1
 
+filename="etc/fstab"
+echo "--- ${filename} (append)"
+cat <<EOF>>"/${filename}"
+
+s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.com,iam_role=${iam_role}	0 0
+EOF
+
+dirname="mnt/s3"
+echo "--- ${dirname} (mount)"
+mkdir -p "/${dirname}"
+mount "/${dirname}" || exit 1
+
 filename="usr/local/bin/composer"
 echo "--- ${filename} (replace)"
 composer_file="$(mktemp)"

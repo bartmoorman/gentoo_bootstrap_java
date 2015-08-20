@@ -1,25 +1,99 @@
 ## Parameters
 
-- [ ] ~~setup_backup.sh~~ -b backup_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_db.sh -m master_name:master_ip -i server_id -o offset -b backup_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_deploy.sh -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_eh.sh -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [ ] ~~setup_fs.sh~~ -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_inbound.sh -m master_name:master_ip -i server_id -o offset -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_jp.sh -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [ ] ~~setup_log.sh~~ -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_mdb.sh -p peer_name:peer_ip[,peer_name:peer_ip,...] -b backup_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_monitor.sh -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_mq.sh -p peer_name:peer_ip -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_ns.sh -p peer_name:peer_ip
-- [x] setup_pub.sh -p peer_name:peer_ip -i server_id -o offset -b backup_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [ ] ~~setup_rfs.sh~~ -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_sip.sh -p peer_name:peer_ip[,peer_name:peer_ip,...] -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_socket.sh -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_stats.sh -i server_id -o offset -b backup_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_systems.sh -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_web.sh -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
-- [x] setup_worker.sh -i server_id -o offset -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]
+- [ ] ~~setup_backup.sh~~
+  - -b backup_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_db.sh
+  - -m master_name:master_ip
+  - -i server_id
+  - -o offset
+  - -b backup_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_deploy.sh
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_eh.sh
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [ ] ~~setup_fs.sh~~
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_inbound.sh
+  - -m master_name:master_ip
+  - -i server_id
+  - -o offset
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_jp.sh
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [ ] ~~setup_log.sh~~
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_mdb.sh
+  - -p peer_name:peer_ip[,peer_name:peer_ip,...]
+  - -b backup_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_monitor.sh
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_mq.sh
+  - -p peer_name:peer_ip
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_ns.sh
+  - -p peer_name:peer_ip
+- [x] setup_pub.sh
+  - -p peer_name:peer_ip
+  - -i server_id
+  - -o offset
+  - -b backup_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [ ] ~~setup_rfs.sh~~
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_sip.sh
+  - -p peer_name:peer_ip[,peer_name:peer_ip,...]
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_socket.sh
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_stats.sh
+  - -i server_id
+  - -o offset
+  - -b backup_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_systems.sh
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_web.sh
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [x] setup_worker.sh
+  - -i server_id
+  - -o offset
+  - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
 
 ## Databases
 
