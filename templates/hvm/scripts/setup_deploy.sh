@@ -47,6 +47,7 @@ dev-libs/libmemcached
 dev-php/pear
 dev-vcs/git
 net-libs/libssh2
+sys-fs/s3fs
 EOF
 
 filename="etc/portage/package.use/libmemcached"

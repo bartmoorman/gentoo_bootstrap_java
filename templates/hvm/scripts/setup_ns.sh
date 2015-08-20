@@ -29,7 +29,7 @@ mv "/${filename}.orig" "/${filename}" || exit 1
 filename="etc/ntp.conf"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
-restrict 10.12.0.0 mask 255.255.0.0 nomodify nopeer notrap
+restrict 10.0.0.0 mask 255.0.0.0 nomodify nopeer notrap
 EOF
 
 kill -HUP $(pgrep ^dhcpcd) || exit 1
@@ -66,13 +66,13 @@ cat <<'EOF'>"/${filename}"
 127.0.0.1
 EOF
 
-filename="var/dnscache/root/servers/12.10.in-addr.arpa"
+filename="var/dnscache/root/servers/10.in-addr.arpa"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 127.0.0.1
 EOF
 
-filename="var/dnscache/root/ip/10.12"
+filename="var/dnscache/root/ip/10"
 echo "--- ${filename} (create)"
 touch "/${filename}" || exit 1
 
@@ -162,7 +162,7 @@ echo "done! :)"
 if ! gluster volume info ${volume} &> /dev/null; then
 	echo "--- ${volume} (manage)"
 	gluster volume create ${volume} replica 2 ${name}:/var/glusterfs/${volume} ${peer%:*}:/var/glusterfs/${volume} force || exit 1
-	gluster volume set ${volume} auth.allow 127.*,10.12.*
+	gluster volume set ${volume} auth.allow 127.*,10.*
 	gluster volume start ${volume} || exit 1
 fi
 
@@ -173,7 +173,7 @@ cat <<EOF>"/${filename}"
 # loc
 #
 %lo:127
-%lo:10.12
+%lo:10
 %ex:
 
 #
@@ -182,8 +182,8 @@ cat <<EOF>"/${filename}"
 .salesteamautomation.com:${ip}:${name}.salesteamautomation.com:3600::lo
 .salesteamautomation.com:${peer#*:}:${peer%:*}.salesteamautomation.com:3600::lo
 
-.12.10.in-addr.arpa:${ip}:${name}.salesteamautomation.com:3600::lo
-.12.10.in-addr.arpa:${peer#*:}:${peer%:*}.salesteamautomation.com:3600::lo
+.10.in-addr.arpa:${ip}:${name}.salesteamautomation.com:3600::lo
+.10.in-addr.arpa:${peer#*:}:${peer%:*}.salesteamautomation.com:3600::lo
 
 #
 # a

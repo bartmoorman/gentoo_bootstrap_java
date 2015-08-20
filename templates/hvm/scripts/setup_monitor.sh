@@ -341,7 +341,7 @@ cat <<EOF>"${ganglia_file}"
 data_source "Backup" ${hostname_prefix}backup1
 data_source "Database" ${hostname_prefix}db1_0 ${hostname_prefix}db1_1 ${hostname_prefix}db1_2 ${hostname_prefix}db2_0 ${hostname_prefix}db2_1 ${hostname_prefix}db2_2 ${hostname_prefix}db3_0 ${hostname_prefix}db3_1 ${hostname_prefix}db3_2 ${hostname_prefix}db4_0 ${hostname_prefix}db4_1 ${hostname_prefix}db4_2 ${hostname_prefix}db5_0 ${hostname_prefix}db5_1 ${hostname_prefix}db5_2
 data_source "Deplopy" ${hostname_prefix}deploy1
-data_source "Dialer"  ${hostname_prefix}sip1 ${hostname_prefix}sip2 ${hostname_prefix}sip3 ${hostname_prefix}sip4 ${hostname_prefix}sip5
+data_source "Dialer" ${hostname_prefix}sip1 ${hostname_prefix}sip2 ${hostname_prefix}sip3 ${hostname_prefix}sip4 ${hostname_prefix}sip5
 data_source "Event Handler" ${hostname_prefix}eh1 ${hostname_prefix}eh2
 data_source "Inbound" ${hostname_prefix}inbound1 ${hostname_prefix}inbound2
 data_source "Joule Processor" ${hostname_prefix}jp1 ${hostname_prefix}jp2

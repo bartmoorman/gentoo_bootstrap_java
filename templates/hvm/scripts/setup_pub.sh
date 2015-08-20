@@ -195,7 +195,7 @@ echo "done! :)"
 if ! gluster volume info ${volume} &> /dev/null; then
 	echo "--- ${volume} (manage)"
 	gluster volume create ${volume} replica 2 ${name}:/var/glusterfs/${volume} ${peer%:*}:/var/glusterfs/${volume} force || exit 1
-	gluster volume set ${volume} auth.allow 127.*,10.12.*
+	gluster volume set ${volume} auth.allow 127.*,10.*
 	gluster volume start ${volume} || exit 1
 fi
 
