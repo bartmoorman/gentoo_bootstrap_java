@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "b:h:" OPTNAME; do
+while getopts "b:h:e:" OPTNAME; do
 	case $OPTNAME in
 		b)
 			echo "Bucket Name: ${OPTARG}"
@@ -9,11 +9,15 @@ while getopts "b:h:" OPTNAME; do
 			echo "Hostname Prefix: ${OPTARG}"
 			hostname_prefix="${OPTARG}"
 			;;
+		e)
+			echo "Environment Suffix: ${OPTARG}"
+			environment_suffix="${OPTARG}"
+			;;
 	esac
 done
 
 if [ -z "${bucket_name}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -b bucket_name -h hostname_prefix"
+	echo "Usage: ${BASH_SOURCE[0]} -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]"
 	exit 1
 fi
 
@@ -141,4 +145,4 @@ cat <<'EOF'>"/${filename}"
 EOF
 touch "/${filename%/*}" || exit 1
 
-curl -sf "http://eu1iec1ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://eu1iec1ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
+curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

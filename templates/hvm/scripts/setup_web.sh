@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "b:h:" OPTNAME; do
+while getopts "b:h:e:" OPTNAME; do
 	case $OPTNAME in
 		b)
 			echo "Bucket Name: ${OPTARG}"
@@ -9,11 +9,15 @@ while getopts "b:h:" OPTNAME; do
 			echo "Hostname Prefix: ${OPTARG}"
 			hostname_prefix="${OPTARG}"
 			;;
+		e)
+			echo "Environment Suffix: ${OPTARG}"
+			environment_suffix="${OPTARG}"
+			;;
 	esac
 done
 
 if [ -z "${bucket_name}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -b bucket_name -h hostname_prefix"
+	echo "Usage: ${BASH_SOURCE[0]} -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]"
 	exit 1
 fi
 
@@ -35,7 +39,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo\-portage|" \
+-e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
 "/${filename}"
 
 emerge -q --sync || exit 1
@@ -315,4 +319,4 @@ linkname="usr/bin/wkhtmltoimage"
 echo "--- ${linkname} -> ${filename} (softlink)"
 ln -s "/${filename}" "/${linkname}" || exit 1
 
-curl -sf "http://eu1iec1ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://eu1iec1ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
+curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

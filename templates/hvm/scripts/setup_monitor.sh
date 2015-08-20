@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "b:h:" OPTNAME; do
+while getopts "b:h:e:" OPTNAME; do
 	case $OPTNAME in
 		b)
 			echo "Bucket Name: ${OPTARG}"
@@ -9,11 +9,15 @@ while getopts "b:h:" OPTNAME; do
 			echo "Hostname Prefix: ${OPTARG}"
 			hostname_prefix="${OPTARG}"
 			;;
+		e)
+			echo "Environment Suffix: ${OPTARG}"
+			environment_suffix="${OPTARG}"
+			;;
 	esac
 done
 
 if [ -z "${bucket_name}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -b bucket_name -h hostname_prefix"
+	echo "Usage: ${BASH_SOURCE[0]} -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]"
 	exit 1
 fi
 
@@ -35,7 +39,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1eu1iec1systems1/gentoo\-portage|" \
+-e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
 "/${filename}"
 
 emerge -q --sync || exit 1
@@ -333,25 +337,25 @@ curl -sf -o "/${filename}" "https://raw.githubusercontent.com/iVirus/Prowl-PHP/m
 rc-update add nagios default
 
 ganglia_file="$(mktemp)"
-cat <<'EOF'>"${ganglia_file}"
-data_source "Backup" eu1iec1backup1
-data_source "Database" eu1iec1db1_0 eu1iec1db1_1 eu1iec1db1_2 eu1iec1db2_0 eu1iec1db2_1 eu1iec1db2_2 eu1iec1db3_0 eu1iec1db3_1 eu1iec1db3_2 eu1iec1db4_0 eu1iec1db4_1 eu1iec1db4_2 eu1iec1db5_0 eu1iec1db5_1 eu1iec1db5_2
-data_source "Deplopy" eu1iec1deploy1
-data_source "Dialer"  eu1iec1sip1 eu1iec1sip2 eu1iec1sip3 eu1iec1sip4 eu1iec1sip5
-data_source "Event Handler" eu1iec1eh1 eu1iec1eh2
-data_source "Inbound" eu1iec1inbound1 eu1iec1inbound2
-data_source "Joule Processor" eu1iec1jp1 eu1iec1jp2
-data_source "Log" eu1iec1log1
-data_source "Message Queue" eu1iec1mq1 eu1iec1mq2
-data_source "MongoDB" eu1iec1mdb1 eu1iec1mdb2 eu1iec1mdb3
-data_source "Monitor" eu1iec1monitor1
-data_source "Name Server" eu1iec1ns1 eu1iec1ns2
-data_source "Public Web" eu1iec1pub1 eu1iec1pub2
-data_source "Socket" eu1iec1socket1 eu1iec1socket2
-data_source "Statistics" eu1iec1stats1
-data_source "Systems" eu1iec1systems1
-data_source "Web" eu1iec1web1 eu1iec1web2 eu1iec1web3 eu1iec1web4
-data_source "Worker" eu1iec1worker1
+cat <<EOF>"${ganglia_file}"
+data_source "Backup" ${hostname_prefix}backup1
+data_source "Database" ${hostname_prefix}db1_0 ${hostname_prefix}db1_1 ${hostname_prefix}db1_2 ${hostname_prefix}db2_0 ${hostname_prefix}db2_1 ${hostname_prefix}db2_2 ${hostname_prefix}db3_0 ${hostname_prefix}db3_1 ${hostname_prefix}db3_2 ${hostname_prefix}db4_0 ${hostname_prefix}db4_1 ${hostname_prefix}db4_2 ${hostname_prefix}db5_0 ${hostname_prefix}db5_1 ${hostname_prefix}db5_2
+data_source "Deplopy" ${hostname_prefix}deploy1
+data_source "Dialer"  ${hostname_prefix}sip1 ${hostname_prefix}sip2 ${hostname_prefix}sip3 ${hostname_prefix}sip4 ${hostname_prefix}sip5
+data_source "Event Handler" ${hostname_prefix}eh1 ${hostname_prefix}eh2
+data_source "Inbound" ${hostname_prefix}inbound1 ${hostname_prefix}inbound2
+data_source "Joule Processor" ${hostname_prefix}jp1 ${hostname_prefix}jp2
+data_source "Log" ${hostname_prefix}log1
+data_source "Message Queue" ${hostname_prefix}mq1 ${hostname_prefix}mq2
+data_source "MongoDB" ${hostname_prefix}mdb1 ${hostname_prefix}mdb2 ${hostname_prefix}mdb3
+data_source "Monitor" ${hostname_prefix}monitor1
+data_source "Name Server" ${hostname_prefix}ns1 ${hostname_prefix}ns2
+data_source "Public Web" ${hostname_prefix}pub1 ${hostname_prefix}pub2
+data_source "Socket" ${hostname_prefix}socket1 ${hostname_prefix}socket2
+data_source "Statistics" ${hostname_prefix}stats1
+data_source "Systems" ${hostname_prefix}systems1
+data_source "Web" ${hostname_prefix}web1 ${hostname_prefix}web2 ${hostname_prefix}web3 ${hostname_prefix}web4
+data_source "Worker" ${hostname_prefix}worker1
 EOF
 
 filename="etc/ganglia/gmetad.conf"
@@ -488,4 +492,4 @@ filename="var/www/localhost/htdocs/ganglia/conf.php"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-curl -sf "http://eu1iec1ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://eu1iec1ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
+curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
