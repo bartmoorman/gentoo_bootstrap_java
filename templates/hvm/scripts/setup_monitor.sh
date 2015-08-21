@@ -39,7 +39,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
+-e "\|^\[gentoo\]$|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
 "/${filename}"
 
 emerge -q --sync || exit 1
@@ -130,7 +130,7 @@ filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS\=\"(.*)\"|APACHE2_OPTS\=\"\1 \-D PHP5 \-D NAGIOS\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"$|APACHE2_OPTS\=\"\1 \-D PHP5 \-D NAGIOS\"|" \
 "/${filename}" || exit 1
 
 /etc/init.d/apache2 start || exit 1
@@ -288,6 +288,10 @@ filename="etc/nagios/aws/hosts.cfg"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
+sed -i -r \
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
+"/${filename}" || exit 1
+
 filename="etc/nagios/aws/service_groups.cfg"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
@@ -360,9 +364,9 @@ filename="etc/ganglia/gmetad.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^(data_source .*)|#\1|" \
+-e "s|^(data_source\s+.*)|#\1|" \
 -e "\|^#data_source|r ${ganglia_file}" \
--e "s|^(# gridname .*)|\1\ngridname \"${hostname_prefix}\"|" \
+-e "s|^(#\s+gridname\s+.*)|\1\ngridname \"${hostname_prefix}\"|" \
 "/${filename}" || exit 1
 
 filename="etc/fstab"
@@ -489,5 +493,20 @@ EOF
 filename="var/www/localhost/htdocs/ganglia/conf.php"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+
+filename="etc/ganglia/gmond.conf"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+name\s+\=\s+)\".*\"|\1\"Monitor\"|" \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+owner\s+\=\s+)\".*\"|\1\"InsideSales\.com, Inc\.\"|" \
+-e "\|^udp_send_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2\n\1host \= ${name}|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(bind\s+\=\s+.*)|\1#\2|" \
+"/${filename}"
+
+/etc/init.d/gmond start || exit 1
+
+rc-upddate add gmond default
 
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

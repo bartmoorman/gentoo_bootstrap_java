@@ -58,7 +58,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
+-e "\|^\[gentoo\]$|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
 "/${filename}"
 
 emerge -q --sync || exit 1
@@ -336,6 +336,8 @@ sed -i -r \
 -e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
 "/${filename}" || exit 1
 
+/etc/init.d/nrpe restart || exit 1
+
 dirname="usr/lib64/nagios/plugins/custom/include"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
@@ -431,8 +433,23 @@ declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 sed -i -r \
 -e "s|your_user|monitoring|" \
 -e "s|your_password|${monitoring_mysql_auth}|" \
--e "\|param get_master|,\|\}|s|False|True|" \
--e "\|param get_slave|,\|\}|s|False|True|" \
+-e "\|^\s+param\s+get_master\s+\{$|,\|^\s+\}$|s|False|True|" \
+-e "\|^\s+param\s+get_slave\s+\{$|,\|^\s+\}$|s|False|True|" \
 "/${filename}"
+
+filename="etc/ganglia/gmond.conf"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+name\s+\=\s+)\".*\"|\1\"Database\"|" \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+owner\s+\=\s+)\".*\"|\1\"InsideSales\.com, Inc\.\"|" \
+-e "\|^udp_send_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2\n\1host \= ${name}|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(bind\s+\=\s+.*)|\1#\2|" \
+"/${filename}"
+
+/etc/init.d/gmond start || exit 1
+
+rc-upddate add gmond default
 
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

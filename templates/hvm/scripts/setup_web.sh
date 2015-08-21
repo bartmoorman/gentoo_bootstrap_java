@@ -39,7 +39,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
+-e "\|^\[gentoo\]$|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
 "/${filename}"
 
 emerge -q --sync || exit 1
@@ -173,7 +173,7 @@ filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS\=\"(.*)\"|APACHE2_OPTS\=\"\-D INFO \-D SSL \-D LANGUAGE \-D PHP5 \-D FCGID\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"$|APACHE2_OPTS\=\"\-D INFO \-D SSL \-D LANGUAGE \-D PHP5 \-D FCGID\"|" \
 "/${filename}" || exit 1
 
 filename="etc/apache2/modules.d/00_default_settings.conf"
@@ -215,7 +215,7 @@ echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "\|prefork MPM|i ServerLimit 1024\n" \
--e "\|^\<IfModule mpm_prefork_module\>|,\|^\</IfModule\>|s|^(\s+MaxClients\s+).*|\11024|" \
+-e "\|^\<IfModule mpm_prefork_module\>$|,\|^\</IfModule\>$|s|^(\s+MaxClients\s+).*|\11024|" \
 "/${filename}" || exit 1
 
 filename="etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf"
@@ -318,5 +318,20 @@ mv "/${filename}-amd64" "/${filename}" || exit 1
 linkname="usr/bin/wkhtmltoimage"
 echo "--- ${linkname} -> ${filename} (softlink)"
 ln -s "/${filename}" "/${linkname}" || exit 1
+
+filename="etc/ganglia/gmond.conf"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+name\s+\=\s+)\".*\"|\1\"Web\"|" \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+owner\s+\=\s+)\".*\"|\1\"InsideSales\.com, Inc\.\"|" \
+-e "\|^udp_send_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2\n\1host \= ${name}|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(bind\s+\=\s+.*)|\1#\2|" \
+"/${filename}"
+
+/etc/init.d/gmond start || exit 1
+
+rc-upddate add gmond default
 
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

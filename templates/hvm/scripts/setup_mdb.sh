@@ -57,7 +57,7 @@ filename="etc/portage/repos.conf/gentoo.conf"
 echo "--- ${filename} (replace)"
 cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
 sed -i -r \
--e "\|\[gentoo\]|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
+-e "\|^\[gentoo\]$|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
 "/${filename}"
 
 emerge -q --sync || exit 1
@@ -110,12 +110,12 @@ echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(\s+)(bindIp\:.*)|\1#\2\n\1http\:\n\1\1enabled\: true\n\1\1RESTInterfaceEnabled\: true|" \
--e "s|^(\s+)#(ssl\:)|\1\2|" \
--e "s|^(\s+)#(\s+mode\: disabled)|\1\2|" \
--e "s|^#(security\:)|\1|" \
--e "s|^(\s+)#(keyFile\:)|\1\2 \"/etc/ssl/mongodb\-keyfile\"|" \
--e "s|^#(replication\:)|\1|" \
--e "s|^(\s+)#(replSetName\:)|\1\2 \"prod0\"|" \
+-e "s|^(\s+)#(ssl\:)$|\1\2|" \
+-e "s|^(\s+)#(\s+mode\:\s+disabled)$|\1\2|" \
+-e "s|^#(security\:)$|\1|" \
+-e "s|^(\s+)#(keyFile\:)$|\1\2 \"/etc/ssl/mongodb\-keyfile\"|" \
+-e "s|^#(replication\:)$|\1|" \
+-e "s|^(\s+)#(replSetName\:)$|\1\2 \"prod0\"|" \
 "/${filename}" || exit 1
 
 user="mongodb"
@@ -256,5 +256,20 @@ db.auth("bmoorman","${bmoorman_mongo_pwd}")
 db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
 EOF
 fi
+
+filename="etc/ganglia/gmond.conf"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+name\s+\=\s+)\".*\"|\1\"MongoDB\"|" \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+owner\s+\=\s+)\".*\"|\1\"InsideSales\.com, Inc\.\"|" \
+-e "\|^udp_send_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2\n\1host \= ${name}|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(bind\s+\=\s+.*)|\1#\2|" \
+"/${filename}"
+
+/etc/init.d/gmond start || exit 1
+
+rc-upddate add gmond default
 
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

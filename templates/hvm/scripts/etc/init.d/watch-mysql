@@ -2,7 +2,7 @@
 
 checkconfig() {
 	PIDFILE="${PIDFILE:-/var/run/${SVCNAME}.pid}"
-	LOGFILE="${PIDFILE:-/var/log/${SVCNAME}.pid}"
+	LOGFILE="${LOGFILE:-/var/log/${SVCNAME}.log}"
 	DAEMON_SCRIPT="${DAEMON_SCRIPT:-/usr/local/lib64/mysql/${SVCNAME//-/_}.php}"
 }
 

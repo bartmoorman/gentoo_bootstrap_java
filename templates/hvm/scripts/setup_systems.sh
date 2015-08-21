@@ -100,7 +100,7 @@ filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS\=\"(.*)\"|APACHE2_OPTS\=\"\1 \-D PHP5\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"$|APACHE2_OPTS\=\"\1 \-D PHP5\"|" \
 "/${filename}" || exit 1
 
 /etc/init.d/apache2 start || exit 1
@@ -130,7 +130,7 @@ filename="etc/rsyncd.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "\|\[gentoo\-portage\]|,\|^$|s|^#(\s+?.*)|\1|" \
+-e "\|^\[gentoo\-portage\]$|,\|^$|s|^#(\s+?.*)|\1|" \
 "/${filename}" || exit 1
 
 /etc/init.d/rsyncd start || exit 1
@@ -144,5 +144,20 @@ cat <<'EOF'>"/${filename}"
 45 5 * * *	emerge -q --sync
 EOF
 touch "/${filename%/*}" || exit 1
+
+filename="etc/ganglia/gmond.conf"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+name\s+\=\s+)\".*\"|\1\"Systems\"|" \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+owner\s+\=\s+)\".*\"|\1\"InsideSales\.com, Inc\.\"|" \
+-e "\|^udp_send_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2\n\1host \= ${name}|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2|" \
+-e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(bind\s+\=\s+.*)|\1#\2|" \
+"/${filename}"
+
+/etc/init.d/gmond start || exit 1
+
+rc-upddate add gmond default
 
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
