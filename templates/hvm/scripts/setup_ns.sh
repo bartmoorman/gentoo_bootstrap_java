@@ -22,6 +22,14 @@ filename="etc/resolv.conf.head"
 echo "--- ${filename} (delete)"
 rm "/${filename}" || exit 1
 
+filename="etc/conf.d/net"
+echo "--- ${filename} (append)"
+cat <<'EOF'>>"/${filename}"
+dhcp_eth0="nontp"
+EOF
+
+kill -HUP $(pgrep ^dhcpcd) || exit 1
+
 filename="etc/ntp.conf"
 echo "--- ${filename} (restore)"
 mv "/${filename}.orig" "/${filename}" || exit 1
@@ -31,8 +39,6 @@ echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
 restrict 10.0.0.0 mask 255.0.0.0 nomodify nopeer notrap
 EOF
-
-kill -HUP $(pgrep ^dhcpcd) || exit 1
 
 svc -d /service/dnscache || exit 1
 

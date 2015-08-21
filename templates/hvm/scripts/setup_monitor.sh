@@ -48,6 +48,7 @@ filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
 net-analyzer/nagios
+net-misc/memcached
 sys-cluster/ganglia-web
 sys-fs/s3fs
 www-servers/apache
@@ -99,6 +100,18 @@ dirname="mnt/s3"
 echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
+
+filename="etc/conf.d/memcached"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "s|^MEMUSAGE\=.*|MEMUSAGE\=\"128\"|" \
+-e "s|^LISTENON\=.*|LISTENON\=\"127\.0\.0\.1\"|" \
+"/${filename}"
+
+/etc/init.d/memcached start || exit 1
+
+rc-update add memcached default
 
 filename="etc/php/apache2-php5.6/php.ini"
 echo "--- ${filename} (modify)"

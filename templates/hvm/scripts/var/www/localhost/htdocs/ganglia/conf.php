@@ -1,14 +1,21 @@
 <?php
+$conf['auth_system'] = 'enabled';
+$conf['template_name'] = 'default';
+$conf['graphreport_stats'] = false;
+$conf['max_graphs'] = 0;
+$conf['hostcols'] = 3;
+$conf['metriccols'] = 2;
+$conf['meta_designator'] = '';
+$conf['strip_domainname'] = true;
+
 $acl = GangliaAcl::getInstance();
 
-$acl->addPrivateCluster('Backup');
 $acl->addPrivateCluster('Database');
-$acl->addPrivateCluster('Deplopy');
+$acl->addPrivateCluster('Deploy');
 $acl->addPrivateCluster('Dialer');
 $acl->addPrivateCluster('Event Handler');
 $acl->addPrivateCluster('Inbound');
 $acl->addPrivateCluster('Joule Processor');
-$acl->addPrivateCluster('Log');
 $acl->addPrivateCluster('Message Queue');
 $acl->addPrivateCluster('MongoDB');
 $acl->addPrivateCluster('Monitor');
