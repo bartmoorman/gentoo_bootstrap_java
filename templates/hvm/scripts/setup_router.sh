@@ -1,10 +1,6 @@
 #!/bin/bash
-while getopts "b:h:e:" OPTNAME; do
+while getopts "h:e:" OPTNAME; do
 	case $OPTNAME in
-		b)
-			echo "Bucket Name: ${OPTARG}"
-			bucket_name="${OPTARG}"
-			;;
 		h)
 			echo "Hostname Prefix: ${OPTARG}"
 			hostname_prefix="${OPTARG}"
@@ -16,8 +12,8 @@ while getopts "b:h:e:" OPTNAME; do
 	esac
 done
 
-if [ -z "${bucket_name}" ]; then
-	echo "Usage: ${BASH_SOURCE[0]} -b files_bucket_name [-h hostname_prefix] [-e environment_suffix]"
+if [ ]; then
+	echo "Usage: ${BASH_SOURCE[0]} [-h hostname_prefix] [-e environment_suffix]"
 	exit 1
 fi
 
@@ -38,79 +34,21 @@ sed -i -r \
 "/${filename}"
 
 emerge -q --sync || exit 1
-
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
-dev-lang/go
-dev-libs/libmemcached
-dev-php/pear
-net-libs/libssh2
-sys-fs/s3fs
-EOF
-
-filename="etc/portage/package.use/libmemcached"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"/${filename}"
-dev-libs/libmemcached sasl
-EOF
-
-filename="etc/portage/package.use/php"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"/${filename}"
-dev-lang/php bcmath calendar curl exif ftp gd inifile intl pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
-EOF
-
-dirname="etc/portage/package.keywords"
-echo "--- ${dirname} (create)"
-mkdir -p "/${dirname}"
-
-filename="etc/portage/package.keywords/libmemcached"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"/${filename}"
-dev-libs/libmemcached
+net-firewall/iptables
 EOF
 
 mirrorselect -s5 || exit 1
 
 emerge -uDN @system @world || emerge --resume || exit 1
 
-filename="etc/fstab"
-echo "--- ${filename} (append)"
-cat <<EOF>>"/${filename}"
-
-s3fs#${bucket_name}	/mnt/s3		fuse	_netdev,allow_other,url=https://s3.amazonaws.com,iam_role=${iam_role}	0 0
-EOF
-
-dirname="mnt/s3"
-echo "--- ${dirname} (mount)"
-mkdir -p "/${dirname}"
-mount "/${dirname}" || exit 1
-
-for i in memcache memcached mongo oauth ssh2-beta; do
-	yes "" | pecl install "${i}" > /dev/null || exit 1
-
-	dirname="etc/php"
-	echo "--- ${dirname} (processing)"
-
-	for j in $(ls "/${dirname}"); do
-		filename="${dirname}/${j}/ext/${i%-*}.ini"
-		echo "--- ${filename} (replace)"
-		cat <<EOF>"/${filename}"
-extension=${i%-*}.so
-EOF
-
-		linkname="${dirname}/${j}/ext-active/${i%-*}.ini"
-		echo "--- ${linkname} -> ${filename} (softlink)"
-		ln -s "/${filename}" "/${linkname}" || exit 1
-	done
-done
-
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "\|^cluster\s+\{$|,\|^\}$|s|(\s+name\s+\=\s+)\".*\"|\1\"Joule Processor\"|" \
+-e "\|^cluster\s+\{$|,\|^\}$|s|(\s+name\s+\=\s+)\".*\"|\1\"Router\"|" \
 -e "\|^cluster\s+\{$|,\|^\}$|s|(\s+owner\s+\=\s+)\".*\"|\1\"InsideSales\.com, Inc\.\"|" \
 -e "\|^udp_send_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2\n\1host \= ${name}|" \
 -e "\|^udp_recv_channel\s+\{$|,\|^\}$|s|(\s+)(mcast_join\s+\=\s+.*)|\1#\2|" \

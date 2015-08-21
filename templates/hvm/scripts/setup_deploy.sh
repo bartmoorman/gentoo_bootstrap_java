@@ -101,6 +101,6 @@ sed -i -r \
 
 /etc/init.d/gmond start || exit 1
 
-rc-upddate add gmond default
+rc-update add gmond default
 
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

@@ -240,4 +240,4 @@ sed -i -r \
 
 /etc/init.d/gmond start || exit 1
 
-rc-upddate add gmond default
+rc-update add gmond default
