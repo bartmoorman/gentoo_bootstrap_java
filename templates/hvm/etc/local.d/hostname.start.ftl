@@ -22,15 +22,15 @@ if [ -z "<#noparse>${NAME}</#noparse>" ]; then
 fi
 
 sed -i -r \
--e "s|^hostname=.*|hostname=\"<#noparse>${NAME}</#noparse>\"|" \
+-e "s|^hostname\=.*|hostname\=\"<#noparse>${NAME}</#noparse>\"|" \
 /etc/conf.d/hostname
 
 sed -i -r \
--e "s|^(127.0.0.1\s+).*(localhost)|\1<#noparse>${NAME}</#noparse>.salesteamautomation.com <#noparse>${NAME}</#noparse> \2|" \
+-e "s|^(127\.0\.0\.1\s+).*(localhost)|\1<#noparse>${NAME}</#noparse>\.salesteamautomation\.com <#noparse>${NAME}</#noparse> \2|" \
 /etc/hosts
 
 sed -i -r \
--e "s|CN=.*|CN=<#noparse>${NAME}</#noparse>.salesteamautomation.com|" \
+-e "s|CN\=.*|CN\=<#noparse>${NAME}</#noparse>\.salesteamautomation\.com|" \
 /var/qmail/control/servercert.cnf
 
 hostname <#noparse>${NAME}</#noparse>

@@ -27,9 +27,9 @@ emerge --config timezone-data
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
--e "s|^(CXXFLAGS=\".*\")|\1\n|" \
--e "s|^(CHOST=\".*\")|\1\n|" \
--e "s|^USE=\"(.*)\"|USE=\"\1 mysql mysqli\"\n\nMAKEOPTS=\"-j3\"\nPORTAGE_NICENESS=\"10\"\nEMERGE_DEFAULT_OPTS=\"--jobs=2 --load-average=3.0\"\n|" \
+-e "s|^(CXXFLAGS\=\".*\")|\1\n|" \
+-e "s|^(CHOST\=\".*\")|\1\n|" \
+-e "s|^USE\=\"(.*)\"|USE\=\"\1 mysql mysqli\"\n\nMAKEOPTS\=\"\-j3\"\nPORTAGE_NICENESS\=\"10\"\nEMERGE_DEFAULT_OPTS\=\"\-\-jobs\=2 \-\-load\-average\=3\.0\"\n|" \
 "${filename}"
 
 <#assign filename = "/etc/local.d/makeopts.start">
@@ -118,11 +118,11 @@ emerge mail-mta/netqmail || emerge --resume
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
--e "s|^C=.*|C=US|" \
--e "s|^ST=.*|ST=Utah|" \
--e "s|^L=.*|L=Provo|" \
--e "s|^O=.*|O=InsideSales.com, Inc.|" \
--e "s|^emailAddress=.*|emailAddress=systems@insidesales.com|" \
+-e "s|^C\=.*|C\=US|" \
+-e "s|^ST\=.*|ST\=Utah|" \
+-e "s|^L\=.*|L\=Provo|" \
+-e "s|^O\=.*|O\=InsideSales.com, Inc\.|" \
+-e "s|^emailAddress\=.*|emailAddress\=systems@insidesales\.com|" \
 "${filename}"
 
 rc-update add svscan default
@@ -198,13 +198,13 @@ chmod 440 "${filename}"
 echo "--- ${filename} (modify)"
 cp "${filename}" "${filename}.orig"
 sed -i -r \
--e "s|^(short_open_tag\s+=\s+).*|\1On|" \
--e "s|^(expose_php\s+=\s+).*|\1Off|" \
--e "s|^(error_reporting\s+=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
--e "s|^(display_errors\s+=\s+).*|\1Off|" \
--e "s|^(display_startup_errors\s+=\s+).*|\1Off|" \
--e "s|^(track_errors\s+=\s+).*|\1Off|" \
--e "s|^;(date\.timezone\s+=).*|\1 America/Denver|" \
+-e "s|^(short_open_tag\s+\=\s+).*|\1On|" \
+-e "s|^(expose_php\s+\=\s+).*|\1Off|" \
+-e "s|^(error_reporting\s+\=\s+).*|\1E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED|" \
+-e "s|^(display_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(display_startup_errors\s+\=\s+).*|\1Off|" \
+-e "s|^(track_errors\s+\=\s+).*|\1Off|" \
+-e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "${filename}"
 
 <#assign filename = "/etc/hosts.allow">
