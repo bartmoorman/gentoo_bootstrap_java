@@ -91,7 +91,13 @@ EOF
 
 mirrorselect -s5 || exit 1
 
-emerge -uDN @system @world || emerge --resume || exit 1
+filename="etc/portage/make.conf"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "\|^EMERGE_DEFAULT_OPTS|a PORTAGE_BINHOST\=\"http\://${hostname_prefix}bin1/packages\"" \
+"/${filename}" || exit 1
+
+emerge -uDNg @system @world || emerge --resume || exit 1
 
 filename="etc/fstab"
 echo "--- ${filename} (append)"

@@ -22,6 +22,8 @@ name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
+emerge -q --sync || exit 1
+
 dirname="etc/portage/repos.conf"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
@@ -33,7 +35,6 @@ sed -i -r \
 -e "\|^\[gentoo\]$|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
 "/${filename}"
 
-emerge -q --sync || exit 1
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
@@ -43,6 +44,12 @@ EOF
 mirrorselect -s5 || exit 1
 
 emerge -uDN @system @world || emerge --resume || exit 1
+
+filename="etc/portage/make.conf"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "\|^EMERGE_DEFAULT_OPTS|a PORTAGE_BINHOST\=\"http\://${hostname_prefix}bin1/packages\"" \
+"/${filename}" || exit 1
 
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"

@@ -60,6 +60,18 @@ cat <<'EOF'>"/${filename}"
 www-servers/apache apache2_modules_log_forensic
 EOF
 
+filename="etc/portage/package.use/gd"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+media-libs/gd jpeg png
+EOF
+
+filename="etc/portage/package.use/ganglia"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+sys-cluster/ganglia python
+EOF
+
 filename="etc/portage/package.use/nagios"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
@@ -73,21 +85,15 @@ dev-lang/php apache2 cgi gd
 app-eselect/eselect-php apache2
 EOF
 
-filename="etc/portage/package.use/gd"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"/${filename}"
-media-libs/gd jpeg png
-EOF
-
-filename="etc/portage/package.use/ganglia"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"/${filename}"
-sys-cluster/ganglia python
-EOF
-
 mirrorselect -s5 || exit 1
 
-emerge -uDN @system @world || emerge --resume || exit 1
+filename="etc/portage/make.conf"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "\|^EMERGE_DEFAULT_OPTS|a PORTAGE_BINHOST\=\"http\://${hostname_prefix}bin1/packages\"" \
+"/${filename}" || exit 1
+
+emerge -uDNg @system @world || emerge --resume || exit 1
 
 filename="etc/fstab"
 echo "--- ${filename} (append)"

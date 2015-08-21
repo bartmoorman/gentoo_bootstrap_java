@@ -95,6 +95,17 @@ EOF
 
 emerge -q --sync || exit 1
 
+dirname="etc/portage/repos.conf"
+echo "--- ${dirname} (create)"
+mkdir -p "/${dirname}"
+
+filename="etc/portage/repos.conf/gentoo.conf"
+echo "--- ${filename} (replace)"
+cp "/usr/share/portage/config/repos.conf" "/${filename}" || exit 1
+sed -i -r \
+-e "\|^\[gentoo\]$|,\|^$|s|^(sync\-uri\s+\=\s+rsync\://).*|\1${hostname_prefix}systems1/gentoo\-portage|" \
+"/${filename}"
+
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
@@ -114,6 +125,12 @@ EOF
 mirrorselect -s5 || exit 1
 
 emerge -uDN @system @world || emerge --resume || exit 1
+
+filename="etc/portage/make.conf"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "\|^EMERGE_DEFAULT_OPTS|a PORTAGE_BINHOST\=\"http\://${hostname_prefix}bin1/packages\"" \
+"/${filename}" || exit 1
 
 counter=0
 timeout=1800
