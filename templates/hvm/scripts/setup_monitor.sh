@@ -338,16 +338,14 @@ rc-update add nagios default
 
 ganglia_file="$(mktemp)"
 cat <<EOF>"${ganglia_file}"
-data_source "Backup" ${hostname_prefix}backup1
 data_source "Database" ${hostname_prefix}db1_0 ${hostname_prefix}db1_1 ${hostname_prefix}db1_2 ${hostname_prefix}db2_0 ${hostname_prefix}db2_1 ${hostname_prefix}db2_2 ${hostname_prefix}db3_0 ${hostname_prefix}db3_1 ${hostname_prefix}db3_2 ${hostname_prefix}db4_0 ${hostname_prefix}db4_1 ${hostname_prefix}db4_2 ${hostname_prefix}db5_0 ${hostname_prefix}db5_1 ${hostname_prefix}db5_2
 data_source "Deplopy" ${hostname_prefix}deploy1
 data_source "Dialer" ${hostname_prefix}sip1 ${hostname_prefix}sip2 ${hostname_prefix}sip3 ${hostname_prefix}sip4 ${hostname_prefix}sip5
 data_source "Event Handler" ${hostname_prefix}eh1 ${hostname_prefix}eh2
 data_source "Inbound" ${hostname_prefix}inbound1 ${hostname_prefix}inbound2
 data_source "Joule Processor" ${hostname_prefix}jp1 ${hostname_prefix}jp2
-data_source "Log" ${hostname_prefix}log1
 data_source "Message Queue" ${hostname_prefix}mq1 ${hostname_prefix}mq2
-data_source "MongoDB" ${hostname_prefix}mdb1 ${hostname_prefix}mdb2 ${hostname_prefix}mdb3
+data_source "MongoDB" ${hostname_prefix}mdb1_0 ${hostname_prefix}mdb1_1 ${hostname_prefix}mdb1_2
 data_source "Monitor" ${hostname_prefix}monitor1
 data_source "Name Server" ${hostname_prefix}ns1 ${hostname_prefix}ns2
 data_source "Public Web" ${hostname_prefix}pub1 ${hostname_prefix}pub2
@@ -364,7 +362,7 @@ cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "s|^(data_source .*)|#\1|" \
 -e "\|^#data_source|r ${ganglia_file}" \
--e "s|^(# gridname .*)|\1\ngridname \"ISDC\-EU\"|" \
+-e "s|^(# gridname .*)|\1\ngridname \"${hostname_prefix}\"|" \
 "/${filename}" || exit 1
 
 filename="etc/fstab"

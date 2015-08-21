@@ -593,6 +593,24 @@ filename="usr/local/lib64/mysql/include/settings.inc"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
+filename="etc/init.d/watch-mysql-connections"
+echo "--- ${filename} (replace)"
+curl -sf -o "/${filename}" "${scripts}/${filename%-*}" || exit 1
+chmod 755 "/${filename}" || exit 1
+
+/${filename} start || exit 1
+
+rc-update add ${filename##*/} default
+
+filename="etc/init.d/watch-mysql-slave"
+echo "--- ${filename} (replace)"
+curl -sf -o "/${filename}" "${scripts}/${filename%-*}" || exit 1
+chmod 755 "/${filename}" || exit 1
+
+/${filename} start || exit 1
+
+rc-update add ${filename##*/} default
+
 user="monitoring"
 app="mysql"
 type="auth"

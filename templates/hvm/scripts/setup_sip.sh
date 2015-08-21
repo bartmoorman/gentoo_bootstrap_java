@@ -66,12 +66,6 @@ sys-cluster/glusterfs
 sys-fs/s3fs
 EOF
 
-filename="etc/portage/package.use/asterisk"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"/${filename}"
-net-misc/asterisk lua
-EOF
-
 dirname="etc/portage/package.keywords"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"

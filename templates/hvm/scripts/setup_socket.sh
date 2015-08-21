@@ -87,6 +87,12 @@ echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 
+/usr/share/tomcat-8/gentoo/tomcat-instance-manager.bash --create || exit 1
+
+/etc/init.d/tomcat-8 start || exit 1
+
+rc-update add tomcat-8 default
+
 for i in memcache memcached mongo oauth ssh2-beta; do
 	yes "" | pecl install "${i}" > /dev/null || exit 1
 

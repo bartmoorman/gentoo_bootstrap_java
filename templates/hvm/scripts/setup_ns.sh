@@ -210,19 +210,19 @@ linkname="service/tinydns"
 echo "--- ${linkname} -> ${dirname} (softlink)"
 ln -s "/${dirname}/" "/${linkname}" || exit 1
 
-dirname="usr/local/lib64/nsupdater"
+dirname="usr/local/lib64/ns_updater"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
-filename="usr/local/lib64/nsupdater/index.php"
+filename="usr/local/lib64/ns_updater/index.php"
 echo "--- ${filename} (replacee)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-filename="etc/init.d/nsupdater"
+filename="etc/init.d/ns-updater"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 chmod 755 "/${filename}" || exit 1
 
-/etc/init.d/nsupdater start || exit 1
+/${filename} start || exit 1
 
-rc-update add nsupdater default
+rc-update add ${filename##*/} default

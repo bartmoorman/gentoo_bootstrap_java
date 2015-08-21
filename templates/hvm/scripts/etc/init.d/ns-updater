@@ -6,7 +6,7 @@ checkconfig() {
 	DAEMON="${DAEMON:-/usr/bin/php}"
 	DAEMON_IP="${DAEMON_IP:-0.0.0.0}"
 	DAEMON_PORT="${DAEMON_PORT:-8053}"
-	DAEMON_SCRIPT="${DAEMON_SCRIPT:-/usr/local/lib64/nsupdater/index.php}"
+	DAEMON_SCRIPT="${DAEMON_SCRIPT:-/usr/local/lib64/${SVCNAME//-/_}/index.php}"
 	DAEMON_OPTS="-S ${DAEMON_IP}:${DAEMON_PORT} ${DAEMON_SCRIPT}"
 }
 

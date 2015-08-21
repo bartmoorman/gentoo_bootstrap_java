@@ -5,7 +5,7 @@ $domain_options = array('options' => array('regexp' => '/^(?!.{256})(?:[A-z0-9](
 $alias_options = array('options' => array('regexp' => '/^(?!.{256})(?:[A-z0-9](?:[A-z0-9\-]{0,61}[A-z0-9])?\.)+(?:[A-z]{2,3})$/'));
 $address_options = array('flags' => FILTER_FLAG_IPV4);
 $priority_options = array('options' => array('default' => 5, 'min_range' => 0, 'max_range' => 10));
-$ttl_options = array('options' => array('default' => 3600, 'min_range' => 60, 'max_range' => 86400));
+$ttl_options = array('options' => array('default' => 3600, 'min_range' => 300, 'max_range' => 86400));
 
 // Validate arguments
 $type = $_REQUEST['type']; // The switch() block below should be enough validation
