@@ -172,6 +172,8 @@ EOF
 
 mirrorselect -D -c Ireland -R Europe -s5 || exit 1
 
+mount -t tmpfs -o size=32G tmpfs /var/tmp/portage || exit 1
+
 emerge -uDNb @system @world || emerge --resume || exit 1
 
 filename="etc/apache2/vhosts.d/01_isdc_bin_vhost.conf"
