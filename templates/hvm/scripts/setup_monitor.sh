@@ -85,7 +85,7 @@ dev-lang/php apache2 cgi gd
 app-eselect/eselect-php apache2
 EOF
 
-mirrorselect -s5 || exit 1
+mirrorselect -D -c Ireland -R Europe -s5 || exit 1
 
 filename="etc/portage/make.conf"
 echo "--- ${filename} (modify)"

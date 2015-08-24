@@ -86,7 +86,7 @@ sed -i -r \
 -e "s|minimal|extraengine profiling|" \
 "/${filename}" || exit 1
 
-mirrorselect -s5 || exit 1
+mirrorselect -D -c Ireland -R Europe -s5 || exit 1
 
 filename="etc/portage/make.conf"
 echo "--- ${filename} (modify)"
