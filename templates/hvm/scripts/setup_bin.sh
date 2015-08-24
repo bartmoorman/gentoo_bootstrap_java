@@ -51,7 +51,7 @@ dev-php/PEAR-Spreadsheet_Excel_Writer
 dev-php/pear
 dev-php/smarty
 dev-python/mysql-python
-dev-qt/qtwebkit
+dev-qt/qtwebkit:4
 dev-vcs/git
 media-video/ffmpeg
 media-sound/sox
@@ -63,7 +63,6 @@ net-misc/memcached
 net-misc/rabbitmq-server
 sys-apps/miscfiles
 sys-apps/pv
-sys-cluster/ganglia-web
 sys-cluster/glusterfs
 sys-fs/lvm2
 sys-fs/s3fs

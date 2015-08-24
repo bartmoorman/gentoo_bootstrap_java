@@ -53,7 +53,7 @@ dev-php/PEAR-Mail_Mime
 dev-php/PEAR-Spreadsheet_Excel_Writer
 dev-php/pear
 dev-php/smarty
-dev-qt/qtwebkit
+dev-qt/qtwebkit:4
 media-video/ffmpeg
 media-sound/sox
 net-libs/libssh2

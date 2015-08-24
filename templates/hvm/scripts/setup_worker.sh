@@ -64,7 +64,7 @@ dev-php/PEAR-Spreadsheet_Excel_Writer
 dev-php/pear
 dev-php/smarty
 dev-python/mysql-python
-dev-qt/qtwebkit
+dev-qt/qtwebkit:4
 net-libs/libssh2
 net-misc/memcached
 sys-apps/miscfiles

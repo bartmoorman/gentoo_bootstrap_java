@@ -26,7 +26,7 @@ sed -i -r \
 /etc/conf.d/hostname
 
 sed -i -r \
--e "s|^(127\.0\.0\.1\s+).*(localhost)|\1<#noparse>${NAME}</#noparse>\.salesteamautomation\.com <#noparse>${NAME}</#noparse> \2|" \
+-e "s|^(127\.0\.0\.1\s+).*(localhost)$|\1<#noparse>${NAME}</#noparse>\.salesteamautomation\.com <#noparse>${NAME}</#noparse> \2|" \
 /etc/hosts
 
 sed -i -r \

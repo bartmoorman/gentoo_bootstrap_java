@@ -4,6 +4,9 @@
   - -b backup_bucket_name
   - -h hostname_prefix [optional]
   - -e environment_suffix [optional]
+- [x] setup_bin.sh
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
 - [x] setup_db.sh
   - -m master_name:master_ip
   - -i server_id
@@ -63,6 +66,9 @@
   - -e environment_suffix [optional]
 - [ ] ~~setup_rfs.sh~~
   - -b files_bucket_name
+  - -h hostname_prefix [optional]
+  - -e environment_suffix [optional]
+- [ ] setup_router.sh
   - -h hostname_prefix [optional]
   - -e environment_suffix [optional]
 - [x] setup_sip.sh
