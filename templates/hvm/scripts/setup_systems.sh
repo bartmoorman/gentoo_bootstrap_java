@@ -136,7 +136,7 @@ filename="etc/rsyncd.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "\|^\[gentoo\-portage\]$|,\|^$|s|^#(\s+?.*)|\1|" \
+-e "\|^#\[gentoo\-portage\]$|,\|^$|s|^#(\s+?.*)|\1|" \
 "/${filename}" || exit 1
 
 /etc/init.d/rsyncd start || exit 1
