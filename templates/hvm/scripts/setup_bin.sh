@@ -172,7 +172,12 @@ EOF
 
 mirrorselect -D -c Ireland -R Europe -s5 || exit 1
 
-mount -t tmpfs -o size=32G tmpfs /var/tmp/portage || exit 1
+dirname="var/tmp/portage"
+echo "--- ${dirname} (mount)"
+mkdir -p "/${dirname}"
+chmod 775 "/${dirname}"
+chown portage: "/${dirname}"
+mount -t tmpfs -o size=16G tmpfs "/${dirname}" || exit 1
 
 emerge -uDNb @system @world || emerge --resume || exit 1
 
