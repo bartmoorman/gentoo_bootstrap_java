@@ -186,9 +186,22 @@ EOF
 chmod 600 "/${filename}" || exit 1
 chown mysql: "/${filename}" || exit 1
 
+pvcreate /dev/xvd[h] || exit 1
+vgcreate vg1 /dev/xvd[h] || exit 1
+lvcreate -l 100%VG -n lvol1 vg1 || exit 1
+mkfs.ext4 /dev/vg1/lvol1 || exit 1
+
+filename="etc/fstab"
+echo "--- ${filename} (append)"
+cat <<'EOF'>>"/${filename}"
+
+/dev/vg1/lvol1	/var/log/mysql/binary	ext4		noatime		0 0
+EOF
+
 dirname="var/log/mysql/binary"
-echo "--- ${dirname} (create)"
+echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
+mount "/${dirname}" || exit 1
 chmod 700 "/${dirname}" || exit 1
 chown mysql: "/${dirname}" || exit 1
 
