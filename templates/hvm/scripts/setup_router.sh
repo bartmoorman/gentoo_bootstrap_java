@@ -20,8 +20,6 @@ fi
 ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
 name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
-instance_id="$(curl -s http://169.254.169.254/latest/meta-data/instance-id)"
-availability_zone="$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
 emerge -q --sync || exit 1
@@ -60,8 +58,6 @@ sed -i -r \
 -e "s|^(net\.ipv4.\ip_forward\s+\=\s+).*|\11|" \
 "/${filename}" || exit 1
 sysctl -p "/${filename}" || exit 1
-
-aws ec2 modify-instance-attribute --region ${availability_zone%?} --instance-id ${instance_id} --no-source-dest-check || exit 1
 
 /etc/init.d/iptables start || exit 1
 
