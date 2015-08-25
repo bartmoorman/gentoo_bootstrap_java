@@ -59,13 +59,13 @@ sed -i -r \
 "/${filename}" || exit 1
 sysctl -p "/${filename}" || exit 1
 
-/etc/init.d/iptables start || exit 1
-
-iptables -t nat -A POSTROUTING -s 10.0.0.0/8 -o eth0 -j MASQUERADE || exit 1
-
 /etc/init.d/iptables save || exit 1
 
+/etc/init.d/iptables start || exit 1
+
 rc-update add iptables default
+
+iptables -t nat -A POSTROUTING -s 10.0.0.0/8 -o eth0 -j MASQUERADE || exit 1
 
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"
