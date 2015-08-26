@@ -115,7 +115,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=JpServerA --exit-code=$?\n"
 				] ] } }
 		    }
@@ -168,7 +168,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=JpServerB --exit-code=$?\n"
 				] ] } }
 		    }
@@ -224,7 +224,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WebServerA --exit-code=$?\n"
 				] ] } }
 		    }
@@ -264,7 +264,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WebServerB --exit-code=$?\n"
 				] ] } }
 		    }
@@ -304,7 +304,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WebServerC --exit-code=$?\n"
 				] ] } }
 		    }
@@ -344,7 +344,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WebServerD --exit-code=$?\n"
 				] ] } }
 		    }
@@ -420,7 +420,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WorkerServerA --exit-code=$?\n"
 				] ] } }
 		    }
@@ -475,7 +475,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WorkerServerB --exit-code=$?\n"
 				] ] } }
 		    }
@@ -531,7 +531,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SocketServerA --exit-code=$?\n"
 				] ] } }
 		    }
@@ -571,7 +571,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SocketServerB --exit-code=$?\n"
 				] ] } }
 		    }

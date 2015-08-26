@@ -592,7 +592,7 @@
 								{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameB"] },
 								{"Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix"]
 							} ] ]},
-						":", {"Fn::GetAtt" : [ "DNSServerBENI", "PrimaryPrivateIpAddress"]},
+						":", {"Fn::GetAtt" : [ "DNSServerBENI", "PrimaryPrivateIpAddress"]}, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DNSServerA --exit-code=$?\n"
 				] ] } }
 		    }
@@ -630,7 +630,7 @@
 								{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameA"] },
 								{"Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix"]
 							} ] ]},
-						":", {"Fn::GetAtt" : [ "DNSServerAENI", "PrimaryPrivateIpAddress"]},
+						":", {"Fn::GetAtt" : [ "DNSServerAENI", "PrimaryPrivateIpAddress"]}, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DNSServerB --exit-code=$?\n"
 				] ] } }
 		    }

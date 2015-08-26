@@ -77,7 +77,7 @@
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=BinServer --exit-code=$?\n"
 				] ] } }
 		    }
