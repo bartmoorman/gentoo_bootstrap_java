@@ -27,6 +27,16 @@
 			"Type" : "String", "AllowedValues" : ["t2.small", "t2.medium", "t2.large", "m3.medium"]
 		},
 
+		"DNSServerAExistingEIP" : {
+			"Type" : "String",
+			"Description" : "Allocation ID of the elastic IP address for the primary DNS server."
+		},
+		
+		"DNSServerBExistingEIP" : {
+			"Type" : "String",
+			"Description" : "Allocation ID of the elastic IP address for the secondary DNS server."
+		},
+		
 		"Key" : {
 			"Type" : "AWS::EC2::KeyPair::KeyName", "Default" : "Bart Moorman"
 		},
@@ -534,20 +544,10 @@
 		    }
 		},
 
-		"DNSServerAEIP" : {
-		    "Type" : "AWS::EC2::EIP", "DependsOn" : "GatewayToInternet",
-		    "Properties" : { "Domain" : "vpc" }
-		},
-
-		"DNSServerBEIP" : {
-		    "Type" : "AWS::EC2::EIP", "DependsOn" : "GatewayToInternet",
-		    "Properties" : { "Domain" : "vpc" }
-		},
-
 		"DNSServerAEIPAssociation" : {
 		    "Type" : "AWS::EC2::EIPAssociation",
 		    "Properties" : {
-				"AllocationId" : {"Fn::GetAtt" : [ "DNSServerAEIP", "AllocationId"]},
+				"AllocationId" : { "Ref" : "DNSServerAExistingEIP" },
 				"NetworkInterfaceId" : { "Ref" : "DNSServerAENI" }
 		    }
 		},
@@ -555,7 +555,7 @@
 		"DNSServerBEIPAssociation" : {
 		    "Type" : "AWS::EC2::EIPAssociation",
 		    "Properties" : {
-				"AllocationId" : {"Fn::GetAtt" : [ "DNSServerBEIP", "AllocationId"]},
+				"AllocationId" : { "Ref" : "DNSServerBExistingEIP" },
 				"NetworkInterfaceId" : { "Ref" : "DNSServerBENI" }
 		    }
 		},
