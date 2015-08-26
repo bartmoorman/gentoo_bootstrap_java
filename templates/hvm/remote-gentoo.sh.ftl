@@ -21,7 +21,7 @@ mkdir -p ${mountPoint}
 echo "--- Mount volume"
 mount ${device}1 ${mountPoint}
 
-echo "--- Download stage3"
+echo "--- Download stage3 tarball"
 <#if architecture == "i386">
     <#assign archDir = "x86">
     <#assign archFile = "i686">
@@ -32,14 +32,14 @@ echo "--- Download stage3"
 stage3_file="$(mktemp)"
 curl -sf -o "<#noparse>${stage3_file}</#noparse>" "${mirror}releases/${archDir}/autobuilds/$(curl -sf "${mirror}releases/${archDir}/autobuilds/latest-stage3-${archFile}.txt" | grep stage3-${archFile})"
 
-echo "--- Unpack stage3"
+echo "--- Unpack stage3 tarball"
 tar xjpf "<#noparse>${stage3_file}</#noparse>" -C ${mountPoint}
 
-echo "--- Download portage"
+echo "--- Download portage snapshot"
 portage_file="$(mktemp)"
 curl -sf -o "<#noparse>${portage_file}</#noparse>" "${mirror}snapshots/portage-latest.tar.bz2"
 
-echo "--- Unpack portage"
+echo "--- Unpack portage snapshot"
 tar xjf "<#noparse>${portage_file}</#noparse>" -C ${mountPoint}/usr
 
 echo "--- /etc/resolv.conf (copy)"
