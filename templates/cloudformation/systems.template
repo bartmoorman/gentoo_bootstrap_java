@@ -6,7 +6,7 @@
 	"Parameters" : {
 		"TargetEnvironment" : {
 			"Type" : "String",
-			"Description" : "The target environment for this stack", 
+			"Description" : "The target environment for this stack",
 			"AllowedValues" : ["eu1iec1"]
 		},
 		"TerminationProtection" : {
@@ -15,13 +15,13 @@
 	},
 	"Mappings" : {
 		"Constants" : {
-			"InstanceProfiles" : {		
-				"BinServerInstanceProfile" : "BinServer"
+			"InstanceProfiles" : {
+				"BinServerInstanceProfile" : "binServer"
 			}
-		}, 
+		},
 
 		"AMIs" : {
-			"eu-west-1" : { "Systems" : "ami-5af0af2d" }
+			"eu-west-1" : { "Systems" : "ami-a6207bd1" }
 		}
 	},
 
@@ -35,59 +35,55 @@
 		},
 
 		"SystemsServerENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface", 
+		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] }, 
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
 				"GroupSet" : [
-					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },  
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }  
-				], 
+					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
 				"Description" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "systems1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]} 
+				] ]}
 		    }
-		}, 
+		},
 
 		"SystemsServer" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : { 
+		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Systems"] },
 		        "InstanceType" :  "t2.medium",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] }, 
-				"IamInstanceProfile" : "SystemsServer",
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },  
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"IamInstanceProfile" : "systemsServer",
+				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"NetworkInterfaces" : [ 
+				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SystemsServerENI" } }
-				],  
+				],
 				"EbsOptimized" : false,
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "systems1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]} 
+					] ]}
 				}, { "Key" : "test", "Value" : "test" }],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
-"useradd -g users -G wheel -m ec2-user\n",
-"curl -s -o \"/home/ec2-user/.ssh/authorized_keys\" \"http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key\"\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n",
-
-					"filename=\"/setup_systems.sh\"\n",
-					"echo \"--- ${filename} (replace)\"\n",
-					"curl -sf -o \"${filename}\" \"${scripts}${filename}\"\n",
-					"bash -x \"${filename}\"",
-						" -b ", {"Fn::Join" : [ "-", [  
-							 { "Ref" : "AWS::StackName" }, 
-							"files", 
-							{ "Ref" : "AWS::AccountId" } 
+					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+					"filename=\"setup_systems.sh\"\n",
+					"setup_file=\"$(mktemp)\"\n",
+					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+					"bash \"${setup_file}\"",
+						" -b ", {"Fn::Join" : [ "-", [
+							 { "Ref" : "AWS::StackName" },
+							"files",
+							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-					" > /tmp/user-data.log\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SystemsServer --exit-code=$?\n"
 				] ] } }
 		    }

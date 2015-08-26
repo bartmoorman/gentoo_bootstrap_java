@@ -6,7 +6,7 @@
 	"Parameters" : {
 		"TargetEnvironment" : {
 			"Type" : "String",
-			"Description" : "The target environment for this stack", 
+			"Description" : "The target environment for this stack",
 			"AllowedValues" : ["eu1iec1"]
 		},
 		"MonitorServerExistingEIP" : {
@@ -22,15 +22,15 @@
 	},
 	"Mappings" : {
 		"Constants" : {
-			"InstanceProfiles" : {		
-				"StatsServer" : "StatsServer",
-				"MonitorServer" : "MonitorServer",
-				"DeployServer" : "DeployServer"
+			"InstanceProfiles" : {
+				"StatsServer" : "statsServer",
+				"MonitorServer" : "monitorServer",
+				"DeployServer" : "deployServer"
 			}
-		}, 
+		},
 
 		"AMIs" : {
-			"eu-west-1" : { "Stats" : "ami-5af0af2d", "Monitor" : "ami-5af0af2d", "Deploy" : "ami-5af0af2d" }
+			"eu-west-1" : { "Stats" : "ami-a6207bd1", "Monitor" : "ami-a6207bd1", "Deploy" : "ami-a6207bd1" }
 		}
 	},
 
@@ -46,62 +46,59 @@
 
 		"MonitorSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
-			"Properties" : { 
+			"Properties" : {
 				"VpcId" :  {"Fn::GetAtt" : [ "Environment", "VPC" ] },
 				"GroupDescription" : "Internet traffic permitted to the Monitor server",
-				"SecurityGroupIngress" : [ 
-					{ "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0" },				
-					{ "IpProtocol" : "tcp", "FromPort" : "443", "ToPort" : "443", "CidrIp" : "0.0.0.0/0" }			
-				], 
+				"SecurityGroupIngress" : [
+					{ "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0" },
+					{ "IpProtocol" : "tcp", "FromPort" : "443", "ToPort" : "443", "CidrIp" : "0.0.0.0/0" }
+				],
 				"SecurityGroupEgress" : []
 			}
 		},
 
-		"StatsServer1" : {
+		"StatsServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : { 
+		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Stats"] },
 		        "InstanceType" :  "m4.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] }, 
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "StatsServer"] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },  
+				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"NetworkInterfaces" : [ 
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "StatsServer1ENI" } }
-				],  
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "StatsServerAENI" } }
+				],
 				"Volumes" : [
-					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "StatsServer1Volume1" } }
-				],   
+					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "StatsServerAVolume1" } }
+				],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "stats1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]} 
+					] ]}
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
-"useradd -g users -G wheel -m ec2-user\n",
-"curl -s -o \"/home/ec2-user/.ssh/authorized_keys\" \"http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key\"\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n",
-
-					"filename=\"/setup_stats.sh\"\n",
-					"echo \"--- ${filename} (replace)\"\n",
-					"curl -sf -o \"${filename}\" \"${scripts}${filename}\"\n",
-					"bash -x \"${filename}\" -i 1 -o 1",
-						" -b ", {"Fn::Join" : [ "-", [  
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] }, 
-							"backup", 
-							{ "Ref" : "AWS::AccountId" } 
+					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+					"filename=\"setup_stats.sh\"\n",
+					"setup_file=\"$(mktemp)\"\n",
+					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+					"bash \"${setup_file}\"",
+						" -i 1 -o 1",
+						" -b ", {"Fn::Join" : [ "-", [
+							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+							"backup",
+							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-					" > /tmp/user-data.log\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=StatsServer1 --exit-code=$?\n"
+					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=StatsServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
 
-		"StatsServer1Volume1" : {
+		"StatsServerAVolume1" : {
 		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
 		    "Properties" : {
 		        "AvailabilityZone" :  {"Fn::GetAtt" : [ "Environment", "AZA"] },
@@ -112,72 +109,69 @@
 						 "stats1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
 						 " - xvdf"
-					] ]} 
+					] ]}
 				} ]
 		    }
 		},
 
-		"StatsServer1ENI" : {
+		"StatsServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetA"] }, 
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetA"] },
 				"GroupSet" : [
-					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },  
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] } 
-				], 
+					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 					"stats1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]} 
+				] ]}
 		    }
-		}, 
+		},
 
-		"StatsServer2" : {
+		"StatsServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : { 
+		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Stats"] },
 		        "InstanceType" :  "m4.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] }, 
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "StatsServer"] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },  
+				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"NetworkInterfaces" : [ 
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "StatsServer2ENI" } }
-				], 
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "StatsServerBENI" } }
+				],
 				"Volumes" : [
-					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "StatsServer2Volume1" } }
-				],   
+					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "StatsServerBVolume1" } }
+				],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "stats2",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]} 
+					] ]}
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
-"useradd -g users -G wheel -m ec2-user\n",
-"curl -s -o \"/home/ec2-user/.ssh/authorized_keys\" \"http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key\"\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n",
-
-					"filename=\"/setup_stats.sh\"\n",
-					"echo \"--- ${filename} (replace)\"\n",
-					"curl -sf -o \"${filename}\" \"${scripts}${filename}\"\n",
-					"bash -x \"${filename}\" -i 1 -o 1",
-						" -b ", {"Fn::Join" : [ "-", [  
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] }, 
-							"backup", 
-							{ "Ref" : "AWS::AccountId" } 
+					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+					"filename=\"setup_stats.sh\"\n",
+					"setup_file=\"$(mktemp)\"\n",
+					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+					"bash \"${setup_file}\"",
+						" -i 1 -o 1",
+						" -b ", {"Fn::Join" : [ "-", [
+							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+							"backup",
+							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-					" > /tmp/user-data.log\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=StatsServer2 --exit-code=$?\n"
+					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=StatsServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
 
-		"StatsServer2Volume1" : {
+		"StatsServerBVolume1" : {
 		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
 		    "Properties" : {
 		        "AvailabilityZone" :  {"Fn::GetAtt" : [ "Environment", "AZB"] },
@@ -188,65 +182,61 @@
 						 "stats2",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
 						 " - xvdf"
-					] ]} 
+					] ]}
 				} ]
 		    }
 		},
 
-		"StatsServer2ENI" : {
+		"StatsServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetB"] }, 
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetB"] },
 				"GroupSet" : [
-					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },  
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] } 
-				], 
+					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 					"stats2",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]} 
+				] ]}
 		    }
-		}, 
+		},
 
 		"MonitorServer" : {
 		    "Type" : "AWS::EC2::Instance", "DependsOn" : "MonitorServerEIPAssociation", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : { 
+		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Monitor"] },
 		        "InstanceType" :  "c3.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] }, 
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MonitorServer"] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },  
+				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"NetworkInterfaces" : [ 
+				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "MonitorServerENI" } }
-				],  
+				],
 				"EbsOptimized" : false,
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "monitor1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]} 
+					] ]}
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
-"useradd -g users -G wheel -m ec2-user\n",
-"curl -s -o \"/home/ec2-user/.ssh/authorized_keys\" \"http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key\"\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n",
-
-					"filename=\"/setup_monitor.sh\"\n",
-					"echo \"--- ${filename} (replace)\"\n",
-					"curl -sf -o \"${filename}\" \"${scripts}${filename}\"\n",
-					"bash -x \"${filename}\"",
-						" -b ", {"Fn::Join" : [ "-", [  
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] }, 
-							"files", 
-							{ "Ref" : "AWS::AccountId" } 
+					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+					"filename=\"setup_monitor.sh\"\n",
+					"setup_file=\"$(mktemp)\"\n",
+					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+					"bash \"${setup_file}\"",
+						" -b ", {"Fn::Join" : [ "-", [
+							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+							"files",
+							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-					" > /tmp/user-data.log\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=MonitorServer --exit-code=$?\n"
 				] ] } }
 		    }
@@ -255,65 +245,61 @@
 		"MonitorServerENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "PublicSubnetA"] }, 
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "PublicSubnetA"] },
 				"GroupSet" : [
-					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },  
+					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
 					{ "Ref" : "MonitorSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] } 
-				], 
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 					"monitor1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]} 
+				] ]}
 		    }
-		}, 
+		},
 
 		"MonitorServerEIPAssociation" : {
-		    "Type" : "AWS::EC2::EIPAssociation", 
-		    "Properties" : { 
-				"AllocationId" :  { "Ref" : "MonitorServerExistingEIP" },  
+		    "Type" : "AWS::EC2::EIPAssociation",
+		    "Properties" : {
+				"AllocationId" :  { "Ref" : "MonitorServerExistingEIP" },
 				"NetworkInterfaceId" : { "Ref" : "MonitorServerENI" }
 		    }
 		},
 
 		"DeployServer" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : { 
+		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Deploy"] },
 		        "InstanceType" :  "t2.medium",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] }, 
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DeployServer"] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },  
+				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"NetworkInterfaces" : [ 
+				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "DeployServerENI" } }
-				],  
+				],
 				"EbsOptimized" : false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "deploy1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]} 
+					] ]}
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
-"useradd -g users -G wheel -m ec2-user\n",
-"curl -s -o \"/home/ec2-user/.ssh/authorized_keys\" \"http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key\"\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n",
-
-					"filename=\"/setup_deploy.sh\"\n",
-					"echo \"--- ${filename} (replace)\"\n",
-					"curl -sf -o \"${filename}\" \"${scripts}${filename}\"\n",
-					"bash -x \"${filename}\"",
-						" -b ", {"Fn::Join" : [ "-", [  
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] }, 
-							"files", 
-							{ "Ref" : "AWS::AccountId" } 
+					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+					"filename=\"setup_deploy.sh\"\n",
+					"setup_file=\"$(mktemp)\"\n",
+					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+					"bash \"${setup_file}\"",
+						" -b ", {"Fn::Join" : [ "-", [
+							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+							"files",
+							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-					" > /tmp/user-data.log\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DeployServer --exit-code=$?\n"
 				] ] } }
 		    }
@@ -322,25 +308,25 @@
 		"DeployServerENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] }, 
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
 				"GroupSet" : [
-					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },  
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] } 
-				], 
+					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 					"deploy1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]} 
+				] ]}
 		    }
 		}
 
 	},
 
 	"Outputs" : {
-		"StatsServersPrimaryIPAddresses" : { "Value" :  {"Fn::Join" : [ ",", [ 
-			{"Fn::GetAtt" : [ "StatsServer1ENI", "PrimaryPrivateIpAddress"]},
-			{"Fn::GetAtt" : [ "StatsServer2ENI", "PrimaryPrivateIpAddress"]}
+		"StatsServersPrimaryIPAddresses" : { "Value" :  {"Fn::Join" : [ ",", [
+			{"Fn::GetAtt" : [ "StatsServerAENI", "PrimaryPrivateIpAddress"]},
+			{"Fn::GetAtt" : [ "StatsServerBENI", "PrimaryPrivateIpAddress"]}
 		] ]} },
 		"MonitorServerPrimaryIPAddress" : { "Value" : {"Fn::GetAtt" : [ "MonitorServerENI", "PrimaryPrivateIpAddress"]}}
 	}
