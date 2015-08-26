@@ -122,6 +122,12 @@ cat <<'EOF'>"/${filename}"
 sys-cluster/glusterfs
 EOF
 
+filename="etc/portage/package.keywords/ncurses"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+sys-libs/ncurses
+EOF
+
 mirrorselect -D -c Ireland -R Europe -s5 || exit 1
 
 emerge -uDN @system @world || emerge --resume || exit 1

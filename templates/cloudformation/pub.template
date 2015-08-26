@@ -120,7 +120,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=PubServerA --exit-code=$?\n"
 				] ] } }
 		    }
@@ -179,7 +179,7 @@
 							{ "Ref" : "AWS::AccountId" }
 						] ]},
 						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n"
+						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=PubServerB --exit-code=$?\n"
 				] ] } }
 		    }
