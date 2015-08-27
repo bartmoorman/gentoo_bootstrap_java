@@ -22,9 +22,10 @@
 				"DatabaseServer" : "dbServer"
 			}
 		},
-
 		"AMIs" : {
-			"eu-west-1" : { "Database" : "ami-a6207bd1"}
+			"eu-west-1" : {
+				"Database" : "ami-d9356fae"
+			}
 		}
 	},
 
@@ -114,17 +115,13 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Database"] },
 		        "InstanceType" :  "r3.2xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "NetworkInterfaceId" : { "Ref" : "DBServerAENI" } }
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "DBServerAENI" } }
 				],
 				"EbsOptimized" : true,
-				"BlockDeviceMappings" : [
-					{ "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} },
-					{ "DeviceName" : "xvdca",  "VirtualName" : "ephemeral0" }
-				],
 				"Volumes" : [
 					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "DBServerAVolume1" }},
 					{ "Device" : "xvdg", "VolumeId" : { "Ref" : "DBServerAVolume2" }},
@@ -213,17 +210,13 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Database"] },
 		        "InstanceType" :  "r3.2xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "NetworkInterfaceId" : { "Ref" : "DBServerBENI" } }
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "DBServerBENI" } }
 				],
 				"EbsOptimized" : true,
-				"BlockDeviceMappings" : [
-					{ "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} },
-					{ "DeviceName" : "xvdca",  "VirtualName" : "ephemeral0" }
-				],
 				"Volumes" : [
 					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "DBServerBVolume1" }},
 					{ "Device" : "xvdg", "VolumeId" : { "Ref" : "DBServerBVolume2" }},
@@ -306,24 +299,20 @@
 					] ] }
 				} ]
 		    }
-		}
+		},
 		"DBServerC" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Database"] },
 		        "InstanceType" :  "r3.2xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "NetworkInterfaceId" : { "Ref" : "DBServerCENI" } }
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "DBServerCENI" } }
 				],
 				"EbsOptimized" : true,
-				"BlockDeviceMappings" : [
-					{ "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} },
-					{ "DeviceName" : "xvdca",  "VirtualName" : "ephemeral0" }
-				],
 				"Volumes" : [
 					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "DBServerCVolume1" }},
 					{ "Device" : "xvdg", "VolumeId" : { "Ref" : "DBServerCVolume2" }},
@@ -350,7 +339,7 @@
 				] ] } }
 
 		    }
-		},
+		}
 	},
 
 	"Outputs" : {

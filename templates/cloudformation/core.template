@@ -34,9 +34,9 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Stats" : "ami-a6207bd1",
-				"Monitor" : "ami-a6207bd1",
-				"Deploy" : "ami-a6207bd1"
+				"Stats" : "ami-d9356fae",
+				"Monitor" : "ami-d9356fae",
+				"Deploy" : "ami-d9356fae"
 			}
 		}
 	},
@@ -92,7 +92,8 @@
 		    }
 		},
 		"StatsServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M" } },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M" } },
 		    "Properties" : {
 		        "ImageId" : { "Fn::FindInMap" : [ "AMIs", { "Ref" : "AWS::Region" }, "Stats" ] },
 		        "InstanceType" : "m4.2xlarge",
@@ -103,6 +104,7 @@
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "StatsServerAENI" } }
 				],
+				"EbsOptimized" : true,
 				"Volumes" : [
 					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "StatsServerAVolume1" } }
 				],
@@ -158,7 +160,8 @@
 		    }
 		},
 		"StatsServerB" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Stats"] },
 		        "InstanceType" :  "m4.2xlarge",
@@ -169,6 +172,7 @@
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "StatsServerBENI" } }
 				],
+				"EbsOptimized" : true,
 				"Volumes" : [
 					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "StatsServerBVolume1" } }
 				],
@@ -230,8 +234,8 @@
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "MonitorServerENI" } }
 				],
-				"EbsOptimized" : false,
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "monitor1",
@@ -266,7 +270,7 @@
 					{ "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
 				] ] }
 		    }
-		}
+		},
 		"DeployServer" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -279,7 +283,6 @@
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "DeployServerENI" } }
 				],
-				"EbsOptimized" : false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "deploy1",
@@ -299,7 +302,7 @@
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DeployServer --exit-code=$?\n"
 				] ] } }
 		    }
-		},
+		}
 	},
 
 	"Outputs" : {

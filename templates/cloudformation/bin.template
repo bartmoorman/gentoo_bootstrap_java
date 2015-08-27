@@ -6,21 +6,25 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : ["eu1iec1"]
+			"AllowedValues" : [ "eu1iec1" ]
 		},
 		"TerminationProtection" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
+			"Type" : "String",
+			"AllowedValues" : [ "true", "false" ],
+			"Default" : "false"
 		}
 	},
 
 	"Mappings" : {
 		"Constants" : {
 			"InstanceProfiles" : {
-				"BinServerInstanceProfile" : "binServer"
+				"BinServer" : "binServer"
 			}
 		},
 		"AMIs" : {
-			"eu-west-1" : { "Bin" : "ami-a6207bd1" }
+			"eu-west-1" : {
+				"Bin" : "ami-d9356fae"
+			}
 		}
 	},
 
@@ -35,38 +39,39 @@
 		"BinServerENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"SubnetId" : { "Fn::GetAtt" : [ "Environment", "AppSubnetA" ] },
 				"GroupSet" : [
-					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+					{ "Fn::GetAtt" : [ "Environment", "CoreSG" ] },
+					{ "Fn::GetAtt" : [ "Environment", "RemoteAccessSG" ] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
 						 "bin1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
 				] ]}
 		    }
 		},
 		"BinServer" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M" } },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Bin"] },
+		        "ImageId" :  { "Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Bin" ] },
 		        "InstanceType" :  "c4.8xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : "BinServer",
+				"KeyName" : { "Fn::GetAtt" : [ "Environment", "Key" ] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "BinServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "BinServerENI" } }
 				],
-				"EbsOptimized" : false,
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
 						 "bin1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				}],
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+					] ] }
+				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
 					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
@@ -74,8 +79,8 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ",  {"Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=BinServer --exit-code=$?\n"
 				] ] } }
 		    }

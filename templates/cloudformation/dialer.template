@@ -24,10 +24,10 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Sip" : "ami-a6207bd1",
-				"Eh" : "ami-a6207bd1",
-				"Mq" : "ami-a6207bd1",
-				"Inbound" : "ami-a6207bd1"
+				"Sip" : "ami-d9356fae",
+				"Eh" : "ami-d9356fae",
+				"Mq" : "ami-d9356fae",
+				"Inbound" : "ami-d9356fae"
 			}
 		}
 	},
@@ -85,11 +85,11 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Sip"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "NetworkInterfaceId" : { "Ref" : "SipServerAENI" } }
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SipServerAENI" } }
 				],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
@@ -134,7 +134,7 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Sip"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
@@ -183,7 +183,7 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Sip"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
@@ -232,13 +232,12 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Eh"] },
 		        "InstanceType" :  "m3.xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "EhServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "EhServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "EhServerAENI" } }
 				],
-				"EbsOptimized" :  false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "eh1",
@@ -281,13 +280,12 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Eh"] },
 		        "InstanceType" :  "m3.xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "EhServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "EhServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "EhServerBENI" } }
 				],
-				"EbsOptimized" :  false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "eh2",
@@ -330,13 +328,12 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Mq"] },
 		        "InstanceType" :  "m3.xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MqServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MqServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "MqServerAENI" } }
 				],
-				"EbsOptimized" :  false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "mq1",
@@ -379,13 +376,12 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Mq"] },
 		        "InstanceType" :  "m3.xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MqServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MqServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "MqServerBENI" } }
 				],
-				"EbsOptimized" :  false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "mq2",
@@ -428,13 +424,12 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Inbound"] },
 		        "InstanceType" :  "m3.xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "InboundServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "InboundServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "InboundServerAENI" } }
 				],
-				"EbsOptimized" :  false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "inbound1",
@@ -478,13 +473,12 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Inbound"] },
 		        "InstanceType" :  "m3.xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "InboundServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "InboundServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "InboundServerBENI" } }
 				],
-				"EbsOptimized" :  false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "inbound2",

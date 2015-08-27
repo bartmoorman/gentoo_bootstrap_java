@@ -30,10 +30,10 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Jp" : "ami-a6207bd1",
-				"Web" : "ami-a6207bd1",
-				"Worker" : "ami-a6207bd1",
-				"Socket" : "ami-a6207bd1"
+				"Jp" : "ami-d9356fae",
+				"Web" : "ami-d9356fae",
+				"Worker" : "ami-d9356fae",
+				"Socket" : "ami-d9356fae"
 			}
 		}
 	},
@@ -104,11 +104,11 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Jp"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "JpServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "JpServer" ] },
 				"DisableApiTermination" : { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "NetworkInterfaceId" : { "Ref" : "JpServerAENI" } }
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "JpServerAENI" } }
 				],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
@@ -152,7 +152,7 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Jp"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "JpServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "JpServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
@@ -200,18 +200,19 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WebServerAENI" } }
 				],
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
 						 "web1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -248,17 +249,18 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WebServerBENI" } }
 				],
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
 						 "web2",
-						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
 					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
@@ -296,18 +298,19 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
+				"Monitoring" : true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WebServerCENI" } }
 				],
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
 						 "web3",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -344,18 +347,19 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WebServerDENI" } }
 				],
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
 						 "web4",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -428,18 +432,19 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Worker"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" :  {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WorkerServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WorkerServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WorkerServerAENI" } }
 				],
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
 						 "worker1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -477,18 +482,19 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Worker"] },
 		        "InstanceType" :  "c4.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WorkerServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WorkerServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WorkerServerBENI" } }
 				],
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
 						 "worker2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -526,13 +532,12 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Socket"] },
 		        "InstanceType" :  "r3.xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SocketServerAENI" } }
 				],
-				"EbsOptimized" : false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "socket1",
@@ -574,13 +579,12 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
 		        "InstanceType" :  "r3.xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer"] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SocketServerBENI" } }
 				],
-				"EbsOptimized" : false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "socket2",

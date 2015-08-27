@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-	"Description" : "Version: 2.0\nCreates the network infrastructure: VPC with subnets, route tables, gateways, and ACLs. Requires three Availability Zones.",
+	"Description" : "Version 2.0\nCreates the network infrastructure: VPC with subnets, route tables, gateways, and ACLs. Requires three Availability Zones.",
 
 	"Parameters" : {
 		"CIDR2ndOctet": {
@@ -62,7 +62,7 @@
 		"AMIs" : {
 			"eu-west-1" : {
 				"NAT" : "ami-ef76e898",
-				"DNS" : "ami-a6207bd1"
+				"DNS" : "ami-d9356fae"
 			}
 		},
 		"Naming" : {
@@ -513,35 +513,11 @@
 				} ] ] }
 		    }
 		},
-		"DNSServerBENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-		        "SubnetId" : { "Ref" : "PublicSubnetB" },
-				"PrivateIpAddress" : {"Fn::Join" : [ "", [
-					"10.",
-					{ "Ref":"CIDR2ndOctet" },
-					{ "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "B" ] }
-				] ]},
-				"GroupSet" : [ { "Ref" : "DNSSG" }, { "Ref" : "RemoteAccessSG" } ],
-				"Description" : { "Fn::Join" : [ "", [
-					{ "Ref" : "AWS::StackName" },
-					{ "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameB" ] },
-					{ "Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix" ]
-				} ] ] }
-		    }
-		},
 		"DNSServerAEIPAssociation" : {
 		    "Type" : "AWS::EC2::EIPAssociation",
 		    "Properties" : {
 				"AllocationId" : { "Ref" : "DNSServerAExistingEIP" },
 				"NetworkInterfaceId" : { "Ref" : "DNSServerAENI" }
-		    }
-		},
-		"DNSServerBEIPAssociation" : {
-		    "Type" : "AWS::EC2::EIPAssociation",
-		    "Properties" : {
-				"AllocationId" : { "Ref" : "DNSServerBExistingEIP" },
-				"NetworkInterfaceId" : { "Ref" : "DNSServerBENI" }
 		    }
 		},
 		"DNSServerA" : {
@@ -552,14 +528,13 @@
 		        "ImageId" : { "Fn::FindInMap" : [ "AMIs" , { "Ref" : "AWS::Region" }, "DNS" ] },
 		        "InstanceType" : { "Ref" : "DNSInstanceType" },
 				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone" ] },
-				"NetworkInterfaces" : [ {
-					"DeviceIndex" : "0",
-					"NetworkInterfaceId" : { "Ref" : "DNSServerAENI" }
-				} ],
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "DNSServerAENI" } }
+				],
 				"DisableApiTermination" : { "Ref" : "TerminationProtection" },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "NsServer"] },
 				"KeyName" : { "Ref" : "Key" },
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} } ],
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" :  { "Fn::Join" : [ "", [
 					{ "Ref" : "AWS::StackName" },
 					{ "Fn::FindInMap" : [ "NetworkConfig", "InternalDNS", "NameA"] },
@@ -577,21 +552,45 @@
 				] ] } }
 		    }
 		},
+		"DNSServerBENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+		        "SubnetId" : { "Ref" : "PublicSubnetB" },
+				"PrivateIpAddress" : {"Fn::Join" : [ "", [
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "B" ] }
+				] ]},
+				"GroupSet" : [ { "Ref" : "DNSSG" }, { "Ref" : "RemoteAccessSG" } ],
+				"Description" : { "Fn::Join" : [ "", [
+					{ "Ref" : "AWS::StackName" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameB" ] },
+					{ "Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix" ]
+				} ] ] }
+		    }
+		},
+		"DNSServerBEIPAssociation" : {
+		    "Type" : "AWS::EC2::EIPAssociation",
+		    "Properties" : {
+				"AllocationId" : { "Ref" : "DNSServerBExistingEIP" },
+				"NetworkInterfaceId" : { "Ref" : "DNSServerBENI" }
+		    }
+		},
 		"DNSServerB" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 			"DependsOn" : "DNSServerBEIPAssociation",
 		    "Properties" : {
 		        "ImageId" : {"Fn::FindInMap" : [ "AMIs" , { "Ref" : "AWS::Region" }, "DNS"] },
 		        "InstanceType" : { "Ref" : "DNSInstanceType" },
 				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetB", "AvailabilityZone"]},
-				"NetworkInterfaces" : [ {
-					"DeviceIndex" : "0",
-					"NetworkInterfaceId" : { "Ref" : "DNSServerBENI" }
-				} ],
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "DNSServerBENI" } }
+				],
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "NsServer"] },
 				"KeyName" : { "Ref" : "Key" },
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" :  { "Fn::Join" : [ "", [
 					{ "Ref" : "AWS::StackName" },
 					{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameB"] },

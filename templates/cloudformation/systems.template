@@ -16,11 +16,13 @@
 	"Mappings" : {
 		"Constants" : {
 			"InstanceProfiles" : {
-				"BinServerInstanceProfile" : "binServer"
+				"SystemsServer" : "systemsServer"
 			}
 		},
 		"AMIs" : {
-			"eu-west-1" : { "Systems" : "ami-a6207bd1" }
+			"eu-west-1" : {
+				"Systems" : "ami-d9356fae"
+			}
 		}
 	},
 
@@ -53,14 +55,13 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Systems"] },
 		        "InstanceType" :  "t2.medium",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : "systemsServer",
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SystemsServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
 				"NetworkInterfaces" : [
 					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SystemsServerENI" } }
 				],
-				"EbsOptimized" : false,
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "systems1",

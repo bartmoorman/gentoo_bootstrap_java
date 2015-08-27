@@ -22,11 +22,13 @@
 	"Mappings" : {
 		"Constants" : {
 			"InstanceProfiles" : {
-				"PubServerInstanceProfile" : "pubServer"
+				"PubServer" : "pubServer"
 			}
 		},
 		"AMIs" : {
-			"eu-west-1" : { "Pub" : "ami-a6207bd1" }
+			"eu-west-1" : {
+				"Pub" : "ami-d9356fae"
+			}
 		}
 	},
 
@@ -85,16 +87,19 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Pub"] },
 		        "InstanceType" :  "c3.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "PubServerInstanceProfile"] },
+				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "PubServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"NetworkInterfaces" : [ { "DeviceIndex" : "0", "NetworkInterfaceId" : { "Ref" : "PubServerAENI" }} ],
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "PubServerAENI" } }
+				],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "pub1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -134,16 +139,19 @@
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Pub"] },
 		        "InstanceType" :  "c3.4xlarge",
 				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "PubServerInstanceProfile"] },
+				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "PubServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"NetworkInterfaces" : [ { "DeviceIndex" : "0", "NetworkInterfaceId" : { "Ref" : "PubServerBENI" }} ],
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "PubServerBENI" } }
+				],
+				"EbsOptimized" : true,
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} } ],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "pub2",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
