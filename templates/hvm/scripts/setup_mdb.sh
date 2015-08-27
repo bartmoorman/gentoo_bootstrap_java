@@ -244,7 +244,7 @@ EOF
 	mongo <<EOF
 use admin
 db.createUser({"user":"bmoorman","pwd":"${bmoorman_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
-sleep(1500)
+sleep(1000)
 EOF
 
 	for peer in "${peers[@]}"; do
@@ -252,11 +252,12 @@ EOF
 use admin
 db.auth("bmoorman","${bmoorman_mongo_pwd}")
 rs.add("${peer%:*}")
-sleep(1500)
+sleep(1000)
 EOF
 	done
 
 	mongo <<EOF
+sleep(55500)
 use admin
 db.auth("bmoorman","${bmoorman_mongo_pwd}")
 db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
