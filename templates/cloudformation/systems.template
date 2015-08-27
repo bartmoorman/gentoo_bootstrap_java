@@ -1,6 +1,5 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-
 	"Description" : "Version 1.0\nCreates the systems stack",
 
 	"Parameters" : {
@@ -13,13 +12,13 @@
 			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
 		}
 	},
+
 	"Mappings" : {
 		"Constants" : {
 			"InstanceProfiles" : {
 				"BinServerInstanceProfile" : "binServer"
 			}
 		},
-
 		"AMIs" : {
 			"eu-west-1" : { "Systems" : "ami-a6207bd1" }
 		}
@@ -33,7 +32,6 @@
 				"StackName": { "Ref": "TargetEnvironment" }
 			}
 		},
-
 		"SystemsServerENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
@@ -49,7 +47,6 @@
 				] ]}
 		    }
 		},
-
 		"SystemsServer" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -77,13 +74,9 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							 { "Ref" : "AWS::StackName" },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Ref" : "AWS::StackName" }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SystemsServer --exit-code=$?\n"
 				] ] } }
 		    }

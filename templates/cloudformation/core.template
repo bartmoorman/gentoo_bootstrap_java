@@ -1,6 +1,5 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-
 	"Description" : "Version 1.0\nCreates the core services stack",
 
 	"Parameters" : {
@@ -14,12 +13,17 @@
 			"Description" : "Allocation ID of the elastic IP address for the Monitor server."
 		},
 		"TerminationProtection" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
+			"Type" : "String",
+			"AllowedValues" : [ "true", "false" ],
+			"Default" : "false"
 		},
 		"DataVolumeEncryption" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "true"
+			"Type" : "String",
+			"AllowedValues" : [ "true", "false" ],
+			"Default" : "true"
 		}
 	},
+
 	"Mappings" : {
 		"Constants" : {
 			"InstanceProfiles" : {
@@ -28,14 +32,16 @@
 				"DeployServer" : "deployServer"
 			}
 		},
-
 		"AMIs" : {
-			"eu-west-1" : { "Stats" : "ami-a6207bd1", "Monitor" : "ami-a6207bd1", "Deploy" : "ami-a6207bd1" }
+			"eu-west-1" : {
+				"Stats" : "ami-a6207bd1",
+				"Monitor" : "ami-a6207bd1",
+				"Deploy" : "ami-a6207bd1"
+			}
 		}
 	},
 
 	"Resources" : {
-
 		"Environment" : {
 			"Type" : "AWS::CloudFormation::CustomResource",
 			"Properties": {
@@ -43,11 +49,10 @@
 				"StackName": { "Ref": "TargetEnvironment" }
 			}
 		},
-
 		"MonitorSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
-				"VpcId" :  {"Fn::GetAtt" : [ "Environment", "VPC" ] },
+				"VpcId" : { "Fn::GetAtt" : [ "Environment", "VPC" ] },
 				"GroupDescription" : "Internet traffic permitted to the Monitor server",
 				"SecurityGroupIngress" : [
 					{ "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0" },
@@ -56,64 +61,6 @@
 				"SecurityGroupEgress" : []
 			}
 		},
-
-		"StatsServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Stats"] },
-		        "InstanceType" :  "m4.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "StatsServer"] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "StatsServerAENI" } }
-				],
-				"Volumes" : [
-					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "StatsServerAVolume1" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "stats1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_stats.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -i 1 -o 1",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"backup",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=StatsServerA --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-
-		"StatsServerAVolume1" : {
-		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
-		    "Properties" : {
-		        "AvailabilityZone" :  {"Fn::GetAtt" : [ "Environment", "AZA"] },
-				"Size" : "3600", "VolumeType" : "gp2",
-				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "stats1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-						 " - xvdf"
-					] ]}
-				} ]
-		    }
-		},
-
 		"StatsServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
@@ -129,7 +76,87 @@
 				] ]}
 		    }
 		},
-
+		"StatsServerAVolume1" : {
+		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
+		    "Properties" : {
+		        "AvailabilityZone" :  {"Fn::GetAtt" : [ "Environment", "AZA"] },
+				"Size" : "3600", "VolumeType" : "gp2",
+				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
+				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
+						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 "stats1",
+						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						 " - xvdf"
+					] ]}
+				} ]
+		    }
+		},
+		"StatsServerA" : {
+		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M" } },
+		    "Properties" : {
+		        "ImageId" : { "Fn::FindInMap" : [ "AMIs", { "Ref" : "AWS::Region" }, "Stats" ] },
+		        "InstanceType" : "m4.2xlarge",
+				"KeyName" : { "Fn::GetAtt" : [ "Environment", "Key" ] },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "StatsServer" ] },
+				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
+				"Monitoring" : true,
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "StatsServerAENI" } }
+				],
+				"Volumes" : [
+					{ "Device" : "xvdf", "VolumeId" : { "Ref" : "StatsServerAVolume1" } }
+				],
+				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						 "stats1",
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+					] ]}
+				} ],
+				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+					"#!/bin/bash\n",
+					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+					"filename=\"setup_stats.sh\"\n",
+					"setup_file=\"$(mktemp)\"\n",
+					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+					"bash \"${setup_file}\"",
+						" -i 1 -o 1",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
+					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=StatsServerA --exit-code=$?\n"
+				] ] } }
+		    }
+		},
+		"StatsServerBENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetB"] },
+				"GroupSet" : [
+					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+					"stats2",
+					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+				] ]}
+		    }
+		},
+		"StatsServerBVolume1" : {
+		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
+		    "Properties" : {
+		        "AvailabilityZone" :  {"Fn::GetAtt" : [ "Environment", "AZB"] },
+				"Size" : "3600", "VolumeType" : "gp2",
+				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
+				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
+						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 "stats2",
+						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						 " - xvdf"
+					] ]}
+				} ]
+		    }
+		},
 		"StatsServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -159,52 +186,40 @@
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
 						" -i 1 -o 1",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"backup",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=StatsServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"StatsServerBVolume1" : {
-		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
-		    "Properties" : {
-		        "AvailabilityZone" :  {"Fn::GetAtt" : [ "Environment", "AZB"] },
-				"Size" : "3600", "VolumeType" : "gp2",
-				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "stats2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-						 " - xvdf"
-					] ]}
-				} ]
-		    }
-		},
-
-		"StatsServerBENI" : {
+		"MonitorServerENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetB"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "PublicSubnetA"] },
 				"GroupSet" : [
 					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
+					{ "Ref" : "MonitorSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"stats2",
+					"monitor1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
+		"MonitorServerEIPAssociation" : {
+		    "Type" : "AWS::EC2::EIPAssociation",
+		    "Properties" : {
+				"AllocationId" :  { "Ref" : "MonitorServerExistingEIP" },
+				"NetworkInterfaceId" : { "Ref" : "MonitorServerENI" }
+		    }
+		},
 		"MonitorServer" : {
-		    "Type" : "AWS::EC2::Instance", "DependsOn" : "MonitorServerEIPAssociation", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"DependsOn" : "MonitorServerEIPAssociation",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Monitor"] },
 		        "InstanceType" :  "c3.4xlarge",
@@ -230,43 +245,28 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=MonitorServer --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"MonitorServerENI" : {
+		"DeployServerENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "PublicSubnetA"] },
+				"SubnetId" : { "Fn::GetAtt" : [ "Environment", "AppSubnetA" ] },
 				"GroupSet" : [
-					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
-					{ "Ref" : "MonitorSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+					{ "Fn::GetAtt" : [ "Environment", "CoreSG" ] },
+					{ "Fn::GetAtt" : [ "Environment", "RemoteAccessSG" ] }
 				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"monitor1",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
+				"Description" : { "Fn::Join" : [ "", [
+					{ "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+					"deploy1",
+					{ "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+				] ] }
 		    }
-		},
-
-		"MonitorServerEIPAssociation" : {
-		    "Type" : "AWS::EC2::EIPAssociation",
-		    "Properties" : {
-				"AllocationId" :  { "Ref" : "MonitorServerExistingEIP" },
-				"NetworkInterfaceId" : { "Ref" : "MonitorServerENI" }
-		    }
-		},
-
+		}
 		"DeployServer" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -293,41 +293,20 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DeployServer --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"DeployServerENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
-				"GroupSet" : [
-					{"Fn::GetAtt" : [ "Environment", "CoreSG"] },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"deploy1",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		}
-
 	},
 
 	"Outputs" : {
-		"StatsServersPrimaryIPAddresses" : { "Value" :  {"Fn::Join" : [ ",", [
-			{"Fn::GetAtt" : [ "StatsServerAENI", "PrimaryPrivateIpAddress"]},
-			{"Fn::GetAtt" : [ "StatsServerBENI", "PrimaryPrivateIpAddress"]}
-		] ]} },
-		"MonitorServerPrimaryIPAddress" : { "Value" : {"Fn::GetAtt" : [ "MonitorServerENI", "PrimaryPrivateIpAddress"]}}
+		"StatsServersPrimaryIPAddresses" : { "Value" : { "Fn::Join" : [ ",", [
+			{ "Fn::GetAtt" : [ "StatsServerAENI", "PrimaryPrivateIpAddress" ] },
+			{ "Fn::GetAtt" : [ "StatsServerBENI", "PrimaryPrivateIpAddress" ] }
+		] ] } },
+		"MonitorServerPrimaryIPAddress" : { "Value" : { "Fn::GetAtt" : [ "MonitorServerENI", "PrimaryPrivateIpAddress" ] } }
 	}
 }

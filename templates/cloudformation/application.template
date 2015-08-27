@@ -1,6 +1,5 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-
 	"Description" : "Version 1.0\nCreates the application services stack",
 
 	"Parameters" : {
@@ -19,6 +18,7 @@
 			"Default" : "InsideSales"
 		}
 	},
+
 	"Mappings" : {
 		"Constants" : {
 			"InstanceProfiles" : {
@@ -28,14 +28,17 @@
 				"SocketServer" : "socketServer"
 			}
 		},
-
 		"AMIs" : {
-			"eu-west-1" : { "Jp" : "ami-a6207bd1", "Web" : "ami-a6207bd1", "Worker" : "ami-a6207bd1", "Socket" : "ami-a6207bd1" }
+			"eu-west-1" : {
+				"Jp" : "ami-a6207bd1",
+				"Web" : "ami-a6207bd1",
+				"Worker" : "ami-a6207bd1",
+				"Socket" : "ami-a6207bd1"
+			}
 		}
 	},
 
 	"Resources" : {
-
 		"Environment" : {
 			"Type" : "AWS::CloudFormation::CustomResource",
 			"Properties": {
@@ -43,7 +46,6 @@
 				"StackName": { "Ref": "TargetEnvironment" }
 			}
 		},
-
 		"ApplicationSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
@@ -57,7 +59,6 @@
 				]
 			}
 		},
-
 		"WebIncomingSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
@@ -70,7 +71,6 @@
 				"SecurityGroupEgress" : []
 			}
 		},
-
 		"SocketIncomingSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
@@ -83,7 +83,21 @@
 				"SecurityGroupEgress" : []
 			}
 		},
-
+		"JpServerAENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"GroupSet" : [
+					{ "Ref" : "ApplicationSG" },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+					"jp1",
+					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+				] ]}
+		    }
+		},
 		"JpServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -109,36 +123,31 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ {"Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=JpServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"JpServerAENI" : {
+		"JpServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
 				"GroupSet" : [
 					{ "Ref" : "ApplicationSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"jp1",
+					"jp2",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"JpServerB" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Jp"] },
 		        "InstanceType" :  "c4.4xlarge",
@@ -162,36 +171,31 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=JpServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"JpServerBENI" : {
+		"WebServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
 				"GroupSet" : [
 					{ "Ref" : "ApplicationSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"jp2",
+					"web1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"WebServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
 		        "InstanceType" :  "c4.4xlarge",
@@ -199,10 +203,8 @@
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
-				"SecurityGroupIds" : [
-					{ "Ref" : "ApplicationSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WebServerAENI" } }
 				],
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
@@ -218,18 +220,28 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WebServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
+		"WebServerBENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : { "Fn::GetAtt" : [ "Environment", "WebSubnetB" ] },
+				"GroupSet" : [
+					{ "Ref" : "ApplicationSG" },
+					{ "Fn::GetAtt" : [ "Environment", "RemoteAccessSG" ] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+					{ "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+					"web2",
+					{ "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+				] ]}
+		    }
+		},
 		"WebServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -239,17 +251,15 @@
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetB"] },
-				"SecurityGroupIds" : [
-					{ "Ref" : "ApplicationSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WebServerBENI" } }
 				],
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+						 { "Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
 						 "web2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+						 { "Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -258,18 +268,28 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WebServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
+		"WebServerCENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetC"] },
+				"GroupSet" : [
+					{ "Ref" : "ApplicationSG" },
+					{ "Fn::GetAtt" : [ "Environment", "RemoteAccessSG" ] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+					{ "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+					"web3",
+					{ "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+				] ]}
+		    }
+		},
 		"WebServerC" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -279,10 +299,8 @@
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetC"] },
-				"SecurityGroupIds" : [
-					{ "Ref" : "ApplicationSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WebServerCENI" } }
 				],
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
@@ -298,18 +316,28 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WebServerC --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
+		"WebServerDENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
+				"GroupSet" : [
+					{ "Ref" : "ApplicationSG" },
+					{ "Fn::GetAtt" : [ "Environment", "RemoteAccessSG" ] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+					{ "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+					"web4",
+					{ "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }
+				] ]}
+		    }
+		},
 		"WebServerD" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -319,10 +347,8 @@
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
-				"SecurityGroupIds" : [
-					{ "Ref" : "ApplicationSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "WebServerDENI" } }
 				],
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
@@ -338,18 +364,13 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WebServerD --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
 		"WebELB" : {
 		    "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
 		    "Properties" : {
@@ -386,7 +407,21 @@
 				"Instances" : [ { "Ref" : "WebServerA" }, { "Ref" : "WebServerB" }, { "Ref" : "WebServerC" }, { "Ref" : "WebServerD" } ]
 		    }
 		},
-
+		"WorkerServerAENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"GroupSet" : [
+					{ "Ref" : "ApplicationSG" },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+					"worker1",
+					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+				] ]}
+		    }
+		},
 		"WorkerServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -414,34 +449,28 @@
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
 						" -i 1 -o 1",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WorkerServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"WorkerServerAENI" : {
+		"WorkerServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
 				"GroupSet" : [
 					{ "Ref" : "ApplicationSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"worker1",
+					"worker2",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"WorkerServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -469,34 +498,28 @@
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
 						" -i 1 -o 1",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=WorkerServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"WorkerServerBENI" : {
+		"SocketServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
 				"GroupSet" : [
 					{ "Ref" : "ApplicationSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"worker2",
+					"socket1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"SocketServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -506,10 +529,8 @@
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
-				"SecurityGroupIds" : [
-					{ "Ref" : "ApplicationSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SocketServerAENI" } }
 				],
 				"EbsOptimized" : false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
@@ -525,18 +546,28 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SocketServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
+		"SocketServerBENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetB"] },
+				"GroupSet" : [
+					{ "Ref" : "ApplicationSG" },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+					"socket2",
+					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+				] ]}
+		    }
+		},
 		"SocketServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -546,10 +577,8 @@
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetB"] },
-				"SecurityGroupIds" : [
-					{ "Ref" : "ApplicationSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				"NetworkInterfaces" : [
+					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SocketServerBENI" } }
 				],
 				"EbsOptimized" : false,
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
@@ -565,26 +594,21 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SocketServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
 		"SocketELB" : {
 		    "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
 		    "Properties" : {
 				"LoadBalancerName" : "Socket",
 				"Subnets" : [
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetA"] },
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetB"] },
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetC"] }
+					{ "Fn::GetAtt" : [ "Environment", "PublicSubnetA" ] },
+					{ "Fn::GetAtt" : [ "Environment", "PublicSubnetB" ] },
+					{ "Fn::GetAtt" : [ "Environment", "PublicSubnetC" ] }
 				],
 				"ConnectionDrainingPolicy" : { "Enabled" :  true, "Timeout" : 300 },
 				"CrossZone" :  true,
@@ -604,7 +628,9 @@
 					{
 						"Protocol" : "HTTPS", "LoadBalancerPort" : "443",
 						"SSLCertificateId" :  { "Fn::Join" : [ "", [
-							"arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":server-certificate/",
+							"arn:aws:iam::",
+							{ "Ref" : "AWS::AccountId" },
+							":server-certificate/",
 							{ "Ref" : "Certificate" }
 						] ]},
 						"InstanceProtocol" : "HTTP", "InstancePort" : "8443"
@@ -625,9 +651,7 @@
 			{"Fn::GetAtt" : [ "WorkerServerAENI", "PrimaryPrivateIpAddress"]},
 			{"Fn::GetAtt" : [ "WorkerServerBENI", "PrimaryPrivateIpAddress"]}
 		] ]} },
-
 		"WebELBName" : { "Value" : {"Fn::GetAtt" : [ "WebELB", "DNSName"]} },
-
 		"SocketELBName" : { "Value" : {"Fn::GetAtt" : [ "SocketELB", "DNSName"]} }
 	}
 }

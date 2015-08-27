@@ -1,6 +1,5 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-
 	"Description" : "Version 1.0\nCreates the dialer services stack",
 
 	"Parameters" : {
@@ -23,9 +22,13 @@
 				"InboundServer" : "inboundServer"
 			}
 		},
-
 		"AMIs" : {
-			"eu-west-1" : { "Sip" : "ami-a6207bd1", "Eh" : "ami-a6207bd1", "Mq" : "ami-a6207bd1", "Inbound" : "ami-a6207bd1" }
+			"eu-west-1" : {
+				"Sip" : "ami-a6207bd1",
+				"Eh" : "ami-a6207bd1",
+				"Mq" : "ami-a6207bd1",
+				"Inbound" : "ami-a6207bd1"
+			}
 		}
 	},
 
@@ -37,7 +40,6 @@
 				"StackName": { "Ref": "TargetEnvironment" }
 			}
 		},
-
 		"DialerSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
@@ -51,7 +53,6 @@
 				]
 			}
 		},
-
 		"InboundIncomingSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
@@ -63,7 +64,21 @@
 				"SecurityGroupEgress" : []
 			}
 		},
-
+		"SipServerAENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"GroupSet" : [
+					{ "Ref" : "DialerSG" },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
+					"sip1",
+					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+				] ]}
+		    }
+		},
 		"SipServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -89,46 +104,30 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "sip2",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "SipServerBENI", "PrimaryPrivateIpAddress"]},
-						",", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "sip3",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "SipServerCENI", "PrimaryPrivateIpAddress"]},
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerBENI", "PrimaryPrivateIpAddress" ] }, ",",
+								{ "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip3", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerCENI", "PrimaryPrivateIpAddress" ] },
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SipServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"SipServerAENI" : {
+		"SipServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
 				"GroupSet" : [
 					{ "Ref" : "DialerSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"sip1",
+					"sip2",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"SipServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -154,46 +153,30 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "sip1",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "SipServerAENI", "PrimaryPrivateIpAddress"]},
-						",", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "sip3",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "SipServerCENI", "PrimaryPrivateIpAddress"]},
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerAENI", "PrimaryPrivateIpAddress" ] }, ",",
+								{ "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip3", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerCENI", "PrimaryPrivateIpAddress" ] },
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SipServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"SipServerBENI" : {
+		"SipServerCENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetC"] },
 				"GroupSet" : [
 					{ "Ref" : "DialerSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"sip2",
+					"sip3",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"SipServerC" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -219,46 +202,30 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "sip1",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "SipServerAENI", "PrimaryPrivateIpAddress"]},
-						",", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "sip2",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "SipServerBENI", "PrimaryPrivateIpAddress"]},
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerAENI", "PrimaryPrivateIpAddress" ] }, ",",
+								{ "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerBENI", "PrimaryPrivateIpAddress" ] },
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SipServerC --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"SipServerCENI" : {
+		"EhServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetC"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
 				"GroupSet" : [
 					{ "Ref" : "DialerSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"sip3",
+					"eh1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"EhServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -285,35 +252,29 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=EhServerA --exit-code=$?\n"
 				] ] } }
 
 		    }
 		},
-
-		"EhServerAENI" : {
+		"EhServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
 				"GroupSet" : [
 					{ "Ref" : "DialerSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"eh1",
+					"eh2",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"EhServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -340,35 +301,29 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=EhServerB --exit-code=$?\n"
 				] ] } }
 
 		    }
 		},
-
-		"EhServerBENI" : {
+		"MqServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
 				"GroupSet" : [
 					{ "Ref" : "DialerSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"eh2",
+					"mq1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"MqServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -395,40 +350,29 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "mq2",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "MqServerBENI", "PrimaryPrivateIpAddress"]},
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "mq2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "MqServerBENI", "PrimaryPrivateIpAddress" ] },
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=MqServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"MqServerAENI" : {
+		"MqServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
 				"GroupSet" : [
 					{ "Ref" : "DialerSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"mq1",
+					"mq2",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"MqServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -455,40 +399,29 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "mq1",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "MqServerAENI", "PrimaryPrivateIpAddress"]},
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "mq1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "MqServerAENI", "PrimaryPrivateIpAddress" ] },
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=MqServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"MqServerBENI" : {
+		"InboundServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
 				"GroupSet" : [
 					{ "Ref" : "DialerSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"mq2",
+					"inbound1",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"InboundServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -515,41 +448,30 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -m ", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "inbound2",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "InboundServerBENI", "PrimaryPrivateIpAddress"]},
+						" -m ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "inbound2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "InboundServerBENI", "PrimaryPrivateIpAddress" ] },
 						" -i 1 -o 1",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=InboundServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"InboundServerAENI" : {
+		"InboundServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetB"] },
 				"GroupSet" : [
 					{ "Ref" : "DialerSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
 					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"inbound1",
+					"inbound2",
 					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
 				] ]}
 		    }
 		},
-
 		"InboundServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -576,41 +498,15 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -m ", { "Fn::Join" : [ "", [
-									 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									 "inbound1",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "InboundServerAENI", "PrimaryPrivateIpAddress"]},
+						" -m ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "inbound1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "InboundServerAENI", "PrimaryPrivateIpAddress" ] },
 						" -i 2 -o 2",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"files",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=InboundServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"InboundServerBENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetB"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"inbound2",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-
 		"InboundELB" : {
 		    "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
 		    "Properties" : {
@@ -651,17 +547,14 @@
 			{"Fn::GetAtt" : [ "SipServerBENI", "PrimaryPrivateIpAddress"]},
 			{"Fn::GetAtt" : [ "SipServerCENI", "PrimaryPrivateIpAddress"]}
 		] ]} },
-
 		"EhServersPrimaryIPAddresses" : { "Value" :  {"Fn::Join" : [ ",", [
 			{"Fn::GetAtt" : [ "EhServerAENI", "PrimaryPrivateIpAddress"]},
 			{"Fn::GetAtt" : [ "EhServerBENI", "PrimaryPrivateIpAddress"]}
 		] ]} },
-
 		"MqServersPrimaryIPAddresses" : { "Value" :  {"Fn::Join" : [ ",", [
 			{"Fn::GetAtt" : [ "MqServerAENI", "PrimaryPrivateIpAddress"]},
 			{"Fn::GetAtt" : [ "MqServerBENI", "PrimaryPrivateIpAddress"]}
 		] ]} },
-
 		"InboundELBName" : { "Value" : {"Fn::GetAtt" : [ "InboundELB", "DNSName"]} }
 	}
 }

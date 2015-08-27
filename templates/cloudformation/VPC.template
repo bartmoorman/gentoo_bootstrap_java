@@ -1,63 +1,68 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-
 	"Description" : "Version: 2.0\nCreates the network infrastructure: VPC with subnets, route tables, gateways, and ACLs. Requires three Availability Zones.",
 
 	"Parameters" : {
 		"CIDR2ndOctet": {
 			"Type" : "Number",
-			"MinValue" : 11, "MaxValue" : 250,
+			"MinValue" : 11,
+			"MaxValue" : 250,
 			"Description" : "The VPC CIDR is 10.X.0.0/16",
 			"ConstraintDescription": "must be a value between 11 and 250. 0-10 and 251-255 are reserved."
 		},
-
 		"Environment" : {
-			"Type" : "String", "AllowedValues" : ["Beta", "Alpha", "Production"]
+			"Type" : "String",
+			"AllowedValues" : [ "Beta", "Alpha", "Production" ]
 		},
-
 		"DirectConnectVGW" : {
-			"Type":"String", "Description" : "ID of the Virtual Gateway attached to the DirectConnect interface"
+			"Type":"String",
+			"Description" : "ID of the Virtual Gateway attached to the DirectConnect interface."
 		},
-
 		"NATInstanceType" : {
-			"Type" : "String", "AllowedValues" : ["t2.small", "t2.medium", "t2.large", "m3.medium"]
+			"Type" : "String",
+			"AllowedValues" : [ "t2.small", "t2.medium", "t2.large", "m3.medium" ]
 		},
-
 		"DNSInstanceType" : {
-			"Type" : "String", "AllowedValues" : ["t2.small", "t2.medium", "t2.large", "m3.medium"]
+			"Type" : "String",
+			"AllowedValues" : [ "t2.small", "t2.medium", "t2.large", "m3.medium" ]
 		},
-
 		"DNSServerAExistingEIP" : {
 			"Type" : "String",
 			"Description" : "Allocation ID of the elastic IP address for the primary DNS server."
 		},
-		
 		"DNSServerBExistingEIP" : {
 			"Type" : "String",
 			"Description" : "Allocation ID of the elastic IP address for the secondary DNS server."
 		},
-		
 		"Key" : {
-			"Type" : "AWS::EC2::KeyPair::KeyName", "Default" : "Bart Moorman"
+			"Type" : "AWS::EC2::KeyPair::KeyName",
+			"Default" : "Bart Moorman"
 		},
-
 		"TerminationProtection" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
+			"Type" : "String",
+			"AllowedValues" : [ "true", "false" ],
+			"Default" : "false"
 		}
 	},
 
 	"Mappings" : {
 		"NetworkConfig": {
 			"PublicCIDR" : { "A" : ".16.0", "B" : ".32.0", "C": ".48.0", "Size" : "/20" },
-			"WebCIDR" : { "A" : ".64.0", "B" : ".80.0", "C" : ".96.0","Size" : "/20" },
-			"AppCIDR" : { "A" : ".128.0", "B" : ".144.0", "C" : ".160.0","Size" : "/20" },
+			"WebCIDR" : { "A" : ".64.0", "B" : ".80.0", "C" : ".96.0", "Size" : "/20" },
+			"AppCIDR" : { "A" : ".128.0", "B" : ".144.0", "C" : ".160.0", "Size" : "/20" },
 			"DbCIDR" : { "A" : ".198.0", "B" : ".208.0", "C" : ".224.0", "Size" : "/20" },
 			"InternalDNS" : { "A" : ".16.10", "B" : ".32.10", "NameA" : "ns1", "NameB" : "ns2", "Domain" : "salesteamautomation.com" },
 			"Onpremise" : { "RemoteAccessFrom" : "10.0.0.0/8" }
 		},
+		"Constants" : {
+			"InstanceProfiles" : {
+				"NsServer" : "nsServer"
+			}
+		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"NAT" : "ami-ef76e898", "DNS" : "ami-a6207bd1"
+				"NAT" : "ami-ef76e898",
+				"DNS" : "ami-a6207bd1"
 			}
 		},
 		"Naming" : {
@@ -73,32 +78,40 @@
             "Properties" : {
                 "EnableDnsSupport" : "false",
                 "EnableDnsHostnames" : "false",
-                "CidrBlock" : { "Fn::Join" : [ "", [ "10.", { "Ref":"CIDR2ndOctet" }, ".0.0/16" ] ] }
+                "CidrBlock" : { "Fn::Join" : [ "", [
+					"10.", 
+					{ "Ref":"CIDR2ndOctet" }, 
+					".0.0/16"
+				] ] }
             }
         },
 
 		"DHCPOptionSet" : {
 		    "Type" : "AWS::EC2::DHCPOptions",
 		    "Properties" : {
-		        "DomainName" : {"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "Domain"] },
+		        "DomainName" : { "Fn::FindInMap" : [ "NetworkConfig", "InternalDNS", "Domain" ] },
 		        "DomainNameServers" : [
 					{ "Fn::Join" : [ "", [
-						"10.", { "Ref":"CIDR2ndOctet" },
-						{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "A"] }
+						"10.",
+						{ "Ref":"CIDR2ndOctet" },
+						{ "Fn::FindInMap" : [ "NetworkConfig", "InternalDNS", "A" ] }
 					] ] },
 					{ "Fn::Join" : [ "", [
-						"10.", { "Ref":"CIDR2ndOctet" },
-						{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "B"] }
+						"10.",
+						{ "Ref":"CIDR2ndOctet" },
+						{ "Fn::FindInMap" : [ "NetworkConfig", "InternalDNS", "B"] }
 					] ] }
 				],
 				"NtpServers" : [
 					{ "Fn::Join" : [ "", [
-						"10.", { "Ref":"CIDR2ndOctet" },
-						{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "A"] }
+						"10.",
+						{ "Ref":"CIDR2ndOctet" },
+						{ "Fn::FindInMap" : [ "NetworkConfig", "InternalDNS", "A" ] }
 					] ] },
 					{ "Fn::Join" : [ "", [
-						"10.", { "Ref":"CIDR2ndOctet" },
-						{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "B"] }
+						"10.",
+						{ "Ref":"CIDR2ndOctet" },
+						{ "Fn::FindInMap" : [ "NetworkConfig", "InternalDNS", "B" ] }
 					] ] }
 				]
 		    }
@@ -108,15 +121,13 @@
 		    "Type" : "AWS::EC2::VPCDHCPOptionsAssociation",
 		    "Properties" : {
 		        "DhcpOptionsId" : { "Ref" : "DHCPOptionSet" },
-		        "VpcId"         : { "Ref" : "VPC" }
+		        "VpcId" : { "Ref" : "VPC" }
 		    }
 		},
-
 		"InternetGateway" : {
 			"Type" : "AWS::EC2::InternetGateway",
 			"Properties" : {}
 		},
-
 		"GatewayToInternet" : {
 			"Type" : "AWS::EC2::VPCGatewayAttachment",
 			"Properties" : {
@@ -124,73 +135,69 @@
 				"InternetGatewayId" : { "Ref" : "InternetGateway" }
 			 }
 		},
-
 		"PublicRouteTable" : {
 			"Type" : "AWS::EC2::RouteTable",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" }
 			}
 		},
-
 		"PublicRoute" : {
 			"Type" : "AWS::EC2::Route",
 			"DependsOn" : "GatewayToInternet",
 			"Properties" : {
 				"RouteTableId" : { "Ref" : "PublicRouteTable" },
 				"DestinationCidrBlock" : "0.0.0.0/0",
-				"GatewayId" :   { "Ref" : "InternetGateway" }
+				"GatewayId" : { "Ref" : "InternetGateway" }
 			}
 		},
-
 		"PrivateRouteTable" : {
 			"Type" : "AWS::EC2::RouteTable",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" }
 			}
 		},
-
 		"PublicSubnetA" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "A"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig", "PublicCIDR", "A" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig", "PublicCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : { "Fn::Select" : [ 0,  { "Fn::GetAZs" : "" } ] },
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Public A ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::Select" : [ 0, { "Fn::GetAZs" : "" } ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Public A ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"PublicSubnetB" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "B"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "B" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "Size" ] }
 				] ] } ,
-				"AvailabilityZone" : { "Fn::Select" : [ 1,  { "Fn::GetAZs" : "" } ] },
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Public B ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::Select" : [ 1, { "Fn::GetAZs" : "" } ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Public B ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"PublicSubnetC" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "C"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "C" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "PublicCIDR", "Size" ] }
 				] ] } ,
-				"AvailabilityZone" : { "Fn::Select" : [ 2,  { "Fn::GetAZs" : "" } ] },
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Public C ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::Select" : [ 2, { "Fn::GetAZs" : "" } ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Public C ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"PublicSubnetARouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -198,7 +205,6 @@
 				"RouteTableId" : { "Ref" : "PublicRouteTable" }
 			}
 		},
-
 		"PublicSubnetBRouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -206,7 +212,6 @@
 				"RouteTableId" : { "Ref" : "PublicRouteTable" }
 			}
 		},
-
 		"PublicSubnetCRouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -214,49 +219,48 @@
 				"RouteTableId" : { "Ref" : "PublicRouteTable" }
 			}
 		},
-
 		"WebSubnetA" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "A"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "A" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Web A ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Web A ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"WebSubnetB" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "B"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "B" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetB", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Web B ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetB", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Web B ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"WebSubnetC" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "C"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "C" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "WebCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetC", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Web C ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetC", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Web C ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"WebSubnetARouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -264,7 +268,6 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"WebSubnetBRouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -272,7 +275,6 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"WebSubnetCRouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -280,49 +282,48 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"AppSubnetA" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "A"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "A" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "App A ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "App A ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"AppSubnetB" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "B"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "B" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetB", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "App B ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetB", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "App B ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"AppSubnetC" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "C"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "C" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "AppCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetC", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "App C ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetC", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "App C ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"AppSubnetARouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -330,7 +331,6 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"AppSubnetBRouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -338,7 +338,6 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"AppSubnetCRouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -346,49 +345,48 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"DbSubnetA" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "A"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "A" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Db A ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Db A ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"DbSubnetB" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "B"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "B" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetB", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Db B ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetB", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Db B ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"DbSubnetC" : {
 			"Type" : "AWS::EC2::Subnet",
 			"Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"CidrBlock" : { "Fn::Join" : [ "", [
-					"10.", { "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "C"] },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "Size"] }
+					"10.",
+					{ "Ref":"CIDR2ndOctet" },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "C" ] },
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "DbCIDR", "Size" ] }
 				] ] },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetC", "AvailabilityZone"]},
-				"Tags" : [ {  "Key" : "Name", "Value" : {"Fn::Join" : [ "", [ "Db C ", { "Ref" : "AWS::StackName" },"-", { "Ref" : "AWS::Region" } ] ] } } ]
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetC", "AvailabilityZone" ] },
+				"Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "Db C ", { "Ref" : "AWS::StackName" }, "-", { "Ref" : "AWS::Region" } ] ] } } ]
 			}
 		},
-
 		"DbSubnetARouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -396,7 +394,6 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"DbSubnetBRouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -404,7 +401,6 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"DbSubnetCRouteTableAssociation" : {
 			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties" : {
@@ -412,15 +408,13 @@
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
 		},
-
 		"GatewayToOnpremise" : {
 		    "Type" : "AWS::EC2::VPCGatewayAttachment",
 		    "Properties" : {
-		        "VpcId"             : { "Ref" : "VPC" },
-		        "VpnGatewayId"      : { "Ref" : "DirectConnectVGW" }
+		        "VpcId" : { "Ref" : "VPC" },
+		        "VpnGatewayId" : { "Ref" : "DirectConnectVGW" }
 		    }
 		},
-
 		"OnpremiseGatewayRoutePropagation" : {
 		    "Type" : "AWS::EC2::VPNGatewayRoutePropagation",
 			"DependsOn" : "GatewayToOnpremise",
@@ -432,29 +426,27 @@
 				]
 		    }
 		},
-
 		"RemoteAccessSG" : {
 		    "Type" : "AWS::EC2::SecurityGroup",
 		    "Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"GroupDescription" : "Remote Access",
 				"SecurityGroupIngress" : [
-					{ "IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : {"Fn::FindInMap" : [ "NetworkConfig" , "Onpremise", "RemoteAccessFrom"] } },
-					{ "IpProtocol" : "tcp", "FromPort" : "3389", "ToPort" : "3389", "CidrIp" : {"Fn::FindInMap" : [ "NetworkConfig" , "Onpremise", "RemoteAccessFrom"] } }
+					{ "IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Fn::FindInMap" : [ "NetworkConfig" , "Onpremise", "RemoteAccessFrom" ] } },
+					{ "IpProtocol" : "tcp", "FromPort" : "3389", "ToPort" : "3389", "CidrIp" : { "Fn::FindInMap" : [ "NetworkConfig" , "Onpremise", "RemoteAccessFrom" ] } }
 				]
 
 		    }
 		},
-
 		"NATSG" : {
 		    "Type" : "AWS::EC2::SecurityGroup",
 		    "Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"GroupDescription" : "NAT Security Group",
 				"SecurityGroupIngress" : [
-					{ "IpProtocol" : "tcp", "FromPort" : "0", "ToPort" : "65535", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" },".0.0/16" ] ] } },
-					{ "IpProtocol" : "udp", "FromPort" : "0", "ToPort" : "65535", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" },".0.0/16" ] ] } },
-					{ "IpProtocol" : "icmp", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" },".0.0/16" ] ] } }
+					{ "IpProtocol" : "tcp", "FromPort" : "0", "ToPort" : "65535", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" }, ".0.0/16" ] ] } },
+					{ "IpProtocol" : "udp", "FromPort" : "0", "ToPort" : "65535", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" }, ".0.0/16" ] ] } },
+					{ "IpProtocol" : "icmp", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" }, ".0.0/16" ] ] } }
 				],
 				"SecurityGroupEgress" : [
 					{ "IpProtocol" : "tcp", "FromPort" : "0", "ToPort" : "65535", "CidrIp" : "0.0.0.0/0" },
@@ -463,13 +455,12 @@
 				]
 		    }
 		},
-
 		"NATIinstance" : {
 		    "Type" : "AWS::EC2::Instance",
 		    "Properties" : {
-		        "ImageId" : {"Fn::FindInMap" : [ "AMIs" , { "Ref" : "AWS::Region" }, "NAT"] },
+		        "ImageId" : { "Fn::FindInMap" : [ "AMIs", { "Ref" : "AWS::Region" }, "NAT" ] },
 		        "InstanceType" : { "Ref" : "NATInstanceType" },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone"]},
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone" ]},
 				"NetworkInterfaces" : [ {
 					"DeviceIndex" : "0",
 					"DeleteOnTermination" : true,
@@ -477,29 +468,27 @@
 					"AssociatePublicIpAddress" : true,
 					"GroupSet" : [ { "Ref" : "NATSG" } ]
 				} ],
-				"SourceDestCheck" :  false,
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
+				"SourceDestCheck" : false,
+				"DisableApiTermination" : { "Ref" : "TerminationProtection" },
 				"KeyName" : { "Ref" : "Key" },
 				"Tags" : [ { "Key" : "Name", "Value" : "NAT Instance" } ]
 		    }
 		},
-
 		"NATInternetRoute" : {
 		    "Type" : "AWS::EC2::Route",
 		    "Properties" : {
 		        "DestinationCidrBlock" : "0.0.0.0/0",
-		        "RouteTableId"         : { "Ref" : "PrivateRouteTable" },
+		        "RouteTableId" : { "Ref" : "PrivateRouteTable" },
 				"InstanceId" : { "Ref" : "NATIinstance" }
 		    }
 		},
-
 		"DNSSG" : {
 		    "Type" : "AWS::EC2::SecurityGroup",
 		    "Properties" : {
 				"VpcId" : { "Ref" : "VPC" },
 				"GroupDescription" : "DNS Security Group",
 				"SecurityGroupIngress" : [
-					{ "IpProtocol" : "-1", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" },".0.0/16" ] ] } },
+					{ "IpProtocol" : "-1", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" }, ".0.0/16" ] ] } },
 					{ "IpProtocol" : "tcp", "FromPort" : "53", "ToPort" : "53", "CidrIp" : "0.0.0.0/0" }
 				],
 				"SecurityGroupEgress" : [
@@ -507,7 +496,6 @@
 				]
 		    }
 		},
-
 		"DNSServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
@@ -515,17 +503,16 @@
 				"PrivateIpAddress" : {"Fn::Join" : [ "", [
 					"10.",
 					{ "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "A"] }
-				] ]},
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "A" ] }
+				] ] },
 				"GroupSet" : [ { "Ref" : "DNSSG" }, { "Ref" : "RemoteAccessSG" } ],
 				"Description" : { "Fn::Join" : [ "", [
 					{ "Ref" : "AWS::StackName" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameA"] },
-					{"Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix"]
-				} ] ]}
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameA" ] },
+					{ "Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix" ]
+				} ] ] }
 		    }
 		},
-
 		"DNSServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
@@ -533,17 +520,16 @@
 				"PrivateIpAddress" : {"Fn::Join" : [ "", [
 					"10.",
 					{ "Ref":"CIDR2ndOctet" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "B"] }
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "B" ] }
 				] ]},
 				"GroupSet" : [ { "Ref" : "DNSSG" }, { "Ref" : "RemoteAccessSG" } ],
 				"Description" : { "Fn::Join" : [ "", [
 					{ "Ref" : "AWS::StackName" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameB"] },
-					{"Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix"]
-				} ] ]}
+					{ "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameB" ] },
+					{ "Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix" ]
+				} ] ] }
 		    }
 		},
-
 		"DNSServerAEIPAssociation" : {
 		    "Type" : "AWS::EC2::EIPAssociation",
 		    "Properties" : {
@@ -551,7 +537,6 @@
 				"NetworkInterfaceId" : { "Ref" : "DNSServerAENI" }
 		    }
 		},
-
 		"DNSServerBEIPAssociation" : {
 		    "Type" : "AWS::EC2::EIPAssociation",
 		    "Properties" : {
@@ -559,27 +544,27 @@
 				"NetworkInterfaceId" : { "Ref" : "DNSServerBENI" }
 		    }
 		},
-
 		"DNSServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M" } },
 			"DependsOn" : "DNSServerAEIPAssociation",
 		    "Properties" : {
-		        "ImageId" : {"Fn::FindInMap" : [ "AMIs" , { "Ref" : "AWS::Region" }, "DNS"] },
+		        "ImageId" : { "Fn::FindInMap" : [ "AMIs" , { "Ref" : "AWS::Region" }, "DNS" ] },
 		        "InstanceType" : { "Ref" : "DNSInstanceType" },
-				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone"]},
+				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone" ] },
 				"NetworkInterfaces" : [ {
 					"DeviceIndex" : "0",
 					"NetworkInterfaceId" : { "Ref" : "DNSServerAENI" }
 				} ],
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"IamInstanceProfile" : "nsServer",
+				"DisableApiTermination" : { "Ref" : "TerminationProtection" },
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "NsServer"] },
 				"KeyName" : { "Ref" : "Key" },
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
+				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} } ],
 				"Tags" : [ { "Key" : "Name", "Value" :  { "Fn::Join" : [ "", [
 					{ "Ref" : "AWS::StackName" },
-					{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameA"] },
-					{"Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix"]
-				} ] ]} } ],
+					{ "Fn::FindInMap" : [ "NetworkConfig", "InternalDNS", "NameA"] },
+					{ "Fn::FindInMap" : [ "Naming", { "Ref" : "Environment" }, "Suffix"]
+				} ] ] } } ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
 					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
@@ -587,17 +572,11 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-								{ "Ref" : "AWS::StackName" },
-								{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameB"] },
-								{"Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix"]
-							} ] ]},
-						":", {"Fn::GetAtt" : [ "DNSServerBENI", "PrimaryPrivateIpAddress"]}, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, { "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameB" ] }, { "Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "DNSServerBENI", "PrimaryPrivateIpAddress" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DNSServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
 		"DNSServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 			"DependsOn" : "DNSServerBEIPAssociation",
@@ -610,7 +589,7 @@
 					"NetworkInterfaceId" : { "Ref" : "DNSServerBENI" }
 				} ],
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"IamInstanceProfile" : "nsServer",
+				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "NsServer"] },
 				"KeyName" : { "Ref" : "Key" },
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} }],
 				"Tags" : [ { "Key" : "Name", "Value" :  { "Fn::Join" : [ "", [
@@ -625,51 +604,42 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-								{ "Ref" : "AWS::StackName" },
-								{"Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameA"] },
-								{"Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix"]
-							} ] ]},
-						":", {"Fn::GetAtt" : [ "DNSServerAENI", "PrimaryPrivateIpAddress"]}, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, { "Fn::FindInMap" : [ "NetworkConfig" , "InternalDNS", "NameA" ] }, { "Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "DNSServerAENI", "PrimaryPrivateIpAddress" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DNSServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-
 		"CoreSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
-				"VpcId" :   { "Ref" : "VPC" },
+				"VpcId" : { "Ref" : "VPC" },
 				"GroupDescription" : "Systems SG",
 				"SecurityGroupIngress" : [
-					{ "IpProtocol" : "-1", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" },".0.0/16" ] ] } }
+					{ "IpProtocol" : "-1", "CidrIp" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" }, ".0.0/16" ] ] } }
 				],
 				"SecurityGroupEgress" : [
 					{ "IpProtocol" : "-1", "CidrIp" : "0.0.0.0/0" }
 				]
 			}
 		},
-
 		"BackupBucket" : {
 		    "Type" : "AWS::S3::Bucket", "DeletionPolicy" : "Retain",
 		    "Properties" : {
-				"BucketName" : {"Fn::Join" : [ "-", [ { "Ref" : "AWS::StackName" }, "backup", { "Ref" : "AWS::AccountId" } ] ]}
+				"BucketName" : { "Fn::Join" : [ "-", [ { "Ref" : "AWS::StackName" }, "backup", { "Ref" : "AWS::AccountId" } ] ] }
 		    }
 		},
-
 		"FilesBucket" : {
 		    "Type" : "AWS::S3::Bucket", "DeletionPolicy" : "Retain",
 		    "Properties" : {
-				"BucketName" : {"Fn::Join" : [ "-", [ { "Ref" : "AWS::StackName" }, "files", { "Ref" : "AWS::AccountId" } ] ]}
+				"BucketName" : {"Fn::Join" : [ "-", [ { "Ref" : "AWS::StackName" }, "files", { "Ref" : "AWS::AccountId" } ] ] }
 		    }
 		}
 	},
 
 	"Outputs" : {
-		"VPC" : { "Value" :  { "Ref" : "VPC" } },
-		"VPCCIDR" : { "Value" : { "Fn::Join" : [ "", [  "10.", { "Ref":"CIDR2ndOctet" },".0.0/16" ] ] } },
-		"Key" : { "Value" : { "Ref" : "Key" }},
+		"VPC" : { "Value" : { "Ref" : "VPC" } },
+		"VPCCIDR" : { "Value" : { "Fn::Join" : [ "", [ "10.", { "Ref" : "CIDR2ndOctet" }, ".0.0/16" ] ] } },
+		"Key" : { "Value" : { "Ref" : "Key" } },
 		"PublicSubnetA" : { "Value" : { "Ref" : "PublicSubnetA" } },
 		"PublicSubnetB" : { "Value" : { "Ref" : "PublicSubnetB" } },
 		"PublicSubnetC" : { "Value" : { "Ref" : "PublicSubnetC" } },
@@ -682,20 +652,20 @@
 		"DbSubnetA" : { "Value" : { "Ref" : "DbSubnetA" } },
 		"DbSubnetB" : { "Value" : { "Ref" : "DbSubnetB" } },
 		"DbSubnetC" : { "Value" : { "Ref" : "DbSubnetC" } },
-		"AZA" : { "Value" : {"Fn::Select" : [ 0, { "Fn::GetAZs" : "" } ] } },
-		"AZB" : { "Value" : {"Fn::Select" : [ 1, { "Fn::GetAZs" : "" } ] } },
-		"AZC" : { "Value" : {"Fn::Select" : [ 2, { "Fn::GetAZs" : "" } ] } },
+		"AZA" : { "Value" : { "Fn::Select" : [ 0, { "Fn::GetAZs" : "" } ] } },
+		"AZB" : { "Value" : { "Fn::Select" : [ 1, { "Fn::GetAZs" : "" } ] } },
+		"AZC" : { "Value" : { "Fn::Select" : [ 2, { "Fn::GetAZs" : "" } ] } },
 		"RemoteAccessSG" : { "Value" : { "Ref" : "RemoteAccessSG" } },
 		"CoreSG" : { "Value" : { "Ref" : "CoreSG" } },
-		"DNSServersPrimaryIPAddresses" : { "Value" :  { "Fn::Join" : [ ",", [
-			{"Fn::GetAtt" : [ "DNSServerA", "PrivateIp"]},
-			{"Fn::GetAtt" : [ "DNSServerB", "PrivateIp"]}
-		] ]} },
+		"DNSServersPrimaryIPAddresses" : { "Value" : { "Fn::Join" : [ ",", [
+			{ "Fn::GetAtt" : [ "DNSServerA", "PrivateIp" ]},
+			{ "Fn::GetAtt" : [ "DNSServerB", "PrivateIp" ]}
+		] ] } },
 		"DNSServersPublicIPAddresses" : { "Value" :  { "Fn::Join" : [ ",", [
-			{"Fn::GetAtt" : [ "DNSServerA", "PublicIp"]},
-			{"Fn::GetAtt" : [ "DNSServerB", "PublicIp"]}
-		] ]} },
-		"NamingPrefix" : { "Value" : { "Ref" : "AWS::StackName" }},
-		"NamingSuffix": { "Value" : {"Fn::FindInMap" : [ "Naming" , { "Ref" : "Environment" }, "Suffix"] }}
+			{ "Fn::GetAtt" : [ "DNSServerA", "PublicIp" ] },
+			{ "Fn::GetAtt" : [ "DNSServerB", "PublicIp" ] }
+		] ] } },
+		"NamingPrefix" : { "Value" : { "Ref" : "AWS::StackName" } },
+		"NamingSuffix": { "Value" : { "Fn::FindInMap" : [ "Naming", { "Ref" : "Environment" }, "Suffix" ] } }
 	}
 }

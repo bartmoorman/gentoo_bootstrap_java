@@ -1,6 +1,5 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-
 	"Description" : "Version 1.0\nCreates the web stack",
 
 	"Parameters" : {
@@ -19,13 +18,13 @@
 			"Default" : "InsideSales"
 		}
 	},
+
 	"Mappings" : {
 		"Constants" : {
 			"InstanceProfiles" : {
 				"PubServerInstanceProfile" : "pubServer"
 			}
 		},
-
 		"AMIs" : {
 			"eu-west-1" : { "Pub" : "ami-a6207bd1" }
 		}
@@ -39,7 +38,6 @@
 				"StackName": { "Ref": "TargetEnvironment" }
 			}
 		},
-
 		"PubSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
@@ -53,7 +51,6 @@
 				]
 			}
 		},
-
 		"PubIncomingSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
@@ -66,7 +63,6 @@
 				"SecurityGroupEgress" : []
 			}
 		},
-
 		"PubServerAENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
@@ -82,9 +78,9 @@
 					] ]}
 		    }
 		},
-
 		"PubServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Pub"] },
 		        "InstanceType" :  "c3.4xlarge",
@@ -107,25 +103,15 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									"pub2",
-									{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":", {"Fn::GetAtt" : [ "PubServerBENI", "PrimaryPrivateIpAddress"]},
+						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "pub2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "PubServerBENI", "PrimaryPrivateIpAddress" ] },
 						" -i 1 -o 1",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"backup",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=PubServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
 		"PubServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
@@ -141,9 +127,9 @@
 					] ]}
 		    }
 		},
-
 		"PubServerB" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
+		    "Type" : "AWS::EC2::Instance",
+			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
 		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Pub"] },
 		        "InstanceType" :  "c3.4xlarge",
@@ -166,25 +152,15 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-									"pub1",
-									{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":", {"Fn::GetAtt" : [ "PubServerAENI", "PrimaryPrivateIpAddress"]},
+						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "pub1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "PubServerAENI", "PrimaryPrivateIpAddress" ] },
 						" -i 2 -o 2",
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"backup",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=PubServerB --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
 		"PubELB" : {
 		    "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
 		    "Properties" : {

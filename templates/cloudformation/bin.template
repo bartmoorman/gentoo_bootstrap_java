@@ -1,6 +1,5 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-
 	"Description" : "Version 1.0\nCreates the binary compiler assistant stack",
 
 	"Parameters" : {
@@ -13,13 +12,13 @@
 			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
 		}
 	},
+
 	"Mappings" : {
 		"Constants" : {
 			"InstanceProfiles" : {
 				"BinServerInstanceProfile" : "binServer"
 			}
 		},
-
 		"AMIs" : {
 			"eu-west-1" : { "Bin" : "ami-a6207bd1" }
 		}
@@ -48,7 +47,6 @@
 				] ]}
 		    }
 		},
-
 		"BinServer" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {

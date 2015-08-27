@@ -1,6 +1,5 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
-
 	"Description" : "Version 1.1\nCreates a 3-node Mongo database stack",
 
 	"Parameters" : {
@@ -23,7 +22,6 @@
 				"DatabaseServer" : "mdbServer"
 			}
 		},
-
 		"AMIs" : {
 			"eu-west-1" : { "Database" : "ami-a6207bd1"}
 		}
@@ -37,7 +35,6 @@
 				"StackName": { "Ref": "TargetEnvironment" }
 			}
 		},
-
 		"DatabaseSG" : {
 			"Type" : "AWS::EC2::SecurityGroup",
 			"Properties" : {
@@ -49,14 +46,54 @@
 				]
 			}
 		},
-
 		"DBSGToItself" : {
 			"Type" : "AWS::EC2::SecurityGroupIngress",
 			"Properties" : {
 				"IpProtocol" : "-1", "SourceSecurityGroupId" : { "Ref" : "DatabaseSG" }, "GroupId" : { "Ref" : "DatabaseSG" }
 			}
 		},
-
+		"DBServerAENI" : {
+		    "Type" : "AWS::EC2::NetworkInterface",
+		    "Properties" : {
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetA"] },
+				"GroupSet" : [
+					{ "Ref" : "DatabaseSG" },
+					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
+				],
+				"Description" : {"Fn::Join" : [ "", [
+						 { "Ref" : "AWS::StackName" },"_0",
+						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
+					] ] }
+		    }
+		},
+		"DBServerAVolume1" : {
+		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
+		    "Properties" : {
+		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZA"] },
+				"Size" : "450", "VolumeType" : "gp2",
+				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
+				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
+						 { "Ref" : "AWS::StackName" },"_0",
+						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						 " - xvdf"
+					] ] }
+				} ]
+		    }
+		},
+		"DBServerAVolume2" : {
+		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
+		    "Properties" : {
+		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZA"] },
+				"Size" : "450", "VolumeType" : "gp2",
+				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
+				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
+						 { "Ref" : "AWS::StackName" },"_0",
+						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
+						 " - xvdg"
+					] ] }
+				} ]
+		    }
+		},
 		"DBServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -80,7 +117,7 @@
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 { "Ref" : "AWS::StackName" },"_0",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -89,72 +126,57 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									 { "Ref" : "AWS::StackName" },"_2",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "DBServerBENI", "PrimaryPrivateIpAddress"]},
-						",", { "Fn::Join" : [ "", [
-									 { "Ref" : "AWS::StackName" },"_3",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "DBServerCENI", "PrimaryPrivateIpAddress"]},
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"backup",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "_2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "DBServerBENI", "PrimaryPrivateIpAddress" ] }, ",",
+								{ "Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "_3", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "DBServerCENI", "PrimaryPrivateIpAddress" ] },
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DBServerA --exit-code=$?\n"
 				] ] } }
 		    }
 		},
-
-		"DBServerAENI" : {
+		"DBServerBENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetA"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetB"] },
 				"GroupSet" : [
 					{ "Ref" : "DatabaseSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_0",
+						 { "Ref" : "AWS::StackName" },"_1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+					] ] }
 		    }
 		},
-
-		"DBServerAVolume1" : {
+		"DBServerBVolume1" : {
 		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
 		    "Properties" : {
-		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZA"] },
+		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZB"] },
 				"Size" : "450", "VolumeType" : "gp2",
 				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_0",
+						 { "Ref" : "AWS::StackName" },"_1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
 						 " - xvdf"
-					] ]}
+					] ] }
 				} ]
 		    }
 		},
-		"DBServerAVolume2" : {
+		"DBServerBVolume2" : {
 		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
 		    "Properties" : {
-		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZA"] },
+		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZB"] },
 				"Size" : "450", "VolumeType" : "gp2",
 				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_0",
+						 { "Ref" : "AWS::StackName" },"_1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
 						 " - xvdg"
-					] ]}
+					] ] }
 				} ]
 		    }
 		},
-
 		"DBServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -178,7 +200,7 @@
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 { "Ref" : "AWS::StackName" },"_1",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -187,73 +209,58 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									 { "Ref" : "AWS::StackName" },"_1",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "DBServerAENI", "PrimaryPrivateIpAddress"]},
-						",", { "Fn::Join" : [ "", [
-									 { "Ref" : "AWS::StackName" },"_3",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "DBServerCENI", "PrimaryPrivateIpAddress"]},
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"backup",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "_1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "DBServerAENI", "PrimaryPrivateIpAddress" ] }, ",",
+								{ "Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "_3", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "DBServerCENI", "PrimaryPrivateIpAddress" ] },
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DBServerB --exit-code=$?\n"
 				] ] } }
 
 		    }
 		},
-
-		"DBServerBENI" : {
+		"DBServerCENI" : {
 		    "Type" : "AWS::EC2::NetworkInterface",
 		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetB"] },
+				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetC"] },
 				"GroupSet" : [
 					{ "Ref" : "DatabaseSG" },
 					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
 				],
 				"Description" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_1",
+						 { "Ref" : "AWS::StackName" },"_2",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+					] ] }
 		    }
 		},
-
-		"DBServerBVolume1" : {
+		"DBServerCVolume1" : {
 		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
 		    "Properties" : {
-		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZB"] },
+		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZC"] },
 				"Size" : "450", "VolumeType" : "gp2",
 				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_1",
+						 { "Ref" : "AWS::StackName" },"_2",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
 						 " - xvdf"
-					] ]}
+					] ] }
 				} ]
 		    }
 		},
-		"DBServerBVolume2" : {
+		"DBServerCVolume2" : {
 		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
 		    "Properties" : {
-		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZB"] },
+		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZC"] },
 				"Size" : "450", "VolumeType" : "gp2",
 				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_1",
+						 { "Ref" : "AWS::StackName" },"_2",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
 						 " - xvdg"
-					] ]}
+					] ] }
 				} ]
 		    }
-		},
-
+		}
 		"DBServerC" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
@@ -277,7 +284,7 @@
 				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
 						 { "Ref" : "AWS::StackName" },"_2",
 						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
+					] ] }
 				} ],
 				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
 					"#!/bin/bash\n",
@@ -286,72 +293,16 @@
 					"setup_file=\"$(mktemp)\"\n",
 					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
 					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [
-									 { "Ref" : "AWS::StackName" },"_1",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "DBServerAENI", "PrimaryPrivateIpAddress"]},
-						",", { "Fn::Join" : [ "", [
-									 { "Ref" : "AWS::StackName" },"_2",
-									 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-								] ]},
-						":",	{"Fn::GetAtt" : [ "DBServerBENI", "PrimaryPrivateIpAddress"]},
-						" -b ", {"Fn::Join" : [ "-", [
-							{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-							"backup",
-							{ "Ref" : "AWS::AccountId" }
-						] ]},
-						" -h ", {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						" -e ", {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }, "\n",
+						" -p ", { "Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "_1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "DBServerAENI", "PrimaryPrivateIpAddress" ] }, ",",
+								{ "Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "_2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "DBServerBENI", "PrimaryPrivateIpAddress" ] },
+						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
+						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
+						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
 					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=DBServerC --exit-code=$?\n"
 				] ] } }
 
 		    }
 		},
-
-		"DBServerCENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "DbSubnetC"] },
-				"GroupSet" : [
-					{ "Ref" : "DatabaseSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-		    }
-		},
-
-		"DBServerCVolume1" : {
-		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
-		    "Properties" : {
-		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZC"] },
-				"Size" : "450", "VolumeType" : "gp2",
-				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-						 " - xvdf"
-					] ]}
-				} ]
-		    }
-		},
-		"DBServerCVolume2" : {
-		    "Type" : "AWS::EC2::Volume", "DeletionPolicy" : "Snapshot",
-		    "Properties" : {
-		        "AvailabilityZone" : {"Fn::GetAtt" : [ "Environment", "AZC"] },
-				"Size" : "450", "VolumeType" : "gp2",
-				"Encrypted" : { "Ref" : "DataVolumeEncryption" },
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 { "Ref" : "AWS::StackName" },"_2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] },
-						 " - xvdg"
-					] ]}
-				} ]
-		    }
-		}
 	},
 
 	"Outputs" : {
