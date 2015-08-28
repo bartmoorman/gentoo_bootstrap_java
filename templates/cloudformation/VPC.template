@@ -64,7 +64,7 @@
 		"AMIs" : {
 			"eu-west-1" : {
 				"NAT" : "ami-ef76e898",
-				"DNS" : "ami-d9356fae"
+				"DNS" : "ami-d1dc86a6"
 			}
 		},
 		"Naming" : {

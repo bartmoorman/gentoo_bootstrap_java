@@ -24,10 +24,10 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Sip" : "ami-d9356fae",
-				"Eh" : "ami-d9356fae",
-				"Mq" : "ami-d9356fae",
-				"Inbound" : "ami-d9356fae"
+				"Sip" : "ami-d1dc86a6",
+				"Eh" : "ami-d1dc86a6",
+				"Mq" : "ami-d1dc86a6",
+				"Inbound" : "ami-d1dc86a6"
 			}
 		}
 	},

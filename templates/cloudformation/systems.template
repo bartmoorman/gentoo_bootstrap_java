@@ -21,7 +21,7 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Systems" : "ami-d9356fae"
+				"Systems" : "ami-d1dc86a6"
 			}
 		}
 	},

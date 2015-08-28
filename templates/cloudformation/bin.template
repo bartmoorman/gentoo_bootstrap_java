@@ -23,7 +23,7 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Bin" : "ami-d9356fae"
+				"Bin" : "ami-d1dc86a6"
 			}
 		}
 	},

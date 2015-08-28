@@ -30,10 +30,10 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Jp" : "ami-d9356fae",
-				"Web" : "ami-d9356fae",
-				"Worker" : "ami-d9356fae",
-				"Socket" : "ami-d9356fae"
+				"Jp" : "ami-d1dc86a6",
+				"Web" : "ami-d1dc86a6",
+				"Worker" : "ami-d1dc86a6",
+				"Socket" : "ami-d1dc86a6"
 			}
 		}
 	},

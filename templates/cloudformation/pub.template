@@ -27,7 +27,7 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Pub" : "ami-d9356fae"
+				"Pub" : "ami-d1dc86a6"
 			}
 		}
 	},

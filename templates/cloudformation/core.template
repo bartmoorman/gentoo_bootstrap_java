@@ -34,9 +34,9 @@
 		},
 		"AMIs" : {
 			"eu-west-1" : {
-				"Stats" : "ami-d9356fae",
-				"Monitor" : "ami-d9356fae",
-				"Deploy" : "ami-d9356fae"
+				"Stats" : "ami-d1dc86a6",
+				"Monitor" : "ami-d1dc86a6",
+				"Deploy" : "ami-d1dc86a6"
 			}
 		}
 	},
