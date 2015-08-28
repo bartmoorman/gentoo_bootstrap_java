@@ -115,8 +115,8 @@ done
 filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
--e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|"
-"/${filename}"
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
+"/${filename}" || exit 1
 
 /etc/init.d/nrpe restart || exit 1
 

@@ -354,7 +354,7 @@ filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
 -e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
--e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|"
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
 "/${filename}" || exit 1
 
 /etc/init.d/nrpe restart || exit 1

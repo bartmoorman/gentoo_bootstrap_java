@@ -70,8 +70,8 @@ iptables -t nat -A POSTROUTING -s 10.0.0.0/8 -o eth0 -j MASQUERADE || exit 1
 filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
--e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|"
-"/${filename}"
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
+"/${filename}" || exit 1
 
 /etc/init.d/nrpe restart || exit 1
 
