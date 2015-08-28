@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "m:i:o:b:h:e:" OPTNAME; do
+while getopts ":m:i:o:b:h:e:" OPTNAME; do
 	case $OPTNAME in
 		m)
 			echo "Master: ${OPTARG}"

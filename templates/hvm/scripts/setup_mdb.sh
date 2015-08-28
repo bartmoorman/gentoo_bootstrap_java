@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "p:b:h:e:" OPTNAME; do
+while getopts ":p:b:h:e:" OPTNAME; do
 	case $OPTNAME in
 		p)
 			echo "Peers: ${OPTARG}"
@@ -212,18 +212,6 @@ done
 
 echo "connected! :)"
 
-user="bmoorman"
-app="mongo"
-type="pwd"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
-user="ecall"
-app="mongo"
-type="pwd"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
 echo -n "Sleeping (${sleep}s)..."
 sleep ${sleep}
 echo "done! :)"
@@ -237,15 +225,27 @@ quit(1)
 EOF
 
 if [ $? -eq 0 ]; then
-	mongo <<'EOF'
-rs.initiate()
-sleep(1500)
-EOF
+	user="bmoorman"
+	app="mongo"
+	type="pwd"
+	echo "-- ${user} ${app}_${type} (decrypt)"
+	declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+	user="ecall"
+	app="mongo"
+	type="pwd"
+	echo "-- ${user} ${app}_${type} (decrypt)"
+	declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 	mongo <<EOF
 use admin
 db.createUser({"user":"bmoorman","pwd":"${bmoorman_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
-sleep(1000)
+sleep(500)
+db.auth("bmoorman","${bmoorman_mongo_pwd}")
+db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
+sleep(500)
+rs.initiate()
+sleep(1500)
 EOF
 
 	for peer in "${peers[@]}"; do
@@ -256,13 +256,6 @@ rs.add("${peer%:*}")
 sleep(1000)
 EOF
 	done
-
-	mongo <<EOF
-sleep(55500)
-use admin
-db.auth("bmoorman","${bmoorman_mongo_pwd}")
-db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
-EOF
 fi
 
 filename="etc/ganglia/gmond.conf"

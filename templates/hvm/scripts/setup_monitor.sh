@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "b:h:e:" OPTNAME; do
+while getopts ":b:h:e:" OPTNAME; do
 	case $OPTNAME in
 		b)
 			echo "Bucket Name: ${OPTARG}"
@@ -464,7 +464,7 @@ curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 user="ganglia"
 type="secret"
 echo "-- ${user} ${type} (decrypt)"
-declare "${user}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+declare "${user}_${type}=$(decrypt_user_text "${type}" "${user}")"
 
 sed -i -r \
 -e "s|%GANGLIA_SECRET%|${ganglia_secret}|" \

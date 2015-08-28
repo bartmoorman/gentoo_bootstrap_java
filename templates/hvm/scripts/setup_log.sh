@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "b:h:e:" OPTNAME; do
+while getopts ":b:h:e:" OPTNAME; do
 	case $OPTNAME in
 		b)
 			echo "Bucket Name: ${OPTARG}"

@@ -21,10 +21,12 @@
 		"NATInstanceType" : {
 			"Type" : "String",
 			"AllowedValues" : [ "t2.small", "t2.medium", "t2.large", "m3.medium" ]
+			"Default" : [ "m3.medium" ]
 		},
 		"DNSInstanceType" : {
 			"Type" : "String",
 			"AllowedValues" : [ "t2.small", "t2.medium", "t2.large", "m3.medium" ]
+			"Default" : [ "t2.medium" ]
 		},
 		"DNSServerAExistingEIP" : {
 			"Type" : "String",

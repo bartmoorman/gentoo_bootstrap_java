@@ -1,5 +1,5 @@
 #!/bin/bash
-while getopts "h:e:" OPTNAME; do
+while getopts ":h:e:" OPTNAME; do
 	case $OPTNAME in
 		h)
 			echo "Hostname Prefix: ${OPTARG}"
