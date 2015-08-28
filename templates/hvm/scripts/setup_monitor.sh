@@ -514,6 +514,14 @@ filename="var/www/localhost/htdocs/ganglia/conf.php"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
+filename="etc/nagios/nrpe.cfg"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|"
+"/${filename}"
+
+/etc/init.d/nrpe restart || exit 1
+
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
@@ -528,5 +536,7 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
 
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

@@ -250,6 +250,14 @@ chmod 755 "/${filename}" || exit 1
 
 rc-update add ${filename##*/} default
 
+filename="etc/nagios/nrpe.cfg"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|"
+"/${filename}"
+
+/etc/init.d/nrpe restart || exit 1
+
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
@@ -264,3 +272,5 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1

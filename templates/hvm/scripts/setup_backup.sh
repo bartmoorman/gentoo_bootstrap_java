@@ -29,4 +29,6 @@ scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/t
 echo "Not implementing as of 08/03/2015"
 exit 1
 
+ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
+
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1

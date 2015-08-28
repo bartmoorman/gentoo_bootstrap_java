@@ -238,14 +238,21 @@ if [ $? -eq 0 ]; then
 	declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 	mongo <<EOF
+rs.initiate()
+sleep(1500)
+EOF
+
+	mongo <<EOF
 use admin
 db.createUser({"user":"bmoorman","pwd":"${bmoorman_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
 sleep(500)
+EOF
+
+	mongo <<EOF
+use admin
 db.auth("bmoorman","${bmoorman_mongo_pwd}")
 db.createUser({"user":"ecall","pwd":"${ecall_mongo_pwd}","roles":[{"role":"root","db":"admin"}]})
 sleep(500)
-rs.initiate()
-sleep(1500)
 EOF
 
 	for peer in "${peers[@]}"; do
@@ -257,6 +264,14 @@ sleep(1000)
 EOF
 	done
 fi
+
+filename="etc/nagios/nrpe.cfg"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|"
+"/${filename}"
+
+/etc/init.d/nrpe restart || exit 1
 
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"
@@ -272,5 +287,7 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
 
 curl -sf "http://${hostname_prefix}ns1:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || curl -sf "http://${hostname_prefix}ns2:8053?type=A&name=${name}&domain=salesteamautomation.com&address=${ip}" || exit 1
