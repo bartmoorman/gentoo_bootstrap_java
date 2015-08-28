@@ -1,0 +1,54 @@
+#!/usr/bin/php
+<?php
+$options = getopt('w:c:');
+
+define(OK, 0);
+define(WARNING, 1);
+define(CRITICAL, 2);
+define(UNKNOWN, 3);
+
+$sar = trim(`which sar`);
+
+if (!file_exists($sar)) {
+	echo 'UNKNOWN - Cannot locate sar';
+	exit(UNKNOWN);
+}
+
+if (date('H') == 00 && date('i') < 05) {
+	$file = sprintf('/var/log/sa/sa%02u', date('d', strtotime('-1 day')));
+	$start = '23:54:59';
+	$end = '23:59:59';
+} else {
+	$file = sprintf('/var/log/sa/sa%02u', date('d'));
+	$start = date('H:i:s', strtotime('-5 minute'));
+	$end = date('H:i:s');
+}
+
+$out = trim(`{$sar} -f {$file} -s {$start} -e {$end} | grep ^Average`);
+$cpu = preg_split('/ /', $out, NULL, PREG_SPLIT_NO_EMPTY);
+
+if (count($cpu) != 8) {
+	echo 'UNKNOWN - Unexpected output from sar';
+	exit(UNKNOWN);
+}
+
+array_splice($cpu, 0, 2);
+
+$perf[] = "user={$cpu[0]}";
+$perf[] = "nice={$cpu[1]}";
+$perf[] = "system={$cpu[2]}";
+$perf[] = "iowait={$cpu[3]}";
+$perf[] = "steal={$cpu[4]}";
+$perf[] = "idle={$cpu[5]}";
+
+if ($cpu[5] < $options['c']) {
+	printf('CRITICAL - %.2f%% idle | %s', $cpu[5], implode(', ', $perf));
+	exit(CRITICAL);
+} elseif ($cpu[5] < $options['w']) {
+	printf('WARNING - %.2f%% idle | %s', $cpu[5], implode(', ', $perf));
+	exit(WARNING);
+} else {
+	printf('OK - %.2f%% idle | %s', $cpu[5], implode(', ', $perf));
+	exit(OK);
+}
+?>

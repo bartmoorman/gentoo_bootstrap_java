@@ -208,13 +208,38 @@ curl -sf -o "/${filename}" "${scripts}/keys/asterisk" || exit 1
 
 rc-update add asterisk default
 
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
+
+command[check_cpu]=/usr/lib64/nagios/plugins/custom/check_cpu -w 50 -c 40
+EOF
+
 filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
 -e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
 "/${filename}" || exit 1
 
 /etc/init.d/nrpe restart || exit 1
+
+dirname="usr/lib64/nagios/plugins/custom"
+echo "--- ${dirname} (create)"
+mkdir -p "/${dirname}"
+
+filename="usr/lib64/nagios/plugins/custom/check_cpu"
+echo "--- ${filename} (replace)"
+curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
+chmod 755 "/${filename}" || exit 1
+
+filename="var/spool/cron/crontabs/root"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+
+* * * * *	/usr/lib64/sa/sa1 5 12
+55 23 * * *	/usr/lib64/sa/sa2
+EOF
+touch "/${filename%/*}" || exit 1
 
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"

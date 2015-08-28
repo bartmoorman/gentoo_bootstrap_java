@@ -31,6 +31,12 @@ functions_file="$(mktemp)"
 curl -sf -o "${functions_file}" "${scripts}/${filename}" || exit 1
 source "${functions_file}"
 
+filename="etc/ntp.conf"
+echo "--- ${filename} (append)"
+cat <<'EOF'>>"/${filename}"
+restrict 10.0.0.0 mask 255.0.0.0 nomodify nopeer notrap
+EOF
+
 dirname="etc/portage/repos.conf"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
