@@ -265,9 +265,16 @@ EOF
 	done
 fi
 
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
+
+command[check_mongodb_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var/lib/mongodb
+EOF
+
 filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
 -e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
 "/${filename}" || exit 1
 
