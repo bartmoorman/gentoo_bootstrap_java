@@ -14,8 +14,8 @@
 		"Certificate" : {
 			"Type" : "String",
 			"Description" : "The SSL certificate name",
-			"AllowedValues" : ["InsideSales"],
-			"Default" : "InsideSales"
+			"AllowedValues" : [ "InsideSales", "InsideSalesEU1" ],
+			"Default" : "InsideSalesEU1"
 		}
 	},
 
