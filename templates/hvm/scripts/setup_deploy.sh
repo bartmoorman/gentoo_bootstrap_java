@@ -95,9 +95,16 @@ composer_file="$(mktemp)"
 curl -sf -o "${composer_file}" "https://getcomposer.org/installer" || exit 1
 php "${composer_file}" -- --install-dir="/${filename%/*}" --filename="${filename##*/}" || exit 1
 
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
+
+command[check_s3fs]=/usr/lib64/nagios/plugins/check_procs -c 1: -C s3fs -a s3fs
+EOF
+
 filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
 -e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
 "/${filename}" || exit 1
 
@@ -117,6 +124,33 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+for i in canderson mkendzior nthompson tdavis; do
+	echo "--- ${i} (add)"
+	useradd -g users -m ${i} || exit 1
+
+	filename="home/${i}/.ssh/authorized_keys"
+	echo "--- ${filename} (replace)"
+	curl -sf -o "/${filename}" "${scripts}/keys/${i}" || exit 1
+
+	filename="etc/sudoers.d/devops"
+	echo "--- ${filename} (append)"
+	cat <<EOF>>"/${filename}"
+${i} ALL=(deployer) NOPASSWD: /usr/local/bin/release, /usr/local/bin/composer, /usr/bin/git
+EOF
+done
+
+dirname="home/deployer/git"
+echo "--- ${dirname} (create)"
+sudo -u deployer mkdir -p "/${dirname}" || exit 1
+
+for i in accounting:atom/accounting arkapi:si/arkapi atom:atom/sysadmin commsworkers:com/commsworkers dialerapp:pdms/dialer-app idm:plat/identity-management-app issocketserver:ps/issocketserver iswsi:com/iswebserviceintegration mac:plat/mac nvapi:nv/neuralvisionapi sta:cor/sales-team-automation websocket:ps/psnotificationserver; do
+	echo "--- ${i#*:} (clone)"
+	sudo -u deployer git clone "ssh://git@stash.is.com:7999/${i#*:}.git" "/home/deployer/stash/${i#*:}"
+	sudo -u deployer ln -s "/home/deployer/stash/${i#*:}/" "/home/deployer/git/${i%:*}"
+done
+
+yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
 

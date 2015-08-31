@@ -540,23 +540,6 @@ sed -i -r \
 -e "s|%MYTOP_AUTH%|${mytop_mysql_auth}|" \
 "/${filename}" || exit 1
 
-nrpe_file="$(mktemp)"
-cat <<'EOF'>"${nrpe_file}"
-
-command[check_mysql_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var/lib/mysql
-command[check_mysql_connections]=/usr/lib64/nagios/plugins/custom/check_mysql_connections
-command[check_mysql_slave]=/usr/lib64/nagios/plugins/custom/check_mysql_slave
-EOF
-
-filename="etc/nagios/nrpe.cfg"
-echo "--- ${filename} (modify)"
-sed -i -r \
--e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
--e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
-"/${filename}" || exit 1
-
-/etc/init.d/nrpe restart || exit 1
-
 dirname="usr/lib64/nagios/plugins/custom/include"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
@@ -678,6 +661,29 @@ linkname="usr/bin/wkhtmltoimage"
 echo "--- ${linkname} -> ${filename} (softlink)"
 ln -s "/${filename}" "/${linkname}" || exit 1
 
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
+
+command[check_apache]=/usr/lib64/nagios/plugins/check_procs -c 1:920 -w 5:820 -C apache2 -a /usr/sbin/apache2
+command[check_glusterd]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterd -a /usr/sbin/glusterd
+command[check_glusterfs]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterfs -a /usr/sbin/glusterfs
+command[check_glusterfsd]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterfsd -a /usr/sbin/glusterfsd
+command[check_mysqld]=/usr/lib64/nagios/plugins/check_procs -c 1: -C mysqld -a /usr/sbin/mysqld
+command[check_mysql_connections]=/usr/lib64/nagios/plugins/custom/check_mysql_connections
+command[check_mysql_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var/lib/mysql
+command[check_mysql_slave]=/usr/lib64/nagios/plugins/custom/check_mysql_slave
+command[check_s3fs]=/usr/lib64/nagios/plugins/check_procs -c 1: -C s3fs -a s3fs
+EOF
+
+filename="etc/nagios/nrpe.cfg"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
+"/${filename}" || exit 1
+
+/etc/init.d/nrpe restart || exit 1
+
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
@@ -692,6 +698,8 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
 

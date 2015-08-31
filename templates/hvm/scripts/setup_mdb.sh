@@ -268,7 +268,9 @@ fi
 nrpe_file="$(mktemp)"
 cat <<'EOF'>"${nrpe_file}"
 
+command[check_mongod]=/usr/lib64/nagios/plugins/check_procs -c 1: -C mongod -a /usr/bin/mongod
 command[check_mongodb_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var/lib/mongodb
+command[check_s3fs]=/usr/lib64/nagios/plugins/check_procs -c 1: -C s3fs -a s3fs
 EOF
 
 filename="etc/nagios/nrpe.cfg"
@@ -294,6 +296,8 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
 

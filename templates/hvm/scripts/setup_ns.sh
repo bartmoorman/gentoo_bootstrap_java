@@ -204,6 +204,10 @@ cat <<EOF>"/${filename}"
 #
 .salesteamautomation.com:${ip}:${name}.salesteamautomation.com:3600::lo
 .salesteamautomation.com:${peer#*:}:${peer%:*}.salesteamautomation.com:3600::lo
+.salesteamautomation.com:209.135.219.226:i2ns1.salesteamautomation.com:3600
+.salesteamautomation.com:209.135.219.227:i2ns2.salesteamautomation.com:3600
+.salesteamautomation.com:64.90.204.233:ns1.salesteamautomation.com:3600
+.salesteamautomation.com:64.90.204.234:ns2.salesteamautomation.com:3600
 
 .10.in-addr.arpa:${ip}:${name}.salesteamautomation.com:3600::lo
 .10.in-addr.arpa:${peer#*:}:${peer%:*}.salesteamautomation.com:3600::lo
@@ -250,9 +254,19 @@ chmod 755 "/${filename}" || exit 1
 
 rc-update add ${filename##*/} default
 
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
+
+command[check_tinydns]=/usr/lib64/nagios/plugins/check_procs -c 1: -C tinydns -a /usr/bin/tinydns
+command[check_glusterd]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterd -a /usr/sbin/glusterd
+command[check_glusterfs]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterfs -a /usr/sbin/glusterfs
+command[check_glusterfsd]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterfsd -a /usr/sbin/glusterfsd
+EOF
+
 filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
 -e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
 "/${filename}" || exit 1
 
@@ -272,5 +286,7 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1

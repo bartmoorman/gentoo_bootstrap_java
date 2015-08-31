@@ -46,6 +46,7 @@ dev-lang/go
 dev-libs/libmemcached
 dev-php/pear
 net-libs/libssh2
+net-misc/memcached
 sys-fs/s3fs
 EOF
 
@@ -94,6 +95,18 @@ echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
 
+filename="etc/conf.d/memcached"
+echo "--- ${filename} (modify)"
+cp "/${filename}" "/${filename}.orig"
+sed -i -r \
+-e "s|^MEMUSAGE\=.*|MEMUSAGE\=\"128\"|" \
+-e "s|^LISTENON\=.*|LISTENON\=\"127\.0\.0\.1\"|" \
+"/${filename}"
+
+/etc/init.d/memcached start || exit 1
+
+rc-update add memcached default
+
 for i in memcache memcached mongo oauth ssh2-beta; do
 	yes "" | pecl install "${i}" > /dev/null || exit 1
 
@@ -113,9 +126,17 @@ EOF
 	done
 done
 
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
+
+command[check_memcached]=/usr/lib64/nagios/plugins/check_procs -c 1: -C memcached -a /usr/bin/memcached
+command[check_s3fs]=/usr/lib64/nagios/plugins/check_procs -c 1: -C s3fs -a s3fs
+EOF
+
 filename="etc/nagios/nrpe.cfg"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
 -e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
 "/${filename}" || exit 1
 
@@ -135,6 +156,8 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
 

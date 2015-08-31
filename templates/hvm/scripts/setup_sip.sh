@@ -199,6 +199,8 @@ usermod -s /usr/bin/rssh asterisk || exit 1
 dirname="var/lib/asterisk/.ssh"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
+chmod 700 "/${dirname}"
+chown asterisk: "/${dirname}"
 
 filename="var/lib/asterisk/.ssh/authorized_keys"
 echo "--- ${filename} (replace)"
@@ -207,21 +209,6 @@ curl -sf -o "/${filename}" "${scripts}/keys/asterisk" || exit 1
 /etc/init.d/asterisk start || exit 1
 
 rc-update add asterisk default
-
-nrpe_file="$(mktemp)"
-cat <<'EOF'>"${nrpe_file}"
-
-command[check_cpu]=/usr/lib64/nagios/plugins/custom/check_cpu -w 50 -c 40
-EOF
-
-filename="etc/nagios/nrpe.cfg"
-echo "--- ${filename} (modify)"
-sed -i -r \
--e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
--e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
-"/${filename}" || exit 1
-
-/etc/init.d/nrpe restart || exit 1
 
 dirname="usr/lib64/nagios/plugins/custom"
 echo "--- ${dirname} (create)"
@@ -241,6 +228,26 @@ cat <<'EOF'>"/${filename}"
 EOF
 touch "/${filename%/*}" || exit 1
 
+nrpe_file="$(mktemp)"
+cat <<'EOF'>"${nrpe_file}"
+
+command[check_asterisk]=/usr/lib64/nagios/plugins/check_procs -c 1: -C asterisk -a /usr/sbin/asterisk
+command[check_cpu]=/usr/lib64/nagios/plugins/custom/check_cpu -w 50 -c 40
+command[check_glusterd]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterd -a /usr/sbin/glusterd
+command[check_glusterfs]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterfs -a /usr/sbin/glusterfs
+command[check_glusterfsd]=/usr/lib64/nagios/plugins/check_procs -c 1: -C glusterfsd -a /usr/sbin/glusterfsd
+command[check_s3fs]=/usr/lib64/nagios/plugins/check_procs -c 1: -C s3fs -a s3fs
+EOF
+
+filename="etc/nagios/nrpe.cfg"
+echo "--- ${filename} (modify)"
+sed -i -r \
+-e "\|^command\[check_total_procs\]|r ${nrpe_file}" \
+-e "s|%HOSTNAME_PREFIX%|${hostname_prefix}|" \
+"/${filename}" || exit 1
+
+/etc/init.d/nrpe restart || exit 1
+
 filename="etc/ganglia/gmond.conf"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
@@ -255,6 +262,8 @@ sed -i -r \
 /etc/init.d/gmond start || exit 1
 
 rc-update add gmond default
+
+yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
 
