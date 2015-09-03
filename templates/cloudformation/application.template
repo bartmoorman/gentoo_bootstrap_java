@@ -6,10 +6,12 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : ["eu1iec1"]
+			"AllowedValues" : [ "eu1iec1" ]
 		},
 		"TerminationProtection" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
+			"Type" : "String",
+			"AllowedValues" : [ "true", "false" ],
+			"Default" : "false"
 		},
 		"Certificate" : {
 			"Type" : "String",

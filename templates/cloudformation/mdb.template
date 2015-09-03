@@ -6,13 +6,17 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : ["eu1iec1"]
+			"AllowedValues" : [ "eu1iec1" ]
 		},
 		"TerminationProtection" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
+			"Type" : "String",
+			"AllowedValues" : [ "true", "false" ],
+			"Default" : "false"
 		},
 		"DataVolumeEncryption" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "true"
+			"Type" : "String",
+			"AllowedValues" : [ "true", "false" ],
+			"Default" : "true"
 		}
 	},
 
