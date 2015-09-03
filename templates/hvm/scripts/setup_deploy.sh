@@ -140,16 +140,6 @@ ${i} ALL=(deployer) NOPASSWD: /usr/local/bin/release, /usr/local/bin/composer, /
 EOF
 done
 
-dirname="home/deployer/git"
-echo "--- ${dirname} (create)"
-sudo -u deployer mkdir -p "/${dirname}" || exit 1
-
-for i in accounting:atom/accounting arkapi:si/arkapi atom:atom/sysadmin commsworkers:com/commsworkers dialerapp:pdms/dialer-app idm:plat/identity-management-app issocketserver:ps/issocketserver iswsi:com/iswebserviceintegration mac:plat/mac nvapi:nv/neuralvisionapi sta:cor/sales-team-automation websocket:ps/psnotificationserver; do
-	echo "--- ${i#*:} (clone)"
-	sudo -u deployer git clone "ssh://git@stash.is.com:7999/${i#*:}.git" "/home/deployer/stash/${i#*:}"
-	sudo -u deployer ln -s "/home/deployer/stash/${i#*:}/" "/home/deployer/git/${i%:*}"
-done
-
 yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1

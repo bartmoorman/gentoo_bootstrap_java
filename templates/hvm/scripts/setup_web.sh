@@ -222,7 +222,7 @@ echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
 -e "\|prefork MPM|i ServerLimit 1024\n" \
--e "\|^\<IfModule mpm_prefork_module\>$|,\|^\</IfModule\>$|s|^(\s+MaxClients\s+).*|\11024|" \
+-e "\|^<IfModule\s+mpm_prefork_module>$|,\|^</IfModule>$|s|^(\s+MaxClients\s+).*|\11024|" \
 "/${filename}" || exit 1
 
 filename="etc/apache2/vhosts.d/01_isdc_lmp_vhost.conf"

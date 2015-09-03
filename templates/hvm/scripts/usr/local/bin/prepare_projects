@@ -1,0 +1,126 @@
+#!/bin/bash
+while getopts ":b:h:e:" OPTNAME; do
+	case $OPTNAME in
+		h)
+			echo "Hostname Prefix: ${OPTARG}"
+			hostname_prefix="${OPTARG}"
+			;;
+		e)
+			echo "Environment Suffix: ${OPTARG}"
+			environment_suffix="${OPTARG}"
+			;;
+	esac
+done
+
+if [ ]; then
+	echo "Usage: ${BASH_SOURCE[0]} [-h hostname_prefix] [-e environment_suffix]"
+	exit 1
+fi
+
+ip="$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
+name="$(hostname)"
+iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
+scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
+
+for i in dops/devops cfg/instance-config; do
+	dirname="home/deployer/stash/${i}"
+	echo "--- ${i} (clone)"
+	sudo -u deployer git clone "ssh://git@stash.is.com:7999/${i}.git" "/${dirname}" || exit 1
+done
+
+for i in release:release release.inc:release.inc release.ini:${hostname_prefix::3}.release.ini; do
+	filename="home/deployer/stash/dops/devops/scripts/deploy/${i#*:}"
+	linkname="usr/local/bin/${i%:*}"
+	echo "--- ${linkname} (replace)"
+	cp "/${filename}" "/${linkname}" || exit 1
+	chown deployer: "/${linkname}" || exit 1
+done
+
+dirname="home/deployer/git"
+echo "--- ${dirname} (create)"
+sudo -u deployer mkdir -p "/${dirname}" || exit 1
+
+for i in accounting:atom/accounting arkapi:si/arkapi atom:atom/sysadmin commsworkers:com/commsworkers dialerapp:pdms/dialer-app idm:plat/identity-management-app issocketserver:ps/issocketserver iswsi:com/iswebserviceintegration mac:plat/mac nvapi:nv/neuralvisionapi sta:cor/sales-team-automation websocket:ps/psnotificationserver; do
+	dirname="home/deployer/stash/${i#*:}"
+	echo "--- ${i#*:} (clone)"
+	sudo -u deployer git clone "ssh://git@stash.is.com:7999/${i#*:}.git" "/${dirname}" || exit 1
+
+	linkname="home/deployer/git/${i%:*}"
+	echo "--- ${linkname} -> ${dirname} (softlink)"
+	sudo -u deployer ln -s "/${dirname}/" "/${linkname}" || exit 1
+done
+
+user="lmp"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="acctg"
+app="mysql"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="arkapi"
+app="mongo"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="arkapi"
+type="secret"
+echo "-- ${user} ${type} (decrypt)"
+declare "${user}_${type}=$(decrypt_user_text "${type}" "${user}")"
+
+user="profiler"
+app="mongo"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="standings"
+app="mongo"
+type="auth"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+user="dialer"
+type="secret"
+echo "-- ${user} ${type} (decrypt)"
+declare "${user}_${type}=$(decrypt_user_text "${type}" "${user}")"
+
+for i in accounting:.domainconfig arkapi:.domainconfig atom:.domainconfig commsworkers:.domainconfig dialerapp:.domainconfig idm:.domainconfig iswsi:.domainconfig mac:.domainconfig nvapi:.domainconfig sta:.domainconfig websocket:.domainconfig; do
+	filename="home/deployer/stash/cfg/instance-config/${hostname_prefix::3}/${i%:*}${i#*:}"
+	inkname="home/deployer/git/${i%:*}/${i#*:}"
+	echo "--- ${linkname} (replace)"
+	sudo -u deployer cp "/${filename}" "/${linkname}" || exit 1
+
+	echo "--- ${linkname} (modify)"
+	sed -i -r \
+	-e "s|%LMP_USER%||" \
+	-e "s|%LMP_PASSWORD%|${lmp_mysql_auth}|" \
+	-e "s|%ACCTG_DB_USER%||" \
+	-e "s|%ACCTG_DB_PASSWORD%|${acctg_mysql_auth}|" \
+	-e "s|%ARKAPI_MONGO_DB%||" \
+	-e "s|%ARKAPI_MONGO_USER%||" \
+	-e "s|%ARKAPI_MONGO_PASSWORD%|${arkapi_mongo_auth}|" \
+	-e "s|%ARKAPI_SECRET%|${arkapi_secret}|" \
+	-e "s|%MONGO_PROFILER_USER%||" \
+	-e "s|%MONGO_PROFILER_PASSWORD%|${profiler_mongo_auth}|" \
+	-e "s|%MONGO_STANDINGS_DB%||" \
+	-e "s|%MONGO_STANDINGS_USER%||" \
+	-e "s|%MONGO_STANDINGS_PASSWORD%|${standings_mongo_auth}|" \
+	-e "s|%MONGO_LOG_HOST%||" \
+	-e "s|%MONGO_LOG_DB%||" \
+	-e "s|%MONGO_LOG_COLLECTION%||" \
+	-e "s|%DIALER_SECRET%|${dialer_secret}|" \
+	"/${linkname}" || exit 1
+done
+
+for i in issocketserver:override.yml; do
+	filename="home/deployer/stash/cfg/instance-config/${hostname_prefix::3}/${i%:*}.${i#*:}"
+	linkname="home/deployer/git/${i%:*}/${i#*:}"
+	echo "--- ${linkname} (replace)"
+	sudo -u deployer cp "/${filename}" "/${linkname}" || exit 1
+done
