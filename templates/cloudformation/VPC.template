@@ -18,10 +18,18 @@
 			"Type":"String",
 			"Description" : "ID of the Virtual Gateway attached to the DirectConnect interface."
 		},
+		"NATAMI" : {
+			"Type" : "String",
+			"Default" : "ami-ef76e898"
+		},
 		"NATInstanceType" : {
 			"Type" : "String",
 			"AllowedValues" : [ "t2.small", "t2.medium", "t2.large", "m3.medium" ],
 			"Default" : "m3.medium"
+		},
+		"DNSAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
 		},
 		"DNSInstanceType" : {
 			"Type" : "String",
@@ -36,7 +44,7 @@
 			"Type" : "String",
 			"Description" : "Allocation ID of the elastic IP address for the secondary DNS server."
 		},
-		"Key" : {
+		"SSHKey" : {
 			"Type" : "AWS::EC2::KeyPair::KeyName",
 			"Default" : "Bart Moorman"
 		},
@@ -59,12 +67,6 @@
 		"Constants" : {
 			"InstanceProfiles" : {
 				"NsServer" : "nsServer"
-			}
-		},
-		"AMIs" : {
-			"eu-west-1" : {
-				"NAT" : "ami-ef76e898",
-				"DNS" : "ami-d1dc86a6"
 			}
 		},
 		"Naming" : {
@@ -460,7 +462,7 @@
 		"NATIinstance" : {
 		    "Type" : "AWS::EC2::Instance",
 		    "Properties" : {
-		        "ImageId" : { "Fn::FindInMap" : [ "AMIs", { "Ref" : "AWS::Region" }, "NAT" ] },
+		        "ImageId" : { "Ref" : "NATAMI" },
 		        "InstanceType" : { "Ref" : "NATInstanceType" },
 				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone" ]},
 				"NetworkInterfaces" : [ {
@@ -472,7 +474,7 @@
 				} ],
 				"SourceDestCheck" : false,
 				"DisableApiTermination" : { "Ref" : "TerminationProtection" },
-				"KeyName" : { "Ref" : "Key" },
+				"KeyName" : { "Ref" : "SSHKey" },
 				"Tags" : [ { "Key" : "Name", "Value" : "NAT Instance" } ]
 		    }
 		},
@@ -527,7 +529,7 @@
 			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M" } },
 			"DependsOn" : "DNSServerAEIPAssociation",
 		    "Properties" : {
-		        "ImageId" : { "Fn::FindInMap" : [ "AMIs" , { "Ref" : "AWS::Region" }, "DNS" ] },
+		        "ImageId" : { "Ref" : "DNSAMI" },
 		        "InstanceType" : { "Ref" : "DNSInstanceType" },
 				"AvailabilityZone" : { "Fn::GetAtt" : [ "PublicSubnetA", "AvailabilityZone" ] },
 				"NetworkInterfaces" : [
@@ -535,7 +537,7 @@
 				],
 				"DisableApiTermination" : { "Ref" : "TerminationProtection" },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "NsServer"] },
-				"KeyName" : { "Ref" : "Key" },
+				"KeyName" : { "Ref" : "SSHKey" },
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" :  { "Fn::Join" : [ "", [
 					{ "Ref" : "AWS::StackName" },
@@ -583,7 +585,7 @@
 			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 			"DependsOn" : "DNSServerBEIPAssociation",
 		    "Properties" : {
-		        "ImageId" : {"Fn::FindInMap" : [ "AMIs" , { "Ref" : "AWS::Region" }, "DNS"] },
+		        "ImageId" : { "Ref" : "DNSAMI" },
 		        "InstanceType" : { "Ref" : "DNSInstanceType" },
 				"AvailabilityZone" : {"Fn::GetAtt" : [ "PublicSubnetB", "AvailabilityZone"]},
 				"NetworkInterfaces" : [
@@ -591,7 +593,7 @@
 				],
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "NsServer"] },
-				"KeyName" : { "Ref" : "Key" },
+				"KeyName" : { "Ref" : "SSHKey" },
 				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2" } } ],
 				"Tags" : [ { "Key" : "Name", "Value" :  { "Fn::Join" : [ "", [
 					{ "Ref" : "AWS::StackName" },
@@ -640,7 +642,7 @@
 	"Outputs" : {
 		"VPC" : { "Value" : { "Ref" : "VPC" } },
 		"VPCCIDR" : { "Value" : { "Fn::Join" : [ "", [ "10.", { "Ref" : "CIDR2ndOctet" }, ".0.0/16" ] ] } },
-		"Key" : { "Value" : { "Ref" : "Key" } },
+		"SSHKey" : { "Value" : { "Ref" : "SSHKey" } },
 		"PublicSubnetA" : { "Value" : { "Ref" : "PublicSubnetA" } },
 		"PublicSubnetB" : { "Value" : { "Ref" : "PublicSubnetB" } },
 		"PublicSubnetC" : { "Value" : { "Ref" : "PublicSubnetC" } },

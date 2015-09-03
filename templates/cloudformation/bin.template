@@ -8,6 +8,10 @@
 			"Description" : "The target environment for this stack",
 			"AllowedValues" : [ "eu1iec1" ]
 		},
+		"BinAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
+		},
 		"TerminationProtection" : {
 			"Type" : "String",
 			"AllowedValues" : [ "true", "false" ],
@@ -19,11 +23,6 @@
 		"Constants" : {
 			"InstanceProfiles" : {
 				"BinServer" : "binServer"
-			}
-		},
-		"AMIs" : {
-			"eu-west-1" : {
-				"Bin" : "ami-d1dc86a6"
 			}
 		}
 	},
@@ -55,9 +54,9 @@
 		    "Type" : "AWS::EC2::Instance",
 			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M" } },
 		    "Properties" : {
-		        "ImageId" :  { "Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Bin" ] },
+		        "ImageId" : { "Ref" : "BinAMI" },
 		        "InstanceType" :  "c4.8xlarge",
-				"KeyName" : { "Fn::GetAtt" : [ "Environment", "Key" ] },
+				"KeyName" : { "Fn::GetAtt" : [ "Environment", "SSHKey" ] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "BinServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

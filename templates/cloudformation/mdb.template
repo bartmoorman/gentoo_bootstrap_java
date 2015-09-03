@@ -8,6 +8,10 @@
 			"Description" : "The target environment for this stack",
 			"AllowedValues" : [ "eu1iec1" ]
 		},
+		"DatabaseAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
+		},
 		"TerminationProtection" : {
 			"Type" : "String",
 			"AllowedValues" : [ "true", "false" ],
@@ -24,11 +28,6 @@
 		"Constants" : {
 			"InstanceProfiles" : {
 				"DatabaseServer" : "mdbServer"
-			}
-		},
-		"AMIs" : {
-			"eu-west-1" : {
-				"Database" : "ami-d1dc86a6"
 			}
 		}
 	},
@@ -103,9 +102,9 @@
 		"DBServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Database"] },
+		        "ImageId" : { "Ref" : "DatabaseAMI" },
 		        "InstanceType" :  "r3.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -183,9 +182,9 @@
 		"DBServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Database"] },
+		        "ImageId" : { "Ref" : "DatabaseAMI" },
 		        "InstanceType" :  "r3.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -264,9 +263,9 @@
 		"DBServerC" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Database"] },
+		        "ImageId" : { "Ref" : "DatabaseAMI" },
 		        "InstanceType" :  "r3.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

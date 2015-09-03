@@ -8,9 +8,21 @@
 			"Description" : "The target environment for this stack",
 			"AllowedValues" : ["eu1iec1"]
 		},
+		"DeployAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
+		},
+		"MonitorAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
+		},
 		"MonitorServerExistingEIP" : {
 			"Type" : "String",
 			"Description" : "Allocation ID of the elastic IP address for the Monitor server."
+		},
+		"StatsAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
 		},
 		"TerminationProtection" : {
 			"Type" : "String",
@@ -30,13 +42,6 @@
 				"StatsServer" : "statsServer",
 				"MonitorServer" : "monitorServer",
 				"DeployServer" : "deployServer"
-			}
-		},
-		"AMIs" : {
-			"eu-west-1" : {
-				"Stats" : "ami-d1dc86a6",
-				"Monitor" : "ami-d1dc86a6",
-				"Deploy" : "ami-d1dc86a6"
 			}
 		}
 	},
@@ -95,9 +100,9 @@
 		    "Type" : "AWS::EC2::Instance",
 			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M" } },
 		    "Properties" : {
-		        "ImageId" : { "Fn::FindInMap" : [ "AMIs", { "Ref" : "AWS::Region" }, "Stats" ] },
+		        "ImageId" : { "Ref" : "StatsAMI" },
 		        "InstanceType" : "m4.2xlarge",
-				"KeyName" : { "Fn::GetAtt" : [ "Environment", "Key" ] },
+				"KeyName" : { "Fn::GetAtt" : [ "Environment", "SSHKey" ] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "StatsServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" : true,
@@ -163,9 +168,9 @@
 		    "Type" : "AWS::EC2::Instance",
 			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Stats"] },
+		        "ImageId" : { "Ref" : "StatsAMI" },
 		        "InstanceType" :  "m4.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "StatsServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -225,9 +230,9 @@
 			"DependsOn" : "MonitorServerEIPAssociation",
 			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Monitor"] },
+		        "ImageId" : { "Ref" : "MonitorAMI" },
 		        "InstanceType" :  "c3.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MonitorServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -274,9 +279,9 @@
 		"DeployServer" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Deploy"] },
+		        "ImageId" : { "Ref" : "DeployAMI" },
 		        "InstanceType" :  "t2.medium",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DeployServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

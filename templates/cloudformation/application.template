@@ -13,6 +13,22 @@
 			"AllowedValues" : [ "true", "false" ],
 			"Default" : "false"
 		},
+		"JpAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
+		},
+		"SocketAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
+		},
+		"WebAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
+		},
+		"WorkerAMI" : {
+			"Type" : "String",
+			"Default" : "ami-d1dc86a6"
+		},
 		"Certificate" : {
 			"Type" : "String",
 			"Description" : "The SSL certificate name",
@@ -28,14 +44,6 @@
 				"WebServer" : "webServer",
 				"WorkerServer" : "workerServer",
 				"SocketServer" : "socketServer"
-			}
-		},
-		"AMIs" : {
-			"eu-west-1" : {
-				"Jp" : "ami-d1dc86a6",
-				"Web" : "ami-d1dc86a6",
-				"Worker" : "ami-d1dc86a6",
-				"Socket" : "ami-d1dc86a6"
 			}
 		}
 	},
@@ -103,9 +111,9 @@
 		"JpServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Jp"] },
+		        "ImageId" : { "Ref" : "JpAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "JpServer" ] },
 				"DisableApiTermination" : { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -151,9 +159,9 @@
 		    "Type" : "AWS::EC2::Instance",
 			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Jp"] },
+		        "ImageId" : { "Ref" : "JpAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "JpServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -199,9 +207,9 @@
 		    "Type" : "AWS::EC2::Instance",
 			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
+		        "ImageId" : { "Ref" : "WebAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -248,9 +256,9 @@
 		"WebServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
+		        "ImageId" : { "Ref" : "WebAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -297,9 +305,9 @@
 		"WebServerC" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
+		        "ImageId" : { "Ref" : "WebAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" : true,
@@ -346,9 +354,9 @@
 		"WebServerD" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
+		        "ImageId" : { "Ref" : "WebAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -431,9 +439,9 @@
 		"WorkerServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Worker"] },
+		        "ImageId" : { "Ref" : "WorkerAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WorkerServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -481,9 +489,9 @@
 		"WorkerServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Worker"] },
+		        "ImageId" : { "Ref" : "WorkerAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WorkerServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -531,9 +539,9 @@
 		"SocketServerA" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Socket"] },
+		        "ImageId" : { "Ref" : "SocketAMI" },
 		        "InstanceType" :  "r3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -578,9 +586,9 @@
 		"SocketServerB" : {
 		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
 		    "Properties" : {
-		        "ImageId" :  {"Fn::FindInMap" : [ "AMIs" ,  { "Ref" : "AWS::Region" }, "Web"] },
+		        "ImageId" : { "Ref" : "SocketAMI" },
 		        "InstanceType" :  "r3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "Key"] },
+				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
