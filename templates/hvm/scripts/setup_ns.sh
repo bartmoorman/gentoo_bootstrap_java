@@ -163,7 +163,7 @@ echo "done! :)"
 
 echo -n "Waiting for ${peer%:*}..."
 
-while true; do
+while [ true ]; do
 	gluster peer probe ${peer%:*} &> /dev/null && break
 
 	if [ "${counter}" -ge "${timeout}" ]; then

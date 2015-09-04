@@ -1,0 +1,356 @@
+#!/bin/bash
+#aws s3 rb s3://eu1iec1-backup-765195413633
+#aws s3 rb s3://eu1iec1-files-765195413633
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/VPC.template' \
+--parameters \
+'ParameterKey=CIDR2ndOctet,ParameterValue=12' \
+'ParameterKey=DirectConnectVGW,ParameterValue=vgw-ecfecf98' \
+'ParameterKey=DNSAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=DNSInstanceType,ParameterValue=t2.medium' \
+'ParameterKey=DNSServerAExistingEIP,ParameterValue=eipalloc-815082e4' \
+'ParameterKey=DNSServerBExistingEIP,ParameterValue=eipalloc-4951832c' \
+'ParameterKey=Environment,ParameterValue=Production' \
+'ParameterKey=NATAMI,ParameterValue=ami-ef76e898' \
+'ParameterKey=NATInstanceType,ParameterValue=m3.medium' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'VPC stack started. :)'
+else
+	echo $(date) 'VPC stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+sleep=60
+counter=0
+timeout=5400
+
+echo -n $(date) 'Waiting for VPC stack to finish...'
+
+while [ true ]; do
+	if [ "${counter}" -ge "${timeout}" ]; then
+		echo 'timeout! :('
+		exit 1
+	fi
+
+	stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name 'eu1iec1' 2> /dev/null)
+
+	if [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+		break
+	elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+		echo 'failed! :('
+		exit 1
+	fi
+
+	echo -n '.'
+	sleep ${sleep}
+	counter=$(bc <<< "${counter} + ${sleep}")
+done
+
+echo 'finished! :)'
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1systems' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/systems.template' \
+--parameters \
+'ParameterKey=SystemsAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'Systems stack started. :)'
+else
+	echo $(date) 'Systems stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+sleep=60
+counter=0
+timeout=5400
+
+echo -n $(date) 'Waiting for Systems stack to finish...'
+
+while [ true ]; do
+	if [ "${counter}" -ge "${timeout}" ]; then
+		echo 'timeout! :('
+		exit 1
+	fi
+
+	stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name 'eu1iec1systems' 2> /dev/null)
+
+	if [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+		break
+	elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+		echo 'failed! :('
+		exit 1
+	fi
+
+	echo -n '.'
+	sleep ${sleep}
+	counter=$(bc <<< "${counter} + ${sleep}")
+done
+
+echo 'finished! :)'
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1application' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/application.template' \
+--parameters \
+'ParameterKey=Certificate,ParameterValue=InsideSalesEU1' \
+'ParameterKey=JpAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=SocketAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+'ParameterKey=WebAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=WorkerAMI,ParameterValue=ami-fbdcfb8c' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'Application stack started. :)'
+	stacks+=('eu1iec1application')
+else
+	echo $(date) 'Application stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1core' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/core.template' \
+--parameters \
+'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+'ParameterKey=DeployAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=MonitorAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=MonitorServerExistingEIP,ParameterValue=eipalloc-875082e2' \
+'ParameterKey=StatsAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'Core stack started. :)'
+	stacks+=('eu1iec1core')
+else
+	echo $(date) 'Core stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1dialer' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/dialer.template' \
+--parameters \
+'ParameterKey=EhAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=InboundAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=MqAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=SipAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'Dialer stack started. :)'
+	stacks+=('eu1iec1dialer')
+else
+	echo $(date) 'Dialer stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1pub' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/pub.template' \
+--parameters \
+'ParameterKey=Certificate,ParameterValue=InsideSalesEU1' \
+'ParameterKey=PubAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'Pub stack started. :)'
+	stacks+=('eu1iec1pub')
+else
+	echo $(date) 'Pub stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1mdb1' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/mdb.template' \
+--parameters \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'MongoDB (mdb1) stack started. :)'
+	stacks+=('eu1iec1mdb1')
+else
+	echo $(date) 'MongoDB (mdb1) stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1db1' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
+--parameters \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'MySQL (db1) stack started. :)'
+	stacks+=('eu1iec1db1')
+else
+	echo $(date) 'MySQL (db1) stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1db2' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
+--parameters \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'MySQL (db2) stack started. :)'
+	stacks+=('eu1iec1db2')
+else
+	echo $(date) 'MySQL (db2) stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1db3' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
+--parameters \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'MySQL (db3) stack started. :)'
+	stacks+=('eu1iec1db3')
+else
+	echo $(date) 'MySQL (db3) stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1db4' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
+--parameters \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'MySQL (db4) stack started. :)'
+	stacks+=('eu1iec1db4')
+else
+	echo $(date) 'MySQL (db4) stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+aws \
+--output 'text' \
+cloudformation \
+create-stack \
+--stack-name 'eu1iec1db5' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
+--parameters \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-fbdcfb8c' \
+'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+'ParameterKey=TerminationProtection,ParameterValue=false' \
+--on-failure 'DO_NOTHING' &> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo $(date) 'MySQL (db5) stack started. :)'
+	stacks+=('eu1iec1db5')
+else
+	echo $(date) 'MySQL (db5) stack creation failed. Please check the AWS Management Console. :('
+	exit 1
+fi
+
+sleep=60
+counter=0
+timeout=5400
+
+echo -n $(date) "Waiting for ${#stacks[@]} stacks to finish..."
+
+while [ "${#stacks[@]}" -gt 0 ]; do
+	if [ "${counter}" -ge "${timeout}" ]; then
+		echo 'timeout! :('
+		exit 1
+	fi
+
+	for stack in "${!stacks[@]}"; do
+		stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stacks[stack]}" 2> /dev/null)
+
+		if [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+			echo -n "${stacks[stack]}..."
+			unset stacks[stack]
+		elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+			echo "failed (${stacks[stack]})! :("
+			exit 1
+		fi
+
+		sleep 1
+		counter=$(bc <<< "${counter} + 1")
+	done
+
+	echo -n '.'
+	sleep ${sleep}
+	counter=$(bc <<< "${counter} + ${sleep}")
+done
+
+echo 'finished! :)'
