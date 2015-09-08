@@ -207,6 +207,12 @@ sed -i -r \
 -e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "${filename}"
 
+<#assign filename = "/etc/fail2ban/jail.d/sshd.conf">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/etc/fail2ban/jail.d/sshd.conf.ftl">
+EOF
+
 <#assign filename = "/etc/hosts.allow">
 echo "--- ${filename} (append)"
 cp "${filename}" "${filename}.orig"
@@ -214,6 +220,8 @@ cat <<'EOF'>>"${filename}"
 
 nrpe: 10.0.0.0/8
 EOF
+
+rc-update add fail2ban default
 
 nrpe_file="$(mktemp)"
 cat <<'EOF'>"<#noparse>${nrpe_file}</#noparse>"
