@@ -119,8 +119,7 @@ mkdir -p "/${dirname}"
 filename="etc/portage/package.keywords/glusterfs"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
-dev-libs/userspace-rcu
-sys-cluster/glusterfs
+<=sys-cluster/glusterfs-3.7
 EOF
 
 mirrorselect -D -c Ireland -R Europe -s5 || exit 1
