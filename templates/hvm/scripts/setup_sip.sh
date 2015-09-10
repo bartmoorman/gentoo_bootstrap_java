@@ -73,6 +73,7 @@ mkdir -p "/${dirname}"
 filename="etc/portage/package.keywords/glusterfs"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
+dev-libs/userspace-rcu
 sys-cluster/glusterfs
 EOF
 

@@ -11,7 +11,7 @@ create-stack \
 --parameters \
 'ParameterKey=CIDR2ndOctet,ParameterValue=12' \
 'ParameterKey=DirectConnectVGW,ParameterValue=vgw-ecfecf98' \
-'ParameterKey=DNSAMI,ParameterValue=ami-57406620' \
+'ParameterKey=DNSAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=DNSInstanceType,ParameterValue=t2.medium' \
 'ParameterKey=DNSServerAExistingEIP,ParameterValue=eipalloc-815082e4' \
 'ParameterKey=DNSServerBExistingEIP,ParameterValue=eipalloc-4951832c' \
@@ -63,7 +63,7 @@ create-stack \
 --stack-name 'eu1iec1systems' \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/systems.template' \
 --parameters \
-'ParameterKey=SystemsAMI,ParameterValue=ami-57406620' \
+'ParameterKey=SystemsAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
@@ -111,7 +111,7 @@ create-stack \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/pub.template' \
 --parameters \
 'ParameterKey=Certificate,ParameterValue=InsideSalesEU1' \
-'ParameterKey=PubAMI,ParameterValue=ami-57406620' \
+'ParameterKey=PubAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
@@ -132,10 +132,10 @@ create-stack \
 --stack-name 'eu1iec1dialer' \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/dialer.template' \
 --parameters \
-'ParameterKey=EhAMI,ParameterValue=ami-57406620' \
-'ParameterKey=InboundAMI,ParameterValue=ami-57406620' \
-'ParameterKey=MqAMI,ParameterValue=ami-57406620' \
-'ParameterKey=SipAMI,ParameterValue=ami-57406620' \
+'ParameterKey=EhAMI,ParameterValue=ami-2d6d4e5a' \
+'ParameterKey=InboundAMI,ParameterValue=ami-2d6d4e5a' \
+'ParameterKey=MqAMI,ParameterValue=ami-2d6d4e5a' \
+'ParameterKey=SipAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
@@ -157,12 +157,12 @@ create-stack \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/application.template' \
 --parameters \
 'ParameterKey=Certificate,ParameterValue=InsideSalesEU1' \
-'ParameterKey=JpAMI,ParameterValue=ami-57406620' \
-'ParameterKey=SocketAMI,ParameterValue=ami-57406620' \
+'ParameterKey=JpAMI,ParameterValue=ami-2d6d4e5a' \
+'ParameterKey=SocketAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
-'ParameterKey=WebAMI,ParameterValue=ami-57406620' \
-'ParameterKey=WorkerAMI,ParameterValue=ami-57406620' \
+'ParameterKey=WebAMI,ParameterValue=ami-2d6d4e5a' \
+'ParameterKey=WorkerAMI,ParameterValue=ami-2d6d4e5a' \
 --on-failure 'DO_NOTHING' > /dev/null
 
 if [ $? -eq 0 ]; then
@@ -181,7 +181,7 @@ create-stack \
 --stack-name 'eu1iec1mdb1' \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/mdb.template' \
 --parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-57406620' \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
@@ -204,10 +204,10 @@ create-stack \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/core.template' \
 --parameters \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
-'ParameterKey=DeployAMI,ParameterValue=ami-57406620' \
-'ParameterKey=MonitorAMI,ParameterValue=ami-57406620' \
+'ParameterKey=DeployAMI,ParameterValue=ami-2d6d4e5a' \
+'ParameterKey=MonitorAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=MonitorServerExistingEIP,ParameterValue=eipalloc-875082e2' \
-'ParameterKey=StatsAMI,ParameterValue=ami-57406620' \
+'ParameterKey=StatsAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
@@ -228,7 +228,7 @@ create-stack \
 --stack-name 'eu1iec1db1' \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
 --parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-57406620' \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
@@ -250,7 +250,7 @@ create-stack \
 --stack-name 'eu1iec1db2' \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
 --parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-57406620' \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
@@ -272,7 +272,7 @@ create-stack \
 --stack-name 'eu1iec1db3' \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
 --parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-57406620' \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
@@ -294,7 +294,7 @@ create-stack \
 --stack-name 'eu1iec1db4' \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
 --parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-57406620' \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
@@ -316,7 +316,7 @@ create-stack \
 --stack-name 'eu1iec1db5' \
 --template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
 --parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-57406620' \
+'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
 'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
