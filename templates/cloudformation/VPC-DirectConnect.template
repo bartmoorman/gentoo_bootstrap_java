@@ -14,6 +14,10 @@
 			"Type" : "String",
 			"AllowedValues" : [ "Beta", "Alpha", "Production" ]
 		},
+		"DirectConnectVGW" : {
+			"Type":"String",
+			"Description" : "ID of the Virtual Gateway attached to the DirectConnect interface."
+		},
 		"NATAMI" : {
 			"Type" : "String",
 			"Default" : "ami-ef76e898"
@@ -407,6 +411,24 @@
 				"SubnetId" : { "Ref" : "DbSubnetC" },
 				"RouteTableId" : { "Ref" : "PrivateRouteTable" }
 			}
+		},
+		"GatewayToOnpremise" : {
+		    "Type" : "AWS::EC2::VPCGatewayAttachment",
+		    "Properties" : {
+		        "VpcId" : { "Ref" : "VPC" },
+		        "VpnGatewayId" : { "Ref" : "DirectConnectVGW" }
+		    }
+		},
+		"OnpremiseGatewayRoutePropagation" : {
+		    "Type" : "AWS::EC2::VPNGatewayRoutePropagation",
+			"DependsOn" : "GatewayToOnpremise",
+		    "Properties" : {
+		        "VpnGatewayId" : { "Ref" : "DirectConnectVGW" },
+				"RouteTableIds" : [
+					{ "Ref" : "PublicRouteTable" },
+					{ "Ref" : "PrivateRouteTable" }
+				]
+		    }
 		},
 		"RemoteAccessSG" : {
 		    "Type" : "AWS::EC2::SecurityGroup",
