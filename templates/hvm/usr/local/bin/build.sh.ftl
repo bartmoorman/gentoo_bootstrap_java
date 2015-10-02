@@ -340,6 +340,14 @@ cat <<'EOF'>"${filename}"
 <#include "/keys/sdibb.ftl">
 EOF
 
+useradd -g users -G wheel -m dstarnes
+
+<#assign filename = "/home/dstarnes/.ssh/authorized_keys">
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"${filename}"
+<#include "/keys/dstarnes.ftl">
+EOF
+
 useradd -g users -G wheel -m deployer
 
 <#assign filename = "/home/deployer/.ssh/authorized_keys">

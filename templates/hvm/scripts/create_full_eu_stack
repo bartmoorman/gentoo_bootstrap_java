@@ -7,7 +7,7 @@ aws \
 cloudformation \
 create-stack \
 --stack-name 'eu1iec1' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/VPC.template' \
+--template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/VPC-DirectConnect.template' \
 --parameters \
 'ParameterKey=CIDR2ndOctet,ParameterValue=12' \
 'ParameterKey=DirectConnectVGW,ParameterValue=vgw-ecfecf98' \
