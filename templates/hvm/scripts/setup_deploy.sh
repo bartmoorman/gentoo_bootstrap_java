@@ -26,6 +26,11 @@ name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
+filename="usr/local/bin/encrypt_decrypt"
+functions_file="$(mktemp)"
+curl -sf -o "${functions_file}" "${scripts}/${filename}" || exit 1
+source "${functions_file}"
+
 dirname="etc/portage/repos.conf"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
@@ -139,6 +144,20 @@ for i in canderson mkendzior nthompson tdavis; do
 ${i} ALL=(deployer) NOPASSWD: /usr/local/bin/release, /usr/local/bin/composer, /usr/bin/git
 EOF
 done
+
+user="deployer"
+app="ssh"
+type="key"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="home/${user}/.ssh/id_rsa"
+echo "--- ${filename} (replace)"
+cat <<<'EOF'>"/${filename}"
+${deployer_ssh_key}
+EOF
+chmod 600 "/${filename}" || exit 1
+chown ${user}: "/${filename}" || exit 1
 
 yes "" | emerge --config mail-mta/netqmail || exit 1
 
