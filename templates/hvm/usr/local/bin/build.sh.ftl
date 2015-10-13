@@ -278,12 +278,6 @@ rc-update add ntpd default
 
 dnscache-conf dnscache dnslog /var/dnscache 127.0.0.1
 
-<#assign filename = "/var/dnscache/root/servers/@">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/var/dnscache/root/servers/@.ftl">
-EOF
-
 <#assign filename = "/var/dnscache/root/servers/amazonaws.com">
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"

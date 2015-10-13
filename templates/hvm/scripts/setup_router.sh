@@ -22,6 +22,16 @@ name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
+declare "$(dhcpcd -4T eth0 | grep ^new_domain_name_servers | tr -d \')"
+
+svc -d /service/dnscache || exit 1
+
+filename="var/dnscache/root/servers/@"
+echo "--- ${filename} (replace)"
+tr ' ' '\n' <<< "${new_domain_name_servers}" > "/${filename}"
+
+svc -u /service/dnscache || exit 1
+
 emerge -q --sync || exit 1
 
 dirname="etc/portage/repos.conf"

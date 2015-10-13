@@ -29,6 +29,16 @@ scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/t
 echo "Not implementing as of 08/03/2015"
 exit 1
 
+declare "$(dhcpcd -4T eth0 | grep ^new_domain_name_servers | tr -d \')"
+
+svc -d /service/dnscache || exit 1
+
+filename="var/dnscache/root/servers/@"
+echo "--- ${filename} (replace)"
+tr ' ' '\n' <<< "${new_domain_name_servers}" > "/${filename}"
+
+svc -u /service/dnscache || exit 1
+
 yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
