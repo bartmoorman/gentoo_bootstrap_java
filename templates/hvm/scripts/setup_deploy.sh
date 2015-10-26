@@ -108,7 +108,7 @@ filename="usr/local/bin/composer"
 echo "--- ${filename} (replace)"
 composer_file="$(mktemp)"
 curl -sf -o "${composer_file}" "https://getcomposer.org/installer" || exit 1
-php "${composer_file}" -- --install-dir="/${filename%/*}" --filename="${filename##*/}" || exit 1
+php "${composer_file}" -- --install-dir="/${filename%/*}" --filename="${filename##*/}" --version="1.0-dev" || exit 1
 
 nrpe_file="$(mktemp)"
 cat <<'EOF'>"${nrpe_file}"
