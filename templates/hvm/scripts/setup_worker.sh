@@ -72,7 +72,6 @@ dev-php/PEAR-Mail
 dev-php/PEAR-Mail_Mime
 dev-php/PEAR-Spreadsheet_Excel_Writer
 dev-php/pear
-dev-php/smarty
 dev-python/mysql-python
 dev-qt/qtwebkit:4
 net-libs/libssh2

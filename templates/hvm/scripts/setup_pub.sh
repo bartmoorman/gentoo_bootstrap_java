@@ -83,7 +83,6 @@ dev-php/PEAR-Mail
 dev-php/PEAR-Mail_Mime
 dev-php/PEAR-Spreadsheet_Excel_Writer
 dev-php/pear
-dev-php/smarty
 dev-python/mysql-python
 dev-qt/qtwebkit:4
 net-libs/libssh2
@@ -256,7 +255,16 @@ sed -i -r \
 -e "s|^;(date\.timezone\s+\=).*|\1 America/Denver|" \
 "/${filename}" || exit 1
 
-dirname="usr/share/php/smarty"
+smarty_file="$(mktemp)"
+curl -sf -o "${smarty_file}" "https://github.com/smarty-php/smarty/archive/v2.6.28.tar.gz" || exit 1
+tar xzf "${smarty_file}" -C "/usr/share/php" || exit 1
+
+dirname="usr/share/php/smarty-2.6.28"
+linkname="usr/share/php/smarty"
+echo "--- ${linkname} -> ${dirname} (softlink)"
+ln -s "/${dirname}/" "/${linkname}" || exit 1
+
+dirname="usr/share/php/smarty-2.6.28"
 linkname="usr/share/php/Smarty"
 echo "--- ${linkname} -> ${dirname} (softlink)"
 ln -s "/${dirname}/" "/${linkname}" || exit 1
@@ -275,6 +283,8 @@ sed -i -r \
 -e "s|^(Timeout\s+).*|\130|" \
 -e "s|^(KeepAliveTimeout\s+).*|\13|" \
 -e "s|^(ServerSignature\s+).*|\1Off|" \
+-e "\|<Directory\s+/>|,\|</Directory>|s|^(\s+Order\s+deny,allow)|#\1|" \
+-e "\|<Directory\s+/>|,\|</Directory>|s|^(\s+Deny\s+from\s+all)|#\1|" \
 "/${filename}" || exit 1
 
 log_config_file="$(mktemp)"
