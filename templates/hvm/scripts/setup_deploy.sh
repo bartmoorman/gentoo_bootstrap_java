@@ -62,6 +62,7 @@ dev-libs/libmemcached
 dev-php/pear
 dev-vcs/git
 net-libs/libssh2
+net-libs/nodejs
 sys-fs/s3fs
 EOF
 
@@ -69,6 +70,12 @@ filename="etc/portage/package.use/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached sasl
+EOF
+
+filename="etc/portage/package.use/php"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+dev-lang/php bcmath calendar curl exif ftp gd inifile intl mysql mysqli pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
 EOF
 
 dirname="etc/portage/package.keywords"
@@ -168,6 +175,16 @@ ${deployer_ssh_key}
 EOF
 chmod 600 "/${filename}" || exit 1
 chown ${user}: "/${filename}" || exit 1
+
+dirname="var/log/release"
+echo "--- ${dirname} (create)"
+mkdir -p "/${dirname}"
+chown ${user}: "/${dirname}"
+
+dirname="var/log/apache2"
+echo "--- ${dirname} (create)"
+mkdir -p "/${dirname}"
+chown ${user}: "/${dirname}"
 
 yes "" | emerge --config mail-mta/netqmail || exit 1
 

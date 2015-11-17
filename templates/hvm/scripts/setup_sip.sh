@@ -235,6 +235,7 @@ cat <<'EOF'>"/${filename}"
 
 * * * * *	/usr/lib64/sa/sa1 5 12
 55 23 * * *	/usr/lib64/sa/sa2
+* * * * *	[ -f /etc/asterisk/scripts/log_sip_messages.php ] && cd /etc/asterisk/scripts/ && php log_sip_messages.php
 EOF
 touch "/${filename%/*}" || exit 1
 

@@ -55,6 +55,7 @@ cat <<'EOF'>>"/${filename}"
 dev-libs/libmemcached
 dev-php/pear
 net-libs/libssh2
+net-libs/nodejs
 sys-fs/s3fs
 www-servers/tomcat
 EOF

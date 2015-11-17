@@ -40,7 +40,7 @@ dirname="home/deployer/git"
 echo "--- ${dirname} (create)"
 sudo -u deployer mkdir -p "/${dirname}" || exit 1
 
-for i in accounting:atom/accounting arkapi:si/arkapi atom:atom/sysadmin commsworkers:com/commsworkers dialerapp:pdms/dialer-app idm:plat/identity-management-app issocketserver:ps/issocketserver iswsi:com/iswebserviceintegration mac:plat/mac nvapi:nv/neuralvisionapi sta:cor/sales-team-automation websocket:ps/psnotificationserver; do
+for i in accounting:atom/accounting arkapi:si/arkapi atom:atom/sysadmin billing:atom/billing cdn:cdn/cdn commsworkers:com/commsworkers dialerapp:pdms/dialer-app idm:plat/identity-management-app issocketserver:ps/issocketserver issocketserver_ps_dashboards:ps/issocketserver issocketserver_ps_leaderboards:ps/issocketserver issocketserver_ps_notifications:ps/issocketserver issocketserver_ps_standings:ps/issocketserver iswsi:com/iswebserviceintegration mac:plat/mac nvapi:nv/neuralvisionapi sta:cor/sales-team-automation websocket:ps/psnotificationserver; do
 	dirname="home/deployer/stash/${i#*:}"
 	echo "--- ${i#*:} (clone)"
 	sudo -u deployer git clone "ssh://git@stash.is.com:7999/${i#*:}.git" "/${dirname}" || exit 1

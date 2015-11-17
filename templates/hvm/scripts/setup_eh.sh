@@ -36,6 +36,11 @@ tr ' ' '\n' <<< "${new_domain_name_servers}" > "/${filename}"
 
 svc -u /service/dnscache || exit 1
 
+filename="usr/local/bin/encrypt_decrypt"
+functions_file="$(mktemp)"
+curl -sf -o "${functions_file}" "${scripts}/${filename}" || exit 1
+source "${functions_file}"
+
 dirname="etc/portage/repos.conf"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
@@ -68,7 +73,7 @@ EOF
 filename="etc/portage/package.use/php"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
-dev-lang/php bcmath calendar curl exif ftp gd inifile intl pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
+dev-lang/php bcmath calendar curl exif ftp gd inifile intl mysql mysqli pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
 EOF
 
 dirname="etc/portage/package.keywords"
@@ -103,6 +108,27 @@ dirname="mnt/s3"
 echo "--- ${dirname} (mount)"
 mkdir -p "/${dirname}"
 mount "/${dirname}" || exit 1
+
+dirname="opt/keys"
+echo "--- ${dirname} (create)"
+mkdir -p "/${dirname}"
+
+user="asterisk"
+app="ssh"
+type="key"
+echo "-- ${user} ${app}_${type} (decrypt)"
+declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
+
+filename="opt/keys/recordings.id_rsa.priv"
+echo "--- ${filename} (replace)"
+cat <<<'EOF'>"/${filename}"
+${asterisk_ssh_key}
+EOF
+chmod 600 "/${filename}" || exit 1
+
+filename="opt/keys/recordings.id_rsa.pub"
+echo "--- ${filename} (replace)"
+curl -sf -o "/${filename}" "${scripts}/keys/asterisk" || exit 1
 
 filename="etc/conf.d/memcached"
 echo "--- ${filename} (modify)"

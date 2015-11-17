@@ -101,7 +101,7 @@ sed -i -r \
 filename="etc/portage/package.use/php"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
-dev-lang/php bcmath calendar curl exif ftp gd inifile intl pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
+dev-lang/php bcmath calendar curl exif ftp gd inifile intl mysql mysqli pcntl pdo sharedmem snmp soap sockets spell sysvipc truetype xmlreader xmlrpc xmlwriter zip
 EOF
 
 dirname="etc/portage/package.keywords"
@@ -124,6 +124,8 @@ sed -i -r \
 
 #emerge -uDNg @system @world || emerge --resume || exit 1
 emerge -uDN @system @world || emerge --resume || exit 1
+
+pip install virtualenv
 
 filename="etc/fstab"
 echo "--- ${filename} (append)"
