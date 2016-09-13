@@ -327,20 +327,12 @@ cat <<'EOF'>"${filename}"
 <#include "/keys/npeterson.ftl">
 EOF
 
-useradd -g users -G wheel -m sdibb
+useradd -g users -G wheel -m khammond
 
-<#assign filename = "/home/sdibb/.ssh/authorized_keys">
+<#assign filename = "/home/khammond/.ssh/authorized_keys">
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"${filename}"
-<#include "/keys/sdibb.ftl">
-EOF
-
-useradd -g users -G wheel -m dstarnes
-
-<#assign filename = "/home/dstarnes/.ssh/authorized_keys">
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"${filename}"
-<#include "/keys/dstarnes.ftl">
+<#include "/keys/khammond.ftl">
 EOF
 
 useradd -g users -G wheel -m deployer

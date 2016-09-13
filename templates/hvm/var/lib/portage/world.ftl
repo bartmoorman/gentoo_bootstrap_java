@@ -16,6 +16,7 @@ dev-python/setuptools
 net-analyzer/fail2ban
 net-analyzer/nrpe
 net-dns/djbdns
+net-misc/curl
 net-misc/dhcpcd
 net-misc/ntp
 sys-apps/mlocate

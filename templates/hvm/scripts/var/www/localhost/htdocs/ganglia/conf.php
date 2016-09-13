@@ -29,7 +29,5 @@ $acl->addPrivateCluster('Worker');
 
 $acl->addRole('bmoorman', GangliaAcl::ADMIN);
 $acl->addRole('npeterson', GangliaAcl::ADMIN);
-$acl->addRole('sdibb', GangliaAcl::ADMIN);
-$acl->addRole('tlosee', GangliaAcl::ADMIN);
 $acl->addRole('tpurdy', GangliaAcl::ADMIN);
 ?>

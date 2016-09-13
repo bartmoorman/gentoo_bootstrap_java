@@ -193,18 +193,6 @@ type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-user="sdibb"
-app="nagios"
-type="hash"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
-user="tlosee"
-app="nagios"
-type="hash"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
 user="tpurdy"
 app="nagios"
 type="hash"
@@ -216,8 +204,6 @@ echo "--- ${filename} (create)"
 cat <<EOF>"/${filename}"
 bmoorman:${bmoorman_nagios_hash}
 npeterson:${npeterson_nagios_hash}
-sdibb:${sdibb_nagios_hash}
-tlosee:${tlosee_nagios_hash}
 tpurdy:${tpurdy_nagios_hash}
 EOF
 
@@ -225,7 +211,7 @@ filename="etc/nagios/cgi.cfg"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|nagiosadmin|bmoorman,npeterson,sdibb,tlosee,tpurdy|" \
+-e "s|nagiosadmin|bmoorman,npeterson,tpurdy|" \
 "/${filename}" || exit 1
 
 nagios_file="$(mktemp)"
@@ -274,18 +260,6 @@ type="nma"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-user="sdibb"
-app="nagios"
-type="nma"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
-user="tlosee"
-app="nagios"
-type="prowl"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
 user="tpurdy"
 app="nagios"
 type="nma"
@@ -295,8 +269,6 @@ declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 sed -i -r \
 -e "s|%BMOORMAN_PROWL%|${bmoorman_nagios_prowl}|" \
 -e "s|%NPETERSON_NMA%|${npeterson_nagios_nma}|" \
--e "s|%SDIBB_NMA%|${sdibb_nagios_nma}|" \
--e "s|%TLOSEE_PROWL%|${tlosee_nagios_prowl}|" \
 -e "s|%TPURDY_NMA%|${tpurdy_nagios_nma}|" \
 "/${filename}" || exit 1
 
@@ -498,18 +470,6 @@ type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-user="sdibb"
-app="ganglia"
-type="hash"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
-user="tlosee"
-app="ganglia"
-type="hash"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
 user="tpurdy"
 app="ganglia"
 type="hash"
@@ -521,8 +481,6 @@ echo "--- ${filename} (create)"
 cat <<EOF>"/${filename}"
 bmoorman:${bmoorman_ganglia_hash}
 npeterson:${npeterson_ganglia_hash}
-sdibb:${sdibb_ganglia_hash}
-tlosee:${tlosee_ganglia_hash}
 tpurdy:${tpurdy_ganglia_hash}
 EOF
 
