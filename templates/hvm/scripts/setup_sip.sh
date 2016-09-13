@@ -83,7 +83,7 @@ mkdir -p "/${dirname}"
 filename="etc/portage/package.keywords/glusterfs"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
-<=sys-cluster/glusterfs-3.7
+sys-cluster/glusterfs
 EOF
 
 filename="etc/portage/package.keywords/rssh"

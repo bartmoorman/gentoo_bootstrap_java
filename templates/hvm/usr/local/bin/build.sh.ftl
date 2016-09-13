@@ -30,7 +30,7 @@ sed -i -r \
 -e "s|^(CXXFLAGS\=\".*\")|\1\n|" \
 -e "s|^(CHOST\=\".*\")|\1\n|" \
 -e "s|^(USE\=\".*\")|\1\n\nMAKEOPTS\=\"\-j3\"\nPORTAGE_NICENESS\=\"10\"\nEMERGE_DEFAULT_OPTS\=\"\-\-jobs\=2 \-\-load\-average\=3\.0\"\n|" \
--e "\|^USE|s|bindist\s+||" \
+-e "\|^USE|s|bindist\s*||" \
 "${filename}"
 
 <#assign filename = "/etc/local.d/makeopts.start">
