@@ -101,7 +101,7 @@ dev-lang/php apache2 cgi gd
 app-eselect/eselect-php apache2
 EOF
 
-mirrorselect -D -b10 -s5 || exit 1
+#mirrorselect -D -b10 -s5 || exit 1
 
 filename="etc/portage/make.conf"
 echo "--- ${filename} (modify)"

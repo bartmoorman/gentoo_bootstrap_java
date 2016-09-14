@@ -6,7 +6,7 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : [ "eu1iec1" ]
+			"Default" : "eu1iec1"
 		},
 		"SystemsAMI" : {
 			"Type" : "String",
@@ -55,7 +55,6 @@
 		    "Properties" : {
 		        "ImageId" :  { "Ref" : "SystemsAMI" },
 		        "InstanceType" :  "t2.medium",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SystemsServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

@@ -51,7 +51,7 @@ cat <<'EOF'>>"/${filename}"
 net-firewall/iptables
 EOF
 
-mirrorselect -D -b10 -s5 || exit 1
+#mirrorselect -D -b10 -s5 || exit 1
 
 emerge -uDN @system @world || emerge --resume || exit 1
 

@@ -6,7 +6,7 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : [ "eu1iec1" ]
+			"Default" : "eu1iec1"
 		},
 		"TerminationProtection" : {
 			"Type" : "String",
@@ -113,7 +113,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "JpAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "JpServer" ] },
 				"DisableApiTermination" : { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -161,7 +160,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "JpAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "JpServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -209,7 +207,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "WebAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -258,7 +255,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "WebAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -307,7 +303,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "WebAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" : true,
@@ -356,7 +351,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "WebAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WebServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -441,7 +435,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "WorkerAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WorkerServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -491,7 +484,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "WorkerAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "WorkerServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -541,7 +533,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "SocketAMI" },
 		        "InstanceType" :  "r3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -588,7 +579,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "SocketAMI" },
 		        "InstanceType" :  "r3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SocketServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

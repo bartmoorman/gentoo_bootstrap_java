@@ -6,7 +6,7 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : ["eu1iec1"]
+			"Default" : "eu1iec1"
 		},
 		"EhAMI" : {
 			"Type" : "String",
@@ -25,7 +25,9 @@
 			"Default" : "ami-d1dc86a6"
 		},
 		"TerminationProtection" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
+			"Type" : "String",
+			"AllowedValues" : ["true","false"],
+			"Default" : "false"
 		}
 	},
 
@@ -92,7 +94,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "SipAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -141,7 +142,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "SipAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -190,7 +190,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "SipAMI" },
 		        "InstanceType" :  "c4.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -239,7 +238,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "EhAMI" },
 		        "InstanceType" :  "m3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "EhServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -287,7 +285,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "EhAMI" },
 		        "InstanceType" :  "m3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "EhServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -335,7 +332,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "MqAMI" },
 		        "InstanceType" :  "m3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MqServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -383,7 +379,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "MqAMI" },
 		        "InstanceType" :  "m3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MqServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -431,7 +426,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "InboundAMI" },
 		        "InstanceType" :  "m3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "InboundServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -480,7 +474,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "InboundAMI" },
 		        "InstanceType" :  "m3.xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "InboundServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

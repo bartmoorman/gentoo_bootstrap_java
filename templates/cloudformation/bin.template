@@ -6,7 +6,7 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : [ "eu1iec1" ]
+			"Default" : "eu1iec1"
 		},
 		"BinAMI" : {
 			"Type" : "String",
@@ -56,7 +56,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "BinAMI" },
 		        "InstanceType" :  "c4.8xlarge",
-				"KeyName" : { "Fn::GetAtt" : [ "Environment", "SSHKey" ] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "BinServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

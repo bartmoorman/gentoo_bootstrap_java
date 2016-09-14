@@ -6,7 +6,7 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : [ "eu1iec1" ]
+			"Default" : "eu1iec1"
 		},
 		"DatabaseAMI" : {
 			"Type" : "String",
@@ -117,7 +117,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "DatabaseAMI" },
 		        "InstanceType" :  "r3.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -212,7 +211,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "DatabaseAMI" },
 		        "InstanceType" :  "r3.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -308,7 +306,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "DatabaseAMI" },
 		        "InstanceType" :  "r3.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DatabaseServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

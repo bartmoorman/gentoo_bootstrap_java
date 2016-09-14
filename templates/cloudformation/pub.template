@@ -6,7 +6,7 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : ["eu1iec1"]
+			"Default" : "eu1iec1"
 		},
 		"PubAMI" : {
 			"Type" : "String",
@@ -85,7 +85,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "PubAMI" },
 		        "InstanceType" :  "c3.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "PubServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -137,7 +136,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "PubAMI" },
 		        "InstanceType" :  "c3.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "PubServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,

@@ -6,7 +6,7 @@
 		"TargetEnvironment" : {
 			"Type" : "String",
 			"Description" : "The target environment for this stack",
-			"AllowedValues" : ["eu1iec1"]
+			"Default" : "eu1iec1"
 		},
 		"DeployAMI" : {
 			"Type" : "String",
@@ -102,7 +102,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "StatsAMI" },
 		        "InstanceType" : "m4.2xlarge",
-				"KeyName" : { "Fn::GetAtt" : [ "Environment", "SSHKey" ] },
 				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "StatsServer" ] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" : true,
@@ -170,7 +169,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "StatsAMI" },
 		        "InstanceType" :  "m4.2xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "StatsServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -232,7 +230,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "MonitorAMI" },
 		        "InstanceType" :  "c3.4xlarge",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MonitorServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
@@ -281,7 +278,6 @@
 		    "Properties" : {
 		        "ImageId" : { "Ref" : "DeployAMI" },
 		        "InstanceType" :  "t2.medium",
-				"KeyName" : {"Fn::GetAtt" : [ "Environment", "SSHKey"] },
 				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "DeployServer"] },
 				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
 				"Monitoring" :  true,
