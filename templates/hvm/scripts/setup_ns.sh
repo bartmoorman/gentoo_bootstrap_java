@@ -272,3 +272,5 @@ rc-update add gmond default
 yes "" | emerge --config mail-mta/netqmail || exit 1
 
 ln -s /var/qmail/supervise/qmail-send/ /service/qmail-send || exit 1
+
+echo "--- SUCCESS :)"
