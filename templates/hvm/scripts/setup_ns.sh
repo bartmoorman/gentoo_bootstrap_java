@@ -104,7 +104,7 @@ cat <<'EOF'>"/${filename}"
 sys-cluster/glusterfs
 EOF
 
-mirrorselect -D -c Ireland -R Europe -s5 || exit 1
+mirrorselect -D -b10 -s5 || exit 1
 
 emerge -uDN @system @world || emerge --resume || exit 1
 
@@ -166,7 +166,7 @@ echo "done! :)"
 
 if ! gluster volume info ${volume} &> /dev/null; then
 	echo "--- ${volume} (manage)"
-	yes | gluster volume create ${volume} replica 2 ${name}:/var/glusterfs/${volume} ${peer%:*}:/var/glusterfs/${volume} force || exit 1
+	gluster volume create ${volume} replica 2 ${name}:/var/glusterfs/${volume} ${peer%:*}:/var/glusterfs/${volume} force || exit 1
 	gluster volume set ${volume} auth.allow 127.*,10.*
 	gluster volume start ${volume} || exit 1
 fi

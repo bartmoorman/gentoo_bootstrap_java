@@ -99,7 +99,7 @@ dev-util/boost-build
 dev-libs/boost
 EOF
 
-mirrorselect -D -c Ireland -R Europe -s5 || exit 1
+mirrorselect -D -b10 -s5 || exit 1
 
 filename="etc/portage/make.conf"
 echo "--- ${filename} (modify)"
