@@ -111,7 +111,7 @@ mount "/${dirname}" || exit 1
 
 rc-update add tomcat-8 default
 
-for i in memcache memcached mongo oauth ssh2-beta; do
+for i in memcache memcached mongo oauth-1.2.3 ssh2; do
 	yes "" | pecl install "${i}" > /dev/null || exit 1
 
 	dirname="etc/php"

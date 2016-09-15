@@ -384,7 +384,7 @@ sed -i -r \
 -e "s|your_password|${monitoring_mysql_auth}|" \
 "/${filename}"
 
-for i in memcache memcached mongo oauth ssh2-beta; do
+for i in memcache memcached mongo oauth-1.2.3 ssh2; do
 	yes "" | pecl install "${i}" > /dev/null || exit 1
 
 	dirname="etc/php"
