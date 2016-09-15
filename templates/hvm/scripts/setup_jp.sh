@@ -55,9 +55,9 @@ cat <<'EOF'>>"/${filename}"
 dev-lang/go
 dev-libs/libmemcached
 dev-php/pear
+net-fs/s3fs
 net-libs/libssh2
 net-misc/memcached
-sys-fs/s3fs
 EOF
 
 filename="etc/portage/package.use/libmemcached"

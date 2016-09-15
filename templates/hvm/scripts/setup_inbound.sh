@@ -81,9 +81,9 @@ dev-db/mytop
 dev-libs/libmemcached
 dev-php/pear
 dev-python/mysql-python
+net-fs/s3fs
 net-libs/libssh2
 sys-apps/pv
-sys-fs/s3fs
 EOF
 
 filename="etc/portage/package.use/libmemcached"

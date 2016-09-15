@@ -76,8 +76,8 @@ filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
 dev-db/mongodb
+net-fs/s3fs
 sys-fs/lvm2
-sys-fs/s3fs
 EOF
 
 filename="etc/portage/package.use/lvm2"

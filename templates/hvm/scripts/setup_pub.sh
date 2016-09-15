@@ -85,11 +85,11 @@ dev-php/PEAR-Spreadsheet_Excel_Writer
 dev-php/pear
 dev-python/mysql-python
 dev-qt/qtwebkit:4
+net-fs/s3fs
 net-libs/libssh2
 sys-apps/miscfiles
 sys-apps/pv
 sys-cluster/glusterfs
-sys-fs/s3fs
 www-apache/mod_fcgid
 www-servers/apache
 EOF

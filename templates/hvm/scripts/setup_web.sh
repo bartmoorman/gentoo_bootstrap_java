@@ -65,9 +65,9 @@ dev-php/pear
 dev-qt/qtwebkit:4
 media-video/ffmpeg
 media-sound/sox
+net-fs/s3fs
 net-libs/libssh2
 sys-apps/miscfiles
-sys-fs/s3fs
 www-apache/mod_fcgid
 www-servers/apache
 EOF

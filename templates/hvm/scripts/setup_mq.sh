@@ -68,8 +68,8 @@ emerge -q --sync || exit 1
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
+net-fs/s3fs
 net-misc/rabbitmq-server
-sys-fs/s3fs
 EOF
 
 dirname="etc/portage/package.keywords"

@@ -71,9 +71,9 @@ filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
 app-shells/rssh
+net-fs/s3fs
 net-misc/asterisk
 sys-cluster/glusterfs
-sys-fs/s3fs
 EOF
 
 dirname="etc/portage/package.keywords"

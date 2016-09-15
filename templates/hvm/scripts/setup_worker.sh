@@ -74,12 +74,12 @@ dev-php/PEAR-Spreadsheet_Excel_Writer
 dev-php/pear
 dev-python/mysql-python
 dev-qt/qtwebkit:4
+net-fs/s3fs
 net-libs/libssh2
 net-misc/memcached
 sys-apps/miscfiles
 sys-apps/pv
 sys-process/at
-sys-fs/s3fs
 EOF
 
 filename="etc/portage/package.use/libmemcached"

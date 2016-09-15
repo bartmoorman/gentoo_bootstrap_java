@@ -4,7 +4,7 @@
       "Type": "Number",
       "MinValue": 10,
       "MaxValue": 250,
-      "Description": "The VPC CIDR is 10.x.0.0/17",
+      "Description": "The VPC CIDR is 10.x.0.0/16",
       "ConstraintDescription": "must be a value between 10 and 250. 0-9 and 251-255 are reserved."
     },
     "Environment": {
@@ -69,31 +69,31 @@
     "NetworkConfig": {
       "PublicCIDR": {
         "A": "16.0",
-        "B": "24.0",
-        "C": "32.0",
-        "Size": "21"
+        "B": "32.0",
+        "C": "48.0",
+        "Size": "20"
       },
       "WebCIDR": {
-        "A": "40.0",
-        "B": "48.0",
-        "C": "56.0",
-        "Size": "21"
+        "A": "64.0",
+        "B": "80.0",
+        "C": "96.0",
+        "Size": "20"
       },
       "AppCIDR": {
-        "A": "64.0",
-        "B": "72.0",
-        "C": "80.0",
-        "Size": "21"
+        "A": "112.0",
+        "B": "128.0",
+        "C": "144.0",
+        "Size": "20"
       },
       "DbCIDR": {
-        "A": "88.0",
-        "B": "96.0",
-        "C": "104.0",
-        "Size": "21"
+        "A": "160.0",
+        "B": "176.0",
+        "C": "192.0",
+        "Size": "20"
       },
       "InternalDNS": {
         "A": "16.10",
-        "B": "24.10",
+        "B": "32.10",
         "NameA": "ns1",
         "NameB": "ns2",
         "Domain": "salesteamautomation.com"
@@ -133,7 +133,7 @@
               {
                 "Ref": "CIDR2ndOctet"
               },
-              "0.0/17"
+              "0.0/16"
             ]
           ]
         },
@@ -1395,7 +1395,7 @@
                   {
                     "Ref": "CIDR2ndOctet"
                   },
-                  "0.0/17"
+                  "0.0/16"
                 ]
               ]
             }
@@ -1875,7 +1875,7 @@
                   {
                     "Ref": "CIDR2ndOctet"
                   },
-                  "0.0/17"
+                  "0.0/16"
                 ]
               ]
             }
@@ -1961,7 +1961,7 @@
             {
               "Ref": "CIDR2ndOctet"
             },
-            "0.0/17"
+            "0.0/16"
           ]
         ]
       }

@@ -79,9 +79,9 @@ cat <<'EOF'>>"/${filename}"
 dev-db/mysql
 dev-db/mytop
 dev-python/mysql-python
+net-fs/s3fs
 sys-apps/pv
 sys-fs/lvm2
-sys-fs/s3fs
 EOF
 
 filename="etc/portage/package.use/lvm2"

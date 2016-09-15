@@ -66,6 +66,7 @@ media-video/ffmpeg
 media-sound/sox
 net-analyzer/nagios
 net-firewall/iptables
+net-fs/s3fs
 net-libs/libssh2
 net-misc/asterisk
 net-misc/memcached
@@ -74,7 +75,6 @@ sys-apps/miscfiles
 sys-apps/pv
 sys-cluster/glusterfs
 sys-fs/lvm2
-sys-fs/s3fs
 sys-process/at
 www-apache/mod_fcgid
 www-servers/apache

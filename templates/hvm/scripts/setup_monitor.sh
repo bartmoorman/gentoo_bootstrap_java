@@ -64,9 +64,9 @@ filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
 net-analyzer/nagios
+net-fs/s3fs
 net-misc/memcached
 sys-cluster/ganglia-web
-sys-fs/s3fs
 www-servers/apache
 EOF
 

@@ -61,9 +61,9 @@ dev-lang/ruby:2.0
 dev-libs/libmemcached
 dev-php/pear
 dev-vcs/git
+net-fs/s3fs
 net-libs/libssh2
 net-libs/nodejs
-sys-fs/s3fs
 EOF
 
 filename="etc/portage/package.use/libmemcached"
