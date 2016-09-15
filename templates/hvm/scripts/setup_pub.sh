@@ -273,7 +273,7 @@ filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS\=\"(.*)\"$|APACHE2_OPTS\=\"\-D INFO \-D SSL \-D LANGUAGE \-D PHP5 \-D FCGID\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"$|APACHE2_OPTS\=\"\-D INFO \-D SSL \-D LANGUAGE \-D PHP \-D FCGID\"|" \
 "/${filename}" || exit 1
 
 filename="etc/apache2/modules.d/00_default_settings.conf"

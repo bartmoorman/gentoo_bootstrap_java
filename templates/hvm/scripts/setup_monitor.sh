@@ -166,7 +166,7 @@ filename="etc/conf.d/apache2"
 echo "--- ${filename} (modify)"
 cp "/${filename}" "/${filename}.orig"
 sed -i -r \
--e "s|^APACHE2_OPTS\=\"(.*)\"$|APACHE2_OPTS\=\"\1 \-D PHP5 \-D NAGIOS\"|" \
+-e "s|^APACHE2_OPTS\=\"(.*)\"$|APACHE2_OPTS\=\"\1 \-D PHP \-D NAGIOS\"|" \
 "/${filename}" || exit 1
 
 /etc/init.d/apache2 start || exit 1
