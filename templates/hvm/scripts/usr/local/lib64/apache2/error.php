@@ -15,7 +15,7 @@ function doTee($msg) {
 	global $local_path, $remote_path, $hostname;
 
 	file_put_contents(sprintf('%s/error_log', $local_path), $msg, FILE_APPEND);
-	file_put_contents(sprintf('%s/eror_log.%s.%s', $remote_path, date('Ymd'), $hostname), $msg, FILE_APPEND);
+	file_put_contents(sprintf('%s/erorr_log.%s.%s', $remote_path, date('Ymd'), $hostname), $msg, FILE_APPEND);
 }
 
 function signalHandlerParent($signo) {

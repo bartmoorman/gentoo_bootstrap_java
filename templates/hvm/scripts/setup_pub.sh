@@ -302,11 +302,11 @@ LogFormat "%P %{Host}i %h %{%Y-%m-%d %H:%M:%S %z}t %m %U %H %>s %B %D" stats
 LogFormat "%P %{Host}i %h %{%Y-%m-%d %H:%M:%S %z}t %{User-Agent}i" agents
 LogFormat "%>s %h" status
 
-ErrorLog "|php /usr/local/lib64/apache2/error.php"
+ErrorLog "|/usr/bin/php /usr/local/lib64/apache2/error.php"
 
-CustomLog "|php /usr/local/lib64/apache2/stats.php" stats
-CustomLog "|php /usr/local/lib64/apache2/agents.php" agents
-CustomLog "|php /usr/local/lib64/apache2/status.php" status
+CustomLog "|/usr/bin/php /usr/local/lib64/apache2/stats.php" stats
+CustomLog "|/usr/bin/php /usr/local/lib64/apache2/agents.php" agents
+CustomLog "|/usr/bin/php /usr/local/lib64/apache2/status.php" status
 
 ForensicLog /var/log/apache2/forensic_log
 
