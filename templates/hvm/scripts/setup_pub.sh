@@ -109,7 +109,7 @@ EOF
 filename="etc/portage/package.use/mysql"
 echo "--- ${filename} (modify)"
 sed -i -r \
--e "s|mysql|percona-server|"
+-e "s|mysql|percona-server|" \
 -e "s|minimal|extraengine profiling|" \
 "/${filename}" || exit 1
 
