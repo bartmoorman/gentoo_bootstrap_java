@@ -107,6 +107,8 @@ sed -i -r \
 #emerge -uDNg @system @world || emerge --resume || exit 1
 emerge -uDN @system @world || emerge --resume || exit 1
 
+revdep-rebuild || exit 1
+
 filename="etc/fstab"
 echo "--- ${filename} (append)"
 cat <<EOF>>"/${filename}"

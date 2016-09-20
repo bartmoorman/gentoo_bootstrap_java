@@ -1,210 +1,626 @@
 {
-	"AWSTemplateFormatVersion" : "2010-09-09",
-	"Description" : "Version 1.0\nCreates the web stack",
-
-	"Parameters" : {
-		"TargetEnvironment" : {
-			"Type" : "String",
-			"Description" : "The target environment for this stack",
-			"Default" : "eu1iec1"
-		},
-		"PubAMI" : {
-			"Type" : "String",
-			"Default" : "ami-d1dc86a6"
-		},
-		"TerminationProtection" : {
-			"Type" : "String", "AllowedValues" : ["true","false"], "Default" : "false"
-		},
-		"Certificate" : {
-			"Type" : "String",
-			"Description" : "The SSL certificate name",
-			"AllowedValues" : [ "InsideSales", "InsideSalesEU1" ],
-			"Default" : "InsideSalesEU1"
-		}
-	},
-
-	"Mappings" : {
-		"Constants" : {
-			"InstanceProfiles" : {
-				"PubServer" : "pubServer"
-			}
-		}
-	},
-
-	"Resources" : {
-		"Environment" : {
-			"Type" : "AWS::CloudFormation::CustomResource",
-			"Properties": {
-				"ServiceToken": { "Fn::Join": [ "", [ "arn:aws:lambda:", { "Ref": "AWS::Region" }, ":", { "Ref": "AWS::AccountId" }, ":function:StackInfo" ] ] },
-				"StackName": { "Ref": "TargetEnvironment" }
-			}
-		},
-		"PubSG" : {
-			"Type" : "AWS::EC2::SecurityGroup",
-			"Properties" : {
-				"VpcId" :  {"Fn::GetAtt" : [ "Environment", "VPC" ] },
-				"GroupDescription" : "Pub",
-				"SecurityGroupIngress" : [
-					{ "IpProtocol" : "-1", "CidrIp" : {"Fn::GetAtt" : [ "Environment", "VPCCIDR"] } }
-				],
-				"SecurityGroupEgress" : [
-					{ "IpProtocol" : "-1", "CidrIp" : "0.0.0.0/0" }
-				]
-			}
-		},
-		"PubIncomingSG" : {
-			"Type" : "AWS::EC2::SecurityGroup",
-			"Properties" : {
-				"VpcId" :  {"Fn::GetAtt" : [ "Environment", "VPC" ] },
-				"GroupDescription" : "Internet traffic permitted to the public website",
-				"SecurityGroupIngress" : [
-					{ "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0" },
-					{ "IpProtocol" : "tcp", "FromPort" : "443", "ToPort" : "443", "CidrIp" : "0.0.0.0/0" }
-				],
-				"SecurityGroupEgress" : []
-			}
-		},
-		"PubServerAENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
-				"GroupSet" : [
-					{ "Ref" : "PubSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "pub1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-		    }
-		},
-		"PubServerA" : {
-		    "Type" : "AWS::EC2::Instance",
-			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "PubAMI" },
-		        "InstanceType" :  "c3.4xlarge",
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "PubServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "PubServerAENI" } }
-				],
-				"EbsOptimized" : true,
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} } ],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "pub1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ] }
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_pub.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "pub2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "PubServerBENI", "PrimaryPrivateIpAddress" ] },
-						" -i 1 -o 1",
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=PubServerA --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"PubServerBENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetB"] },
-				"GroupSet" : [
-					{ "Ref" : "PubSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "pub2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-		    }
-		},
-		"PubServerB" : {
-		    "Type" : "AWS::EC2::Instance",
-			"CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "PubAMI" },
-		        "InstanceType" :  "c3.4xlarge",
-				"IamInstanceProfile" : {"Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "PubServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "PubServerBENI" } }
-				],
-				"EbsOptimized" : true,
-				"BlockDeviceMappings" : [ { "DeviceName" : "/dev/xvda", "Ebs" : { "VolumeSize" : "100", "VolumeType" : "gp2"} } ],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "pub2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ] }
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_pub.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "pub1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "PubServerAENI", "PrimaryPrivateIpAddress" ] },
-						" -i 2 -o 2",
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "backup", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=PubServerB --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"PubELB" : {
-		    "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
-		    "Properties" : {
-				"LoadBalancerName" : "Pub",
-				"Subnets" : [
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetA"] },
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetB"] },
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetC"] }
-				],
-				"ConnectionDrainingPolicy" : { "Enabled" :  true, "Timeout" : 300 },
-				"CrossZone" :  true,
-				"SecurityGroups" : [ { "Ref" : "PubIncomingSG" } ],
-				"HealthCheck" : {
-					"Target" : "HTTP:80/",
-					"Interval" : "60",
-					"HealthyThreshold" : "3",
-					"UnhealthyThreshold" : "3",
-					"Timeout" : "30"
-				},
-		        "Listeners" : [
-					{
-						"Protocol" : "HTTP", "LoadBalancerPort" : "80",
-						"InstanceProtocol" : "HTTP", "InstancePort" : "80"
-					},
-					{
-						"Protocol" : "HTTPS", "LoadBalancerPort" : "443",
-						"SSLCertificateId" :  { "Fn::Join" : [ "", [
-							"arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":server-certificate/",
-							{ "Ref" : "Certificate" }
-						] ]},
-						"InstanceProtocol" : "HTTP", "InstancePort" : "80"
-					}
-		        ],
-				"Instances" : [ { "Ref" : "PubServerA" }, { "Ref" : "PubServerB" } ]
-		    }
-		}
-	},
-
-	"Outputs" : {
-		"PubELBName" : { "Value" : {"Fn::GetAtt" : [ "PubELB", "DNSName"]} }
-	}
+  "Parameters": {
+    "TargetEnvironment": {
+      "Type": "String",
+      "Description": "The target environment for this stack",
+      "Default": "eu1iec1"
+    },
+    "PubAMI": {
+      "Type": "String",
+      "Default": "ami-eb4133fc"
+    },
+    "TerminationProtection": {
+      "Type": "String",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Default": "false"
+    },
+    "Certificate": {
+      "Type": "String",
+      "Description": "The SSL certificate name",
+      "Default": "InsideSales"
+    }
+  },
+  "Mappings": {
+    "Constants": {
+      "InstanceProfiles": {
+        "PubServer": "pubServer"
+      }
+    }
+  },
+  "Resources": {
+    "Environment": {
+      "Type": "AWS::CloudFormation::CustomResource",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:lambda:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":function:StackInfo"
+            ]
+          ]
+        },
+        "StackName": {
+          "Ref": "TargetEnvironment"
+        }
+      }
+    },
+    "PubSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "VPC"
+          ]
+        },
+        "GroupDescription": "Pub",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "-1",
+            "CidrIp": {
+              "Fn::GetAtt": [
+                "Environment",
+                "VPCCIDR"
+              ]
+            }
+          }
+        ],
+		"Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+				  "Pub"
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "PubIncomingSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "VPC"
+          ]
+        },
+        "GroupDescription": "Pub LB",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ],
+		"Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+				  "Pub LB"
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "PubServerAENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "WebSubnetA"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "PubSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "pub1",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "PubServerA": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "PubAMI"
+        },
+        "InstanceType": "c3.4xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "PubServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "PubServerAENI"
+            }
+          }
+        ],
+        "EbsOptimized": true,
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeSize": "100",
+              "VolumeType": "gp2"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "pub1",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_pub.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -p ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "pub2",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "PubServerBENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -i 1 -o 1",
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "backup",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=PubServerA --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "PubServerBENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "WebSubnetB"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "PubSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "pub2",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "PubServerB": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "PubAMI"
+        },
+        "InstanceType": "c3.4xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "PubServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "PubServerBENI"
+            }
+          }
+        ],
+        "EbsOptimized": true,
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeSize": "100",
+              "VolumeType": "gp2"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "pub2",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_pub.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -p ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "pub1",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "PubServerAENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -i 2 -o 2",
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "backup",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=PubServerB --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "PubELB": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "LoadBalancerName": "Pub",
+        "Subnets": [
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "PublicSubnetA"
+            ]
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "PublicSubnetB"
+            ]
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "PublicSubnetC"
+            ]
+          }
+        ],
+        "ConnectionDrainingPolicy": {
+          "Enabled": true,
+          "Timeout": 300
+        },
+        "CrossZone": true,
+        "SecurityGroups": [
+          {
+            "Ref": "PubIncomingSG"
+          }
+        ],
+        "HealthCheck": {
+          "Target": "HTTP:80/",
+          "Interval": "60",
+          "HealthyThreshold": "3",
+          "UnhealthyThreshold": "3",
+          "Timeout": "30"
+        },
+        "Listeners": [
+          {
+            "Protocol": "HTTP",
+            "LoadBalancerPort": "80",
+            "InstanceProtocol": "HTTP",
+            "InstancePort": "80"
+          },
+          {
+            "Protocol": "HTTPS",
+            "LoadBalancerPort": "443",
+            "SSLCertificateId": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:iam::",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":server-certificate/",
+                  {
+                    "Ref": "Certificate"
+                  }
+                ]
+              ]
+            },
+            "InstanceProtocol": "HTTP",
+            "InstancePort": "80"
+          }
+        ],
+        "Instances": [
+          {
+            "Ref": "PubServerA"
+          },
+          {
+            "Ref": "PubServerB"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "PubELBName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "PubELB",
+          "DNSName"
+        ]
+      }
+    }
+  }
 }

@@ -76,8 +76,8 @@ emerge -q --sync || exit 1
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
-dev-db/mysql
 dev-db/mytop
+dev-db/percona-server
 dev-libs/libmemcached
 dev-php/PEAR-Mail
 dev-php/PEAR-Mail_Mime
@@ -109,6 +109,7 @@ EOF
 filename="etc/portage/package.use/mysql"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "s|mysql|percona-server|"
 -e "s|minimal|extraengine profiling|" \
 "/${filename}" || exit 1
 
@@ -135,6 +136,12 @@ cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
 EOF
 
+filename="etc/portage/package.keywords/mysql"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+dev-db/percona-server
+EOF
+
 #mirrorselect -D -b10 -s5 || exit 1
 
 filename="etc/portage/make.conf"
@@ -145,6 +152,8 @@ sed -i -r \
 
 #emerge -uDNg @system @world || emerge --resume || exit 1
 emerge -uDN @system @world || emerge --resume || exit 1
+
+revdep-rebuild || exit 1
 
 filename="etc/fstab"
 echo "--- ${filename} (append)"
@@ -256,7 +265,7 @@ sed -i -r \
 "/${filename}" || exit 1
 
 smarty_file="$(mktemp)"
-curl -sf -o "${smarty_file}" "https://github.com/smarty-php/smarty/archive/v2.6.28.tar.gz" || exit 1
+curl -sf -o "${smarty_file}" "https://codeload.github.com/smarty-php/smarty/tar.gz/v2.6.28" || exit 1
 tar xzf "${smarty_file}" -C "/usr/share/php" || exit 1
 
 dirname="usr/share/php/smarty-2.6.28"

@@ -190,6 +190,8 @@ mount -t tmpfs -o size=16G tmpfs "/${dirname}" || exit 1
 
 emerge -uDNb @system @world || emerge --resume || exit 1
 
+revdep-rebuild || exit 1
+
 filename="etc/apache2/vhosts.d/01_isdc_bin_vhost.conf"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1

@@ -1,23 +1,46 @@
 #!/bin/bash
-#aws s3 rb s3://eu1iec1-backup-765195413633
-#aws s3 rb s3://eu1iec1-files-765195413633
+read -p "AWS Region: (ex. us-east-1) " region
+echo Region is $region
+read -p "Stack Name: (ex. na1usc1) " stackname
+echo Stack Name is $stackname
+read -p "CIDR 2nd Octet: (ex. 100) " cidr2ndoctet
+echo CIDR 2nd Octet is $cdir2ndoctet
+read -p "AMI: (ex. ami-eb4133fc) " ami
+echo AMI is $ami
+read -p "ns1 EIP: (ex. eipalloc-7042224f) " ns1eip
+echo ns1 EIP is $ns1eip
+read -p "ns2 EIP: (ex. eipalloc-d94929e6) " ns2eip
+echo ns2 EIP is $ns2eip
+read -p "NAT GW A EIP: (ex. eipalloc-77543448) " natgwaeip
+echo NAT GW A EIP is $natgwaeip
+read -p "NAT GW B EIP: (ex. eipalloc-1a503025) " natgwbeip
+echo NAT GW B EIP is $natgwbeip
+read -p "NAT GW C EIP: (ex. eipalloc-b050308f) " natgwceip
+echo NAT GW C EIP is $natgwceip
+read -p "monitor1 EIP: (ex. ) " monitor1eip
+echo monitor1 EIP is $monitor1eip
+read -p "SSL Certificate Name: (ex. InsideSales) " sslcertname
+echo SSL Certificate Name is $sslcertname
+read -p "Number of DB Clusters: (ex. 5) " numdbclusters
+echo Number of DB Clusters is $numdbclusters
 
 aws \
 --output 'text' \
+--region "${region}" \
 cloudformation \
 create-stack \
---stack-name 'eu1iec1' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/VPC-DirectConnect.template' \
+--stack-name "${stackname}" \
+--template-body 'file://../../cloudformation/VPC.template' \
 --parameters \
-'ParameterKey=CIDR2ndOctet,ParameterValue=12' \
-'ParameterKey=DirectConnectVGW,ParameterValue=vgw-ecfecf98' \
-'ParameterKey=DNSAMI,ParameterValue=ami-2d6d4e5a' \
+"ParameterKey=CIDR2ndOctet,ParameterValue=${cidr2ndoctet}" \
+"ParameterKey=DNSAMI,ParameterValue=${ami}" \
 'ParameterKey=DNSInstanceType,ParameterValue=t2.medium' \
-'ParameterKey=DNSServerAExistingEIP,ParameterValue=eipalloc-815082e4' \
-'ParameterKey=DNSServerBExistingEIP,ParameterValue=eipalloc-4951832c' \
+"ParameterKey=DNSServerAExistingEIP,ParameterValue=${ns1eip}" \
+"ParameterKey=DNSServerBExistingEIP,ParameterValue=${ns2eip}" \
+"ParameterKey=NATGatewayAExistingEIP,ParameterValue=${natgwaeip}" \
+"ParameterKey=NATGatewayBExistingEIP,ParameterValue=${natgwbeip}" \
+"ParameterKey=NATGatewayCExistingEIP,ParameterValue=${natgwceip}" \
 'ParameterKey=Environment,ParameterValue=Production' \
-'ParameterKey=NATAMI,ParameterValue=ami-ef76e898' \
-'ParameterKey=NATInstanceType,ParameterValue=m3.medium' \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
 
@@ -40,7 +63,7 @@ while [ true ]; do
 		exit 1
 	fi
 
-	stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name 'eu1iec1' 2> /dev/null)
+	stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}" 2> /dev/null)
 
 	if [ "${stack_status}" == "CREATE_COMPLETE" ]; then
 		break
@@ -58,13 +81,14 @@ echo 'finished! :)'
 
 aws \
 --output 'text' \
+--region "${region}" \
 cloudformation \
 create-stack \
---stack-name 'eu1iec1systems' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/systems.template' \
+--stack-name "${stackname}systems" \
+--template-body 'file://../../cloudformation/systems.template' \
 --parameters \
-'ParameterKey=SystemsAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+"ParameterKey=SystemsAMI,ParameterValue=${ami}" \
+"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
 
@@ -87,7 +111,7 @@ while [ true ]; do
 		exit 1
 	fi
 
-	stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name 'eu1iec1systems' 2> /dev/null)
+	stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}systems" 2> /dev/null)
 
 	if [ "${stack_status}" == "CREATE_COMPLETE" ]; then
 		break
@@ -105,20 +129,21 @@ echo 'finished! :)'
 
 aws \
 --output 'text' \
+--region "${region}" \
 cloudformation \
 create-stack \
---stack-name 'eu1iec1pub' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/pub.template' \
+--stack-name "${stackname}pub" \
+--template-body 'file://../../cloudformation/pub.template' \
 --parameters \
-'ParameterKey=Certificate,ParameterValue=InsideSalesEU1' \
-'ParameterKey=PubAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+"ParameterKey=Certificate,ParameterValue=${sslcertname}" \
+"ParameterKey=PubAMI,ParameterValue=${ami}" \
+"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
 
 if [ $? -eq 0 ]; then
 	echo $(date) 'Pub stack started. :)'
-	stacks+=('eu1iec1pub')
+	stacks+=("${stackname}pub")
 	sleep 30
 else
 	echo $(date) 'Pub stack creation failed. :('
@@ -127,22 +152,23 @@ fi
 
 aws \
 --output 'text' \
+--region "${region}" \
 cloudformation \
 create-stack \
---stack-name 'eu1iec1dialer' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/dialer.template' \
+--stack-name "${stackname}dialer" \
+--template-body 'file://../../cloudformation/dialer.template' \
 --parameters \
-'ParameterKey=EhAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=InboundAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=MqAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=SipAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+"ParameterKey=EhAMI,ParameterValue=${ami}" \
+"ParameterKey=InboundAMI,ParameterValue=${ami}" \
+"ParameterKey=MqAMI,ParameterValue=${ami}" \
+"ParameterKey=SipAMI,ParameterValue=${ami}" \
+"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
 
 if [ $? -eq 0 ]; then
 	echo $(date) 'Dialer stack started. :)'
-	stacks+=('eu1iec1dialer')
+	stacks+=("${stackname}dialer")
 	sleep 30
 else
 	echo $(date) 'Dialer stack creation failed. :('
@@ -151,23 +177,24 @@ fi
 
 aws \
 --output 'text' \
+--region "${region}" \
 cloudformation \
 create-stack \
---stack-name 'eu1iec1application' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/application.template' \
+--stack-name "${stackname}application" \
+--template-body 'file://../../cloudformation/application.template' \
 --parameters \
-'ParameterKey=Certificate,ParameterValue=InsideSalesEU1' \
-'ParameterKey=JpAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=SocketAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+"ParameterKey=Certificate,ParameterValue=${sslcertname}" \
+"ParameterKey=JpAMI,ParameterValue=${ami}" \
+"ParameterKey=SocketAMI,ParameterValue=${ami}" \
+"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
-'ParameterKey=WebAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=WorkerAMI,ParameterValue=ami-2d6d4e5a' \
+"ParameterKey=WebAMI,ParameterValue=${ami}" \
+"ParameterKey=WorkerAMI,ParameterValue=${ami}" \
 --on-failure 'DO_NOTHING' > /dev/null
 
 if [ $? -eq 0 ]; then
 	echo $(date) 'Application stack started. :)'
-	stacks+=('eu1iec1application')
+	stacks+=("${stackname}application")
 	sleep 30
 else
 	echo $(date) 'Application stack creation failed. :('
@@ -176,20 +203,21 @@ fi
 
 aws \
 --output 'text' \
+--region "${region}" \
 cloudformation \
 create-stack \
---stack-name 'eu1iec1mdb1' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/mdb.template' \
+--stack-name "${stackname}mdb1" \
+--template-body 'file://../../cloudformation/mdb.template' \
 --parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
+"ParameterKey=DatabaseAMI,ParameterValue=${ami}" \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
 
 if [ $? -eq 0 ]; then
 	echo $(date) 'MongoDB (mdb1) stack started. :)'
-	stacks+=('eu1iec1mdb1')
+	stacks+=("${stackname}mdb1")
 	sleep 30
 else
 	echo $(date) 'MongoDB (mdb1) stack creation failed. :('
@@ -198,138 +226,54 @@ fi
 
 aws \
 --output 'text' \
+--region "${region}" \
 cloudformation \
 create-stack \
---stack-name 'eu1iec1core' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/core.template' \
+--stack-name "${stackname}core" \
+--template-body 'file://../../cloudformation/core.template' \
 --parameters \
 'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
-'ParameterKey=DeployAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=MonitorAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=MonitorServerExistingEIP,ParameterValue=eipalloc-875082e2' \
-'ParameterKey=StatsAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
+"ParameterKey=DeployAMI,ParameterValue=${ami}" \
+"ParameterKey=MonitorAMI,ParameterValue=${ami}" \
+"ParameterKey=MonitorServerExistingEIP,ParameterValue=${monitor1eip}" \
+"ParameterKey=StatsAMI,ParameterValue=${ami}" \
+"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
 'ParameterKey=TerminationProtection,ParameterValue=false' \
 --on-failure 'DO_NOTHING' > /dev/null
 
 if [ $? -eq 0 ]; then
 	echo $(date) 'Core stack started. :)'
-	stacks+=('eu1iec1core')
+	stacks+=("${stackname}core")
 	sleep 30
 else
 	echo $(date) 'Core stack creation failed. :('
 	exit 1
 fi
 
-aws \
---output 'text' \
-cloudformation \
-create-stack \
---stack-name 'eu1iec1db1' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
---parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
-'ParameterKey=TerminationProtection,ParameterValue=false' \
---on-failure 'DO_NOTHING' > /dev/null
+for cluster in $(seq $numdbclusters); do
+	aws \
+	--output 'text' \
+	--region "${region}" \
+	cloudformation \
+	create-stack \
+	--stack-name "${stackname}db${cluster}" \
+	--template-body 'file://../../cloudformation/db.template' \
+	--parameters \
+	"ParameterKey=DatabaseAMI,ParameterValue=${ami}" \
+	'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+	"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
+	'ParameterKey=TerminationProtection,ParameterValue=false' \
+	--on-failure 'DO_NOTHING' > /dev/null
 
-if [ $? -eq 0 ]; then
-	echo $(date) 'MySQL (db1) stack started. :)'
-	stacks+=('eu1iec1db1')
-	sleep 30
-else
-	echo $(date) 'MySQL (db1) stack creation failed. :('
-	exit 1
-fi
-
-aws \
---output 'text' \
-cloudformation \
-create-stack \
---stack-name 'eu1iec1db2' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
---parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
-'ParameterKey=TerminationProtection,ParameterValue=false' \
---on-failure 'DO_NOTHING' > /dev/null
-
-if [ $? -eq 0 ]; then
-	echo $(date) 'MySQL (db2) stack started. :)'
-	stacks+=('eu1iec1db2')
-	sleep 30
-else
-	echo $(date) 'MySQL (db2) stack creation failed. :('
-	exit 1
-fi
-
-aws \
---output 'text' \
-cloudformation \
-create-stack \
---stack-name 'eu1iec1db3' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
---parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
-'ParameterKey=TerminationProtection,ParameterValue=false' \
---on-failure 'DO_NOTHING' > /dev/null
-
-if [ $? -eq 0 ]; then
-	echo $(date) 'MySQL (db3) stack started. :)'
-	stacks+=('eu1iec1db3')
-	sleep 30
-else
-	echo $(date) 'MySQL (db3) stack creation failed. :('
-	exit 1
-fi
-
-aws \
---output 'text' \
-cloudformation \
-create-stack \
---stack-name 'eu1iec1db4' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
---parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
-'ParameterKey=TerminationProtection,ParameterValue=false' \
---on-failure 'DO_NOTHING' > /dev/null
-
-if [ $? -eq 0 ]; then
-	echo $(date) 'MySQL (db4) stack started. :)'
-	stacks+=('eu1iec1db4')
-	sleep 30
-else
-	echo $(date) 'MySQL (db4) stack creation failed. :('
-	exit 1
-fi
-
-aws \
---output 'text' \
-cloudformation \
-create-stack \
---stack-name 'eu1iec1db5' \
---template-url 'https://s3-eu-west-1.amazonaws.com/isdc-cf-eu-west-1/db.template' \
---parameters \
-'ParameterKey=DatabaseAMI,ParameterValue=ami-2d6d4e5a' \
-'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
-'ParameterKey=TargetEnvironment,ParameterValue=eu1iec1' \
-'ParameterKey=TerminationProtection,ParameterValue=false' \
---on-failure 'DO_NOTHING' > /dev/null
-
-if [ $? -eq 0 ]; then
-	echo $(date) 'MySQL (db5) stack started. :)'
-	stacks+=('eu1iec1db5')
-	sleep 30
-else
-	echo $(date) 'MySQL (db5) stack creation failed. :('
-	exit 1
-fi
+	if [ $? -eq 0 ]; then
+		echo $(date) "MySQL (db${cluster}) stack started. :)"
+		stacks+=("${stackname}db${cluster}")
+		sleep 30
+	else
+		echo $(date) "MySQL (db${cluster}) stack creation failed. :("
+		exit 1
+	fi
+done
 
 sleep=60
 counter=0

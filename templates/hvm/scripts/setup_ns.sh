@@ -108,6 +108,8 @@ EOF
 
 emerge -uDN @system @world || emerge --resume || exit 1
 
+revdep-rebuild || exit 1
+
 filename="etc/portage/make.conf"
 echo "--- ${filename} (modify)"
 sed -i -r \

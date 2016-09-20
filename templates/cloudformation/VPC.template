@@ -27,7 +27,7 @@
         "t2.medium",
         "t2.large",
         "m4.large",
-		"m4.xlarge"
+        "m4.xlarge"
       ],
       "Default": "t2.medium"
     },
@@ -1407,12 +1407,6 @@
             "CidrIp": "0.0.0.0/0"
           }
         ],
-        "SecurityGroupEgress": [
-          {
-            "IpProtocol": "-1",
-            "CidrIp": "0.0.0.0/0"
-          }
-        ],
 		"Tags": [
           {
             "Key": "Name",
@@ -1879,12 +1873,6 @@
                 ]
               ]
             }
-          }
-        ],
-        "SecurityGroupEgress": [
-          {
-            "IpProtocol": "-1",
-            "CidrIp": "0.0.0.0/0"
           }
         ],
 		"Tags": [
