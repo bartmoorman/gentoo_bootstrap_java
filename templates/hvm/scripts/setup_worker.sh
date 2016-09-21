@@ -65,8 +65,8 @@ emerge -q --sync || exit 1
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
-dev-db/mysql
 dev-db/mytop
+dev-db/percona-server
 dev-libs/libmemcached
 dev-php/PEAR-Mail
 dev-php/PEAR-Mail_Mime
@@ -91,6 +91,7 @@ EOF
 filename="etc/portage/package.use/mysql"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "s|mysql|percona-server|" \
 -e "s|minimal|extraengine profiling|" \
 "/${filename}" || exit 1
 
@@ -108,6 +109,12 @@ filename="etc/portage/package.keywords/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-libs/libmemcached
+EOF
+
+filename="etc/portage/package.keywords/mysql"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+dev-db/percona-server
 EOF
 
 #mirrorselect -D -b10 -s5 || exit 1
@@ -214,7 +221,7 @@ mkdir -p "/${dirname}"
 chmod 700 "/${dirname}" || exit 1
 chown mysql: "/${dirname}" || exit 1
 
-yes "" | emerge --config dev-db/mysql || exit 1
+yes "" | emerge --config dev-db/percona-server || exit 1
 
 /etc/init.d/mysql start || exit 1
 

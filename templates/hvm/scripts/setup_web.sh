@@ -183,7 +183,7 @@ sed -i -r \
 "/${filename}" || exit 1
 
 smarty_file="$(mktemp)"
-curl -sf -o "${smarty_file}" "https://github.com/smarty-php/smarty/archive/v2.6.28.tar.gz" || exit 1
+curl -sf -o "${smarty_file}" "https://codeload.github.com/smarty-php/smarty/tar.gz/v2.6.28" || exit 1
 tar xzf "${smarty_file}" -C "/usr/share/php" || exit 1
 
 dirname="usr/share/php/smarty-2.6.28"

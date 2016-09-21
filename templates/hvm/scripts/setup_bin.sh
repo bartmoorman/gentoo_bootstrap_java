@@ -50,8 +50,8 @@ echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
 app-shells/rssh
 dev-db/mongodb
-dev-db/mysql
 dev-db/mytop
+dev-db/percona-server
 dev-lang/go
 dev-lang/ruby:2.0
 dev-libs/libmemcached
@@ -120,6 +120,7 @@ EOF
 filename="etc/portage/package.use/mysql"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "s|mysql|percona-server|" \
 -e "s|minimal|extraengine profiling|" \
 "/${filename}" || exit 1
 
@@ -165,6 +166,12 @@ dev-db/mongodb
 app-admin/mongo-tools
 dev-util/boost-build
 dev-libs/boost
+EOF
+
+filename="etc/portage/package.keywords/mysql"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+dev-db/percona-server
 EOF
 
 filename="etc/portage/package.keywords/rabbitmq-server"

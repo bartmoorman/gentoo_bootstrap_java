@@ -76,8 +76,8 @@ emerge -q --sync || exit 1
 filename="var/lib/portage/world"
 echo "--- ${filename} (append)"
 cat <<'EOF'>>"/${filename}"
-dev-db/mysql
 dev-db/mytop
+dev-db/percona-server
 dev-python/mysql-python
 net-fs/s3fs
 sys-apps/pv
@@ -93,8 +93,19 @@ EOF
 filename="etc/portage/package.use/mysql"
 echo "--- ${filename} (modify)"
 sed -i -r \
+-e "s|mysql|percona-server|" \
 -e "s|minimal|extraengine profiling|" \
 "/${filename}" || exit 1
+
+dirname="etc/portage/package.keywords"
+echo "--- ${dirname} (create)"
+mkdir -p "/${dirname}"
+
+filename="etc/portage/package.keywords/mysql"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+dev-db/percona-server
+EOF
 
 #mirrorselect -D -b10 -s5 || exit 1
 
@@ -226,7 +237,7 @@ filename="usr/lib64/mysql/plugin/libmysql_format_phone.so"
 echo "--- ${filename} (replace)"
 curl -sf -o "/${filename}" "${scripts}/${filename}" || exit 1
 
-yes "" | emerge --config dev-db/mysql || exit 1
+yes "" | emerge --config dev-db/percona-server || exit 1
 
 pvcreate /dev/xvd[fg] || exit 1
 vgcreate vg0 /dev/xvd[fg] || exit 1
