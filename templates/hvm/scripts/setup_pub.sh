@@ -460,7 +460,7 @@ mkdir -p "/${dirname}"
 chmod 700 "/${dirname}" || exit 1
 chown mysql: "/${dirname}" || exit 1
 
-yes "" | emerge --config dev-db/mysql || exit 1
+yes "" | emerge --config dev-db/percona-server || exit 1
 
 /etc/init.d/mysql start || exit 1
 
