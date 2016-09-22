@@ -1,555 +1,2043 @@
 {
-	"AWSTemplateFormatVersion" : "2010-09-09",
-	"Description" : "Version 1.0\nCreates the dialer services stack",
-
-	"Parameters" : {
-		"TargetEnvironment" : {
-			"Type" : "String",
-			"Description" : "The target environment for this stack",
-			"Default" : "eu1iec1"
-		},
-		"EhAMI" : {
-			"Type" : "String",
-			"Default" : "ami-d1dc86a6"
-		},
-		"InboundAMI" : {
-			"Type" : "String",
-			"Default" : "ami-d1dc86a6"
-		},
-		"MqAMI" : {
-			"Type" : "String",
-			"Default" : "ami-d1dc86a6"
-		},
-		"SipAMI" : {
-			"Type" : "String",
-			"Default" : "ami-d1dc86a6"
-		},
-		"TerminationProtection" : {
-			"Type" : "String",
-			"AllowedValues" : ["true","false"],
-			"Default" : "false"
-		}
-	},
-
-	"Mappings" : {
-		"Constants" : {
-			"InstanceProfiles" : {
-				"SipServer" : "sipServer",
-				"EhServer" : "ehServer",
-				"MqServer" : "mqServer",
-				"InboundServer" : "inboundServer"
-			}
-		}
-	},
-
-	"Resources" : {
-		"Environment" : {
-			"Type" : "AWS::CloudFormation::CustomResource",
-			"Properties": {
-				"ServiceToken": { "Fn::Join": [ "", [ "arn:aws:lambda:", { "Ref": "AWS::Region" }, ":", { "Ref": "AWS::AccountId" }, ":function:StackInfo" ] ] },
-				"StackName": { "Ref": "TargetEnvironment" }
-			}
-		},
-		"DialerSG" : {
-			"Type" : "AWS::EC2::SecurityGroup",
-			"Properties" : {
-				"VpcId" :   {"Fn::GetAtt" : [ "Environment", "VPC"] },
-				"GroupDescription" : "Dialer",
-				"SecurityGroupIngress" : [
-					{ "IpProtocol" : "-1", "CidrIp" : {"Fn::GetAtt" : [ "Environment", "VPCCIDR"] } }
-				],
-				"SecurityGroupEgress" : [
-					{ "IpProtocol" : "-1", "CidrIp" : "0.0.0.0/0" }
-				]
-			}
-		},
-		"InboundIncomingSG" : {
-			"Type" : "AWS::EC2::SecurityGroup",
-			"Properties" : {
-				"VpcId" :  { "Fn::GetAtt" : [ "Environment", "VPC"] },
-				"GroupDescription" : "Internet traffic permitted to the Inbound server",
-				"SecurityGroupIngress" : [
-					{ "IpProtocol" : "tcp", "FromPort" : "9000", "ToPort" : "9999", "CidrIp" : "0.0.0.0/0" }
-				],
-				"SecurityGroupEgress" : []
-			}
-		},
-		"SipServerAENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"sip1",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"SipServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "SipAMI" },
-		        "InstanceType" :  "c4.4xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SipServerAENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "sip1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_sip.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerBENI", "PrimaryPrivateIpAddress" ] }, ",",
-								{ "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip3", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerCENI", "PrimaryPrivateIpAddress" ] },
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SipServerA --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"SipServerBENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"sip2",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"SipServerB" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "SipAMI" },
-		        "InstanceType" :  "c4.4xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SipServerBENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "sip2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_sip.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerAENI", "PrimaryPrivateIpAddress" ] }, ",",
-								{ "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip3", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerCENI", "PrimaryPrivateIpAddress" ] },
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SipServerB --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"SipServerCENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetC"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"sip3",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"SipServerC" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "SipAMI" },
-		        "InstanceType" :  "c4.4xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "SipServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "SipServerCENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "sip3",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_sip.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerAENI", "PrimaryPrivateIpAddress" ] }, ",",
-								{ "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "sip2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "SipServerBENI", "PrimaryPrivateIpAddress" ] },
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=SipServerC --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"EhServerAENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"eh1",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"EhServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "EhAMI" },
-		        "InstanceType" :  "m3.xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "EhServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "EhServerAENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "eh1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_eh.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=EhServerA --exit-code=$?\n"
-				] ] } }
-
-		    }
-		},
-		"EhServerBENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"eh2",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"EhServerB" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "EhAMI" },
-		        "InstanceType" :  "m3.xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "EhServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "EhServerBENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "eh2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_eh.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=EhServerB --exit-code=$?\n"
-				] ] } }
-
-		    }
-		},
-		"MqServerAENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetA"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"mq1",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"MqServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "MqAMI" },
-		        "InstanceType" :  "m3.xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MqServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "MqServerAENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "mq1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_mq.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "mq2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "MqServerBENI", "PrimaryPrivateIpAddress" ] },
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=MqServerA --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"MqServerBENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "AppSubnetB"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"mq2",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"MqServerB" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "MqAMI" },
-		        "InstanceType" :  "m3.xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "MqServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "MqServerBENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "mq2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_mq.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -p ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "mq1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "MqServerAENI", "PrimaryPrivateIpAddress" ] },
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=MqServerB --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"InboundServerAENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetA"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"inbound1",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"InboundServerA" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "InboundAMI" },
-		        "InstanceType" :  "m3.xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "InboundServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "InboundServerAENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "inbound1",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_inbound.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -m ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "inbound2", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "InboundServerBENI", "PrimaryPrivateIpAddress" ] },
-						" -i 1 -o 1",
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=InboundServerA --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"InboundServerBENI" : {
-		    "Type" : "AWS::EC2::NetworkInterface",
-		    "Properties" : {
-				"SubnetId" : {"Fn::GetAtt" : [ "Environment", "WebSubnetB"] },
-				"GroupSet" : [
-					{ "Ref" : "DialerSG" },
-					{"Fn::GetAtt" : [ "Environment", "RemoteAccessSG"] }
-				],
-				"Description" : {"Fn::Join" : [ "", [
-					{"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-					"inbound2",
-					{"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-				] ]}
-		    }
-		},
-		"InboundServerB" : {
-		    "Type" : "AWS::EC2::Instance", "CreationPolicy" : { "ResourceSignal" : { "Count" : 1, "Timeout" : "PT60M"} },
-		    "Properties" : {
-		        "ImageId" : { "Ref" : "InboundAMI" },
-		        "InstanceType" :  "m3.xlarge",
-				"IamInstanceProfile" : { "Fn::FindInMap" : [ "Constants" , "InstanceProfiles", "InboundServer" ] },
-				"DisableApiTermination" :  { "Ref" : "TerminationProtection" },
-				"Monitoring" :  true,
-				"NetworkInterfaces" : [
-					{ "DeviceIndex" : "0", "DeleteOnTermination" : false, "NetworkInterfaceId" : { "Ref" : "InboundServerBENI" } }
-				],
-				"Tags" : [ { "Key" : "Name", "Value" : {"Fn::Join" : [ "", [
-						 {"Fn::GetAtt" : [ "Environment", "NamingPrefix"] },
-						 "inbound2",
-						 {"Fn::GetAtt" : [ "Environment", "NamingSuffix"] }
-					] ]}
-				} ],
-				"UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-					"#!/bin/bash\n",
-					"scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
-					"filename=\"setup_inbound.sh\"\n",
-					"setup_file=\"$(mktemp)\"\n",
-					"curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
-					"bash \"${setup_file}\"",
-						" -m ", { "Fn::Join" : [ "", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "inbound1", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] } ] ] }, ":", { "Fn::GetAtt" : [ "InboundServerAENI", "PrimaryPrivateIpAddress" ] },
-						" -i 2 -o 2",
-						" -b ", { "Fn::Join" : [ "-", [ { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] }, "files", { "Ref" : "AWS::AccountId" } ] ] },
-						" -h ", { "Fn::GetAtt" : [ "Environment", "NamingPrefix" ] },
-						" -e ", { "Fn::GetAtt" : [ "Environment", "NamingSuffix" ] }, "\n",
-					"cfn-signal --region=", { "Ref" : "AWS::Region" }, " --stack=", { "Ref" : "AWS::StackName" }, " --resource=InboundServerB --exit-code=$?\n"
-				] ] } }
-		    }
-		},
-		"InboundELB" : {
-		    "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
-		    "Properties" : {
-				"LoadBalancerName" : "Inbound",
-				"Subnets" : [
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetA"] },
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetB"] },
-					{"Fn::GetAtt" : [ "Environment", "PublicSubnetC"] }
-				],
-				"ConnectionDrainingPolicy" : { "Enabled" :  true, "Timeout" : 300 },
-				"CrossZone" :  true,
-				"SecurityGroups" : [ { "Ref" : "InboundIncomingSG" } ],
-				"HealthCheck" : {
-					"Target" : "TCP:9900",
-					"Interval" : "60",
-					"HealthyThreshold" : "3",
-					"UnhealthyThreshold" : "3",
-					"Timeout" : "30"
-				},
-		        "Listeners" : [
-					{ "Protocol" : "TCP", "LoadBalancerPort" : "9900", "InstanceProtocol" : "TCP", "InstancePort" : "9900" },
-					{ "Protocol" : "TCP", "LoadBalancerPort" : "9901", "InstanceProtocol" : "TCP", "InstancePort" : "9901" },
-					{ "Protocol" : "TCP", "LoadBalancerPort" : "9902", "InstanceProtocol" : "TCP", "InstancePort" : "9902" },
-					{ "Protocol" : "TCP", "LoadBalancerPort" : "9908", "InstanceProtocol" : "TCP", "InstancePort" : "9909" },
-					{ "Protocol" : "TCP", "LoadBalancerPort" : "9909", "InstanceProtocol" : "TCP", "InstancePort" : "9909" },
-					{ "Protocol" : "TCP", "LoadBalancerPort" : "9920", "InstanceProtocol" : "TCP", "InstancePort" : "9920" },
-					{ "Protocol" : "TCP", "LoadBalancerPort" : "9921", "InstanceProtocol" : "TCP", "InstancePort" : "9921" },
-					{ "Protocol" : "TCP", "LoadBalancerPort" : "9999", "InstanceProtocol" : "TCP", "InstancePort" : "9999" }
-		        ],
-				"Instances" : [ { "Ref" : "InboundServerA" }, { "Ref" : "InboundServerB" } ]
-		    }
-		}
-	},
-
-	"Outputs" : {
-		"SipServersPrimaryIPAddresses" : { "Value" :  {"Fn::Join" : [ ",", [
-			{"Fn::GetAtt" : [ "SipServerAENI", "PrimaryPrivateIpAddress"]},
-			{"Fn::GetAtt" : [ "SipServerBENI", "PrimaryPrivateIpAddress"]},
-			{"Fn::GetAtt" : [ "SipServerCENI", "PrimaryPrivateIpAddress"]}
-		] ]} },
-		"EhServersPrimaryIPAddresses" : { "Value" :  {"Fn::Join" : [ ",", [
-			{"Fn::GetAtt" : [ "EhServerAENI", "PrimaryPrivateIpAddress"]},
-			{"Fn::GetAtt" : [ "EhServerBENI", "PrimaryPrivateIpAddress"]}
-		] ]} },
-		"MqServersPrimaryIPAddresses" : { "Value" :  {"Fn::Join" : [ ",", [
-			{"Fn::GetAtt" : [ "MqServerAENI", "PrimaryPrivateIpAddress"]},
-			{"Fn::GetAtt" : [ "MqServerBENI", "PrimaryPrivateIpAddress"]}
-		] ]} },
-		"InboundELBName" : { "Value" : {"Fn::GetAtt" : [ "InboundELB", "DNSName"]} }
-	}
+  "Parameters": {
+    "TargetEnvironment": {
+      "Type": "String",
+      "Description": "The target environment for this stack",
+      "Default": "eu1iec1"
+    },
+    "EhAMI": {
+      "Type": "String",
+      "Default": "ami-eb4133fc"
+    },
+    "InboundAMI": {
+      "Type": "String",
+      "Default": "ami-eb4133fc"
+    },
+    "MqAMI": {
+      "Type": "String",
+      "Default": "ami-eb4133fc"
+    },
+    "SipAMI": {
+      "Type": "String",
+      "Default": "ami-eb4133fc"
+    },
+    "TerminationProtection": {
+      "Type": "String",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Default": "false"
+    }
+  },
+  "Mappings": {
+    "Constants": {
+      "InstanceProfiles": {
+        "SipServer": "sipServer",
+        "EhServer": "ehServer",
+        "MqServer": "mqServer",
+        "InboundServer": "inboundServer"
+      }
+    }
+  },
+  "Resources": {
+    "Environment": {
+      "Type": "AWS::CloudFormation::CustomResource",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:lambda:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":function:StackInfo"
+            ]
+          ]
+        },
+        "StackName": {
+          "Ref": "TargetEnvironment"
+        }
+      }
+    },
+    "DialerSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "VPC"
+          ]
+        },
+        "GroupDescription": "Dialer",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "-1",
+            "CidrIp": {
+              "Fn::GetAtt": [
+                "Environment",
+                "VPCCIDR"
+              ]
+            }
+          }
+        ],
+		"Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+				  "Dialer"
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "InboundIncomingSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "VPC"
+          ]
+        },
+        "GroupDescription": "Inbound ELB",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "9000",
+            "ToPort": "9999",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ],
+		"Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+				  "Inbound ELB"
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "SipServerAENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "AppSubnetA"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "sip1",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "SipServerA": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "SipAMI"
+        },
+        "InstanceType": "c4.4xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "SipServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "SipServerAENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "sip1",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_sip.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -p ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "sip2",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "SipServerBENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                ",",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "sip3",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "SipServerCENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=SipServerA --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "SipServerBENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "AppSubnetB"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "sip2",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "SipServerB": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "SipAMI"
+        },
+        "InstanceType": "c4.4xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "SipServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "SipServerBENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "sip2",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_sip.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -p ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "sip1",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "SipServerAENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                ",",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "sip3",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "SipServerCENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=SipServerB --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "SipServerCENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "AppSubnetC"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "sip3",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "SipServerC": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "SipAMI"
+        },
+        "InstanceType": "c4.4xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "SipServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "SipServerCENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "sip3",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_sip.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -p ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "sip1",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "SipServerAENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                ",",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "sip2",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "SipServerBENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=SipServerC --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "EhServerAENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "AppSubnetA"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "eh1",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "EhServerA": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "EhAMI"
+        },
+        "InstanceType": "m3.xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "EhServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "EhServerAENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "eh1",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_eh.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=EhServerA --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "EhServerBENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "AppSubnetB"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "eh2",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "EhServerB": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "EhAMI"
+        },
+        "InstanceType": "m3.xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "EhServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "EhServerBENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "eh2",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_eh.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=EhServerB --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "MqServerAENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "AppSubnetA"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "mq1",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "MqServerA": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "MqAMI"
+        },
+        "InstanceType": "m3.xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "MqServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "MqServerAENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "mq1",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_mq.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -p ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "mq2",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "MqServerBENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=MqServerA --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "MqServerBENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "AppSubnetB"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "mq2",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "MqServerB": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "MqAMI"
+        },
+        "InstanceType": "m3.xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "MqServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "MqServerBENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "mq2",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_mq.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -p ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "mq1",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "MqServerAENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=MqServerB --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "InboundServerAENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "WebSubnetA"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "inbound1",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "InboundServerA": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "InboundAMI"
+        },
+        "InstanceType": "m3.xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "InboundServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "InboundServerAENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "inbound1",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_inbound.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -m ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "inbound2",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "InboundServerBENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -i 1 -o 1",
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=InboundServerA --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "InboundServerBENI": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Environment",
+            "WebSubnetB"
+          ]
+        },
+        "GroupSet": [
+          {
+            "Ref": "DialerSG"
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "RemoteAccessSG"
+            ]
+          }
+        ],
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingPrefix"
+                ]
+              },
+              "inbound2",
+              {
+                "Fn::GetAtt": [
+                  "Environment",
+                  "NamingSuffix"
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "InboundServerB": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT60M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "InboundAMI"
+        },
+        "InstanceType": "m3.xlarge",
+        "IamInstanceProfile": {
+          "Fn::FindInMap": [
+            "Constants",
+            "InstanceProfiles",
+            "InboundServer"
+          ]
+        },
+        "DisableApiTermination": {
+          "Ref": "TerminationProtection"
+        },
+        "Monitoring": true,
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "DeleteOnTermination": false,
+            "NetworkInterfaceId": {
+              "Ref": "InboundServerBENI"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
+                  },
+                  "inbound2",
+                  {
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingSuffix"
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "scripts=\"https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts\"\n\n",
+                "filename=\"setup_inbound.sh\"\n",
+                "setup_file=\"$(mktemp)\"\n",
+                "curl -sf -o \"${setup_file}\" \"${scripts}/${filename}\" || exit 1\n",
+                "bash \"${setup_file}\"",
+                " -m ",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "inbound1",
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingSuffix"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "InboundServerAENI",
+                    "PrimaryPrivateIpAddress"
+                  ]
+                },
+                " -i 2 -o 2",
+                " -b ",
+                {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Environment",
+                          "NamingPrefix"
+                        ]
+                      },
+                      "files",
+                      {
+                        "Ref": "AWS::AccountId"
+                      }
+                    ]
+                  ]
+                },
+                " -h ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingPrefix"
+                  ]
+                },
+                " -e ",
+                {
+                  "Fn::GetAtt": [
+                    "Environment",
+                    "NamingSuffix"
+                  ]
+                },
+                "\n",
+                "cfn-signal --region=",
+                {
+                  "Ref": "AWS::Region"
+                },
+                " --stack=",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource=InboundServerB --exit-code=$?\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "InboundELB": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "LoadBalancerName": "Inbound",
+        "Subnets": [
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "PublicSubnetA"
+            ]
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "PublicSubnetB"
+            ]
+          },
+          {
+            "Fn::GetAtt": [
+              "Environment",
+              "PublicSubnetC"
+            ]
+          }
+        ],
+        "ConnectionDrainingPolicy": {
+          "Enabled": true,
+          "Timeout": 300
+        },
+        "CrossZone": true,
+        "SecurityGroups": [
+          {
+            "Ref": "InboundIncomingSG"
+          }
+        ],
+        "HealthCheck": {
+          "Target": "TCP:9900",
+          "Interval": "60",
+          "HealthyThreshold": "3",
+          "UnhealthyThreshold": "3",
+          "Timeout": "30"
+        },
+        "Listeners": [
+          {
+            "Protocol": "TCP",
+            "LoadBalancerPort": "9900",
+            "InstanceProtocol": "TCP",
+            "InstancePort": "9900"
+          },
+          {
+            "Protocol": "TCP",
+            "LoadBalancerPort": "9901",
+            "InstanceProtocol": "TCP",
+            "InstancePort": "9901"
+          },
+          {
+            "Protocol": "TCP",
+            "LoadBalancerPort": "9902",
+            "InstanceProtocol": "TCP",
+            "InstancePort": "9902"
+          },
+          {
+            "Protocol": "TCP",
+            "LoadBalancerPort": "9908",
+            "InstanceProtocol": "TCP",
+            "InstancePort": "9909"
+          },
+          {
+            "Protocol": "TCP",
+            "LoadBalancerPort": "9909",
+            "InstanceProtocol": "TCP",
+            "InstancePort": "9909"
+          },
+          {
+            "Protocol": "TCP",
+            "LoadBalancerPort": "9920",
+            "InstanceProtocol": "TCP",
+            "InstancePort": "9920"
+          },
+          {
+            "Protocol": "TCP",
+            "LoadBalancerPort": "9921",
+            "InstanceProtocol": "TCP",
+            "InstancePort": "9921"
+          },
+          {
+            "Protocol": "TCP",
+            "LoadBalancerPort": "9999",
+            "InstanceProtocol": "TCP",
+            "InstancePort": "9999"
+          }
+        ],
+        "Instances": [
+          {
+            "Ref": "InboundServerA"
+          },
+          {
+            "Ref": "InboundServerB"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "SipServersPrimaryIPAddresses": {
+      "Value": {
+        "Fn::Join": [
+          ",",
+          [
+            {
+              "Fn::GetAtt": [
+                "SipServerAENI",
+                "PrimaryPrivateIpAddress"
+              ]
+            },
+            {
+              "Fn::GetAtt": [
+                "SipServerBENI",
+                "PrimaryPrivateIpAddress"
+              ]
+            },
+            {
+              "Fn::GetAtt": [
+                "SipServerCENI",
+                "PrimaryPrivateIpAddress"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "EhServersPrimaryIPAddresses": {
+      "Value": {
+        "Fn::Join": [
+          ",",
+          [
+            {
+              "Fn::GetAtt": [
+                "EhServerAENI",
+                "PrimaryPrivateIpAddress"
+              ]
+            },
+            {
+              "Fn::GetAtt": [
+                "EhServerBENI",
+                "PrimaryPrivateIpAddress"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "MqServersPrimaryIPAddresses": {
+      "Value": {
+        "Fn::Join": [
+          ",",
+          [
+            {
+              "Fn::GetAtt": [
+                "MqServerAENI",
+                "PrimaryPrivateIpAddress"
+              ]
+            },
+            {
+              "Fn::GetAtt": [
+                "MqServerBENI",
+                "PrimaryPrivateIpAddress"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "InboundELBName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "InboundELB",
+          "DNSName"
+        ]
+      }
+    }
+  }
 }

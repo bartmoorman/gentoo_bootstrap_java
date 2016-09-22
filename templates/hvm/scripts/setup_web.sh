@@ -78,6 +78,12 @@ cat <<'EOF'>"/${filename}"
 www-servers/apache apache2_modules_log_forensic
 EOF
 
+filename="etc/portage/package.use/ffmpeg"
+echo "--- ${filename} (replace)"
+cat <<'EOF'>"/${filename}"
+media-video/ffmpeg cpu_flags_x86_mmxext
+EOF
+
 filename="etc/portage/package.use/libmemcached"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"

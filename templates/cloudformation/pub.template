@@ -84,7 +84,10 @@
                 " ",
                 [
                   {
-                    "Ref": "AWS::StackName"
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
                   },
 				  "Pub"
                 ]
@@ -103,7 +106,7 @@
             "VPC"
           ]
         },
-        "GroupDescription": "Pub LB",
+        "GroupDescription": "Pub ELB",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -126,9 +129,12 @@
                 " ",
                 [
                   {
-                    "Ref": "AWS::StackName"
+                    "Fn::GetAtt": [
+                      "Environment",
+                      "NamingPrefix"
+                    ]
                   },
-				  "Pub LB"
+				  "Pub ELB"
                 ]
               ]
             }
