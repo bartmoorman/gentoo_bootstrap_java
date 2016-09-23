@@ -73,7 +73,7 @@ EOF
 filename="etc/portage/package.use/apache"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
-www-servers/apache apache2_modules_log_forensic
+www-servers/apache apache2_modules_log_forensic apache2_modules_access_compat
 EOF
 
 filename="etc/portage/package.use/gd"
@@ -99,17 +99,6 @@ echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-lang/php apache2 cgi gd
 app-eselect/eselect-php apache2
-EOF
-
-dirname="etc/portage/package.keywords"
-echo "--- ${dirname} (create)"
-mkdir -p "/${dirname}"
-
-filename="etc/portage/package.keywords/nagios"
-echo "--- ${filename} (replace)"
-cat <<'EOF'>"/${filename}"
-net-analyzer/nagios
-net-analyzer/nagios-core
 EOF
 
 #mirrorselect -D -b10 -s5 || exit 1
