@@ -755,7 +755,7 @@
                   ]
                 },
                 " -h ",
-                { "Fn::GetAtt": "Environment", "NamingPrefix" ] },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
                 { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",

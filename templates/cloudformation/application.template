@@ -754,7 +754,7 @@
                 "cfn-signal --region=",
                 { "Ref": "AWS::Region" },
                 " --stack=",
-                { "Ref": "AWS::StackName },
+                { "Ref": "AWS::StackName" },
                 " --resource=WebServerD --exit-code=$?\n"
               ]
             ]
