@@ -49,41 +49,25 @@
             "",
             [
               "arn:aws:lambda:",
-              {
-                "Ref": "AWS::Region"
-              },
+              { "Ref": "AWS::Region" },
               ":",
-              {
-                "Ref": "AWS::AccountId"
-              },
+              { "Ref": "AWS::AccountId" },
               ":function:StackInfo"
             ]
           ]
         },
-        "StackName": {
-          "Ref": "TargetEnvironment"
-        }
+        "StackName": { "Ref": "TargetEnvironment" }
       }
     },
     "DialerSG": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "VpcId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "VPC"
-          ]
-        },
+        "VpcId": { "Fn::GetAtt": [ "Environment", "VPC" ] },
         "GroupDescription": "Dialer",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "-1",
-            "CidrIp": {
-              "Fn::GetAtt": [
-                "Environment",
-                "VPCCIDR"
-              ]
-            }
+            "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
           }
         ],
 		"Tags": [
@@ -93,12 +77,7 @@
               "Fn::Join": [
                 " ",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
 				  "Dialer"
                 ]
               ]
@@ -110,12 +89,7 @@
     "InboundIncomingSG": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "VpcId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "VPC"
-          ]
-        },
+        "VpcId": { "Fn::GetAtt": [ "Environment", "VPC" ] },
         "GroupDescription": "Inbound ELB",
         "SecurityGroupIngress": [
           {
@@ -132,12 +106,7 @@
               "Fn::Join": [
                 " ",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
 				  "Inbound ELB"
                 ]
               ]
@@ -149,40 +118,18 @@
     "SipServerAENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AppSubnetA"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "AppSubnetA" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "sip1",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -197,28 +144,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "SipAMI"
-        },
+        "ImageId": { "Ref": "SipAMI" },
         "InstanceType": "c4.4xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "SipServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "SipServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "SipServerAENI"
-            }
+            "NetworkInterfaceId": { "Ref": "SipServerAENI" }
           }
         ],
         "Tags": [
@@ -228,19 +163,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "sip1",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -262,98 +187,47 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "sip2",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "SipServerBENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "SipServerBENI", "PrimaryPrivateIpAddress" ] },
                 ",",
                 {
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "sip3",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "SipServerCENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "SipServerCENI", "PrimaryPrivateIpAddress" ] },
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=SipServerA --exit-code=$?\n"
               ]
             ]
@@ -364,40 +238,18 @@
     "SipServerBENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AppSubnetB"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "AppSubnetB" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "sip2",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -412,28 +264,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "SipAMI"
-        },
+        "ImageId": { "Ref": "SipAMI" },
         "InstanceType": "c4.4xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "SipServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "SipServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "SipServerBENI"
-            }
+            "NetworkInterfaceId": { "Ref": "SipServerBENI" }
           }
         ],
         "Tags": [
@@ -443,19 +283,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "sip2",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -477,98 +307,47 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "sip1",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "SipServerAENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "SipServerAENI", "PrimaryPrivateIpAddress" ] },
                 ",",
                 {
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "sip3",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "SipServerCENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "SipServerCENI", "PrimaryPrivateIpAddress" ] },
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=SipServerB --exit-code=$?\n"
               ]
             ]
@@ -579,40 +358,18 @@
     "SipServerCENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AppSubnetC"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "AppSubnetC" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "sip3",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -627,28 +384,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "SipAMI"
-        },
+        "ImageId": { "Ref": "SipAMI" },
         "InstanceType": "c4.4xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "SipServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "SipServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "SipServerCENI"
-            }
+            "NetworkInterfaceId": { "Ref": "SipServerCENI" }
           }
         ],
         "Tags": [
@@ -658,19 +403,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "sip3",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -692,98 +427,47 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "sip1",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "SipServerAENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "SipServerAENI", "PrimaryPrivateIpAddress" ] },
                 ",",
                 {
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "sip2",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "SipServerBENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "SipServerBENI", "PrimaryPrivateIpAddress" ] },
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=SipServerC --exit-code=$?\n"
               ]
             ]
@@ -794,40 +478,18 @@
     "EhServerAENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AppSubnetA"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "AppSubnetA" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "eh1",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -842,28 +504,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "EhAMI"
-        },
+        "ImageId": { "Ref": "EhAMI" },
         "InstanceType": "m3.xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "EhServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "EhServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "EhServerAENI"
-            }
+            "NetworkInterfaceId": { "Ref": "EhServerAENI" }
           }
         ],
         "Tags": [
@@ -873,19 +523,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "eh1",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -907,42 +547,21 @@
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=EhServerA --exit-code=$?\n"
               ]
             ]
@@ -953,40 +572,18 @@
     "EhServerBENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AppSubnetB"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "AppSubnetB" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "eh2",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -1001,28 +598,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "EhAMI"
-        },
+        "ImageId": { "Ref": "EhAMI" },
         "InstanceType": "m3.xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "EhServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "EhServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "EhServerBENI"
-            }
+            "NetworkInterfaceId": { "Ref": "EhServerBENI" }
           }
         ],
         "Tags": [
@@ -1032,19 +617,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "eh2",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -1066,42 +641,21 @@
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=EhServerB --exit-code=$?\n"
               ]
             ]
@@ -1112,40 +666,18 @@
     "MqServerAENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AppSubnetA"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "AppSubnetA" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "mq1",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -1160,28 +692,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "MqAMI"
-        },
+        "ImageId": { "Ref": "MqAMI" },
         "InstanceType": "m3.xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "MqServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "MqServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "MqServerAENI"
-            }
+            "NetworkInterfaceId": { "Ref": "MqServerAENI" }
           }
         ],
         "Tags": [
@@ -1191,19 +711,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "mq1",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -1225,70 +735,34 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "mq2",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "MqServerBENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "MqServerBENI", "PrimaryPrivateIpAddress" ] },
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=MqServerA --exit-code=$?\n"
               ]
             ]
@@ -1299,40 +773,18 @@
     "MqServerBENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AppSubnetB"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "AppSubnetB" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "mq2",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -1347,28 +799,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "MqAMI"
-        },
+        "ImageId": { "Ref": "MqAMI" },
         "InstanceType": "m3.xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "MqServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "MqServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "MqServerBENI"
-            }
+            "NetworkInterfaceId": { "Ref": "MqServerBENI" }
           }
         ],
         "Tags": [
@@ -1378,19 +818,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "mq2",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -1412,70 +842,34 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "mq1",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "MqServerAENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "MqServerAENI", "PrimaryPrivateIpAddress" ] },
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=MqServerB --exit-code=$?\n"
               ]
             ]
@@ -1486,40 +880,18 @@
     "InboundServerAENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "WebSubnetA"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "WebSubnetA" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "inbound1",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -1534,28 +906,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "InboundAMI"
-        },
+        "ImageId": { "Ref": "InboundAMI" },
         "InstanceType": "m3.xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "InboundServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "InboundServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "InboundServerAENI"
-            }
+            "NetworkInterfaceId": { "Ref": "InboundServerAENI" }
           }
         ],
         "Tags": [
@@ -1565,19 +925,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "inbound1",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -1599,71 +949,35 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "inbound2",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "InboundServerBENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "InboundServerBENI", "PrimaryPrivateIpAddress" ] },
                 " -i 1 -o 1",
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=InboundServerA --exit-code=$?\n"
               ]
             ]
@@ -1674,40 +988,18 @@
     "InboundServerBENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "WebSubnetB"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "WebSubnetB" ] },
         "GroupSet": [
-          {
-            "Ref": "DialerSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "DialerSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "inbound2",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -1722,28 +1014,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "InboundAMI"
-        },
+        "ImageId": { "Ref": "InboundAMI" },
         "InstanceType": "m3.xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "InboundServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "InboundServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "InboundServerBENI"
-            }
+            "NetworkInterfaceId": { "Ref": "InboundServerBENI" }
           }
         ],
         "Tags": [
@@ -1753,19 +1033,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "inbound2",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -1787,71 +1057,35 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "inbound1",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "InboundServerAENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "InboundServerAENI", "PrimaryPrivateIpAddress" ] },
                 " -i 2 -o 2",
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=InboundServerB --exit-code=$?\n"
               ]
             ]
@@ -1864,24 +1098,9 @@
       "Properties": {
         "LoadBalancerName": "Inbound",
         "Subnets": [
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "PublicSubnetA"
-            ]
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "PublicSubnetB"
-            ]
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "PublicSubnetC"
-            ]
-          }
+          { "Fn::GetAtt": [ "Environment", "PublicSubnetA" ] },
+          { "Fn::GetAtt": [ "Environment", "PublicSubnetB" ] },
+          { "Fn::GetAtt": [ "Environment", "PublicSubnetC" ] }
         ],
         "ConnectionDrainingPolicy": {
           "Enabled": true,
@@ -1889,9 +1108,7 @@
         },
         "CrossZone": true,
         "SecurityGroups": [
-          {
-            "Ref": "InboundIncomingSG"
-          }
+          { "Ref": "InboundIncomingSG" }
         ],
         "HealthCheck": {
           "Target": "TCP:9900",
@@ -1951,12 +1168,8 @@
           }
         ],
         "Instances": [
-          {
-            "Ref": "InboundServerA"
-          },
-          {
-            "Ref": "InboundServerB"
-          }
+          { "Ref": "InboundServerA" },
+          { "Ref": "InboundServerB" }
         ]
       }
     }
@@ -1967,24 +1180,9 @@
         "Fn::Join": [
           ",",
           [
-            {
-              "Fn::GetAtt": [
-                "SipServerAENI",
-                "PrimaryPrivateIpAddress"
-              ]
-            },
-            {
-              "Fn::GetAtt": [
-                "SipServerBENI",
-                "PrimaryPrivateIpAddress"
-              ]
-            },
-            {
-              "Fn::GetAtt": [
-                "SipServerCENI",
-                "PrimaryPrivateIpAddress"
-              ]
-            }
+            { "Fn::GetAtt": [ "SipServerAENI", "PrimaryPrivateIpAddress" ] },
+            { "Fn::GetAtt": [ "SipServerBENI", "PrimaryPrivateIpAddress" ] },
+            { "Fn::GetAtt": [ "SipServerCENI", "PrimaryPrivateIpAddress" ] }
           ]
         ]
       }
@@ -1994,18 +1192,8 @@
         "Fn::Join": [
           ",",
           [
-            {
-              "Fn::GetAtt": [
-                "EhServerAENI",
-                "PrimaryPrivateIpAddress"
-              ]
-            },
-            {
-              "Fn::GetAtt": [
-                "EhServerBENI",
-                "PrimaryPrivateIpAddress"
-              ]
-            }
+            { "Fn::GetAtt": [ "EhServerAENI", "PrimaryPrivateIpAddress" ] },
+            { "Fn::GetAtt": [ "EhServerBENI", "PrimaryPrivateIpAddress" ] }
           ]
         ]
       }
@@ -2015,29 +1203,14 @@
         "Fn::Join": [
           ",",
           [
-            {
-              "Fn::GetAtt": [
-                "MqServerAENI",
-                "PrimaryPrivateIpAddress"
-              ]
-            },
-            {
-              "Fn::GetAtt": [
-                "MqServerBENI",
-                "PrimaryPrivateIpAddress"
-              ]
-            }
+            { "Fn::GetAtt": [ "MqServerAENI", "PrimaryPrivateIpAddress" ] },
+            { "Fn::GetAtt": [ "MqServerBENI", "PrimaryPrivateIpAddress" ] }
           ]
         ]
       }
     },
     "InboundELBName": {
-      "Value": {
-        "Fn::GetAtt": [
-          "InboundELB",
-          "DNSName"
-        ]
-      }
+      "Value": { "Fn::GetAtt": [ "InboundELB", "DNSName" ] }
     }
   }
 }

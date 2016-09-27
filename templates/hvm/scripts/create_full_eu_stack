@@ -1,6 +1,6 @@
 #!/bin/bash
 read -p "AWS Region: (ex. us-east-1) " region
-echo Region is $region
+echo AWS Region is $region
 read -p "Stack Name: (ex. na1usc1) " stackname
 echo Stack Name is $stackname
 read -p "CIDR 2nd Octet: (ex. 100) " cidr2ndoctet
@@ -65,7 +65,7 @@ while [ true ]; do
 		exit 1
 	fi
 
-	stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}" 2> /dev/null)
+	stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}" 2> /dev/null)
 
 	if [ "${stack_status}" == "CREATE_COMPLETE" ]; then
 		break
@@ -117,7 +117,7 @@ while [ true ]; do
 		exit 1
 	fi
 
-	stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}systems" 2> /dev/null)
+	stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}systems" 2> /dev/null)
 
 	if [ "${stack_status}" == "CREATE_COMPLETE" ]; then
 		break
@@ -298,7 +298,7 @@ while [ "${#stacks[@]}" -gt 0 ]; do
 	fi
 
 	for stack in "${!stacks[@]}"; do
-		stack_status=$(aws --output 'text' --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stacks[stack]}" 2> /dev/null)
+		stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stacks[stack]}" 2> /dev/null)
 
 		if [ "${stack_status}" == "CREATE_COMPLETE" ]; then
 			echo -n "${stacks[stack]} $(bc <<< "$(date +%s) - $start")..."
