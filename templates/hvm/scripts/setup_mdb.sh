@@ -90,7 +90,7 @@ dirname="etc/portage/package.keywords"
 echo "--- ${dirname} (create)"
 mkdir -p "/${dirname}"
 
-filename="etc/portage/package.keywords/mongodb"
+filename="etc/portage/package.keywords/boost"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
 dev-util/boost-build
