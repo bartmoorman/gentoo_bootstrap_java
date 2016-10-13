@@ -11,10 +11,7 @@
     },
     "TerminationProtection": {
       "Type": "String",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
+      "AllowedValues": [ "true", "false" ],
       "Default": "false"
     },
     "Certificate": {
@@ -39,41 +36,25 @@
             "",
             [
               "arn:aws:lambda:",
-              {
-                "Ref": "AWS::Region"
-              },
+              { "Ref": "AWS::Region" },
               ":",
-              {
-                "Ref": "AWS::AccountId"
-              },
+              { "Ref": "AWS::AccountId" },
               ":function:StackInfo"
             ]
           ]
         },
-        "StackName": {
-          "Ref": "TargetEnvironment"
-        }
+        "StackName": { "Ref": "TargetEnvironment" }
       }
     },
     "PubSG": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "VpcId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "VPC"
-          ]
-        },
+        "VpcId": { "Fn::GetAtt": [ "Environment", "VPC" ] },
         "GroupDescription": "Pub",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "-1",
-            "CidrIp": {
-              "Fn::GetAtt": [
-                "Environment",
-                "VPCCIDR"
-              ]
-            }
+            "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
           }
         ],
 		"Tags": [
@@ -83,12 +64,7 @@
               "Fn::Join": [
                 " ",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
 				  "Pub"
                 ]
               ]
@@ -100,12 +76,7 @@
     "PubIncomingSG": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "VpcId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "VPC"
-          ]
-        },
+        "VpcId": { "Fn::GetAtt": [ "Environment", "VPC" ] },
         "GroupDescription": "Pub ELB",
         "SecurityGroupIngress": [
           {
@@ -128,12 +99,7 @@
               "Fn::Join": [
                 " ",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
 				  "Pub ELB"
                 ]
               ]
@@ -145,40 +111,18 @@
     "PubServerAENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "WebSubnetA"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "WebSubnetA" ] },
         "GroupSet": [
-          {
-            "Ref": "PubSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "PubSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "pub1",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -193,28 +137,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "PubAMI"
-        },
+        "ImageId": { "Ref": "PubAMI" },
         "InstanceType": "c3.4xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "PubServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "PubServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "PubServerAENI"
-            }
+            "NetworkInterfaceId": { "Ref": "PubServerAENI" }
           }
         ],
         "EbsOptimized": true,
@@ -234,19 +166,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "pub1",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -268,71 +190,35 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "pub2",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "PubServerBENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "PubServerBENI", "PrimaryPrivateIpAddress" ] },
                 " -i 1 -o 1",
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "backup",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=PubServerA --exit-code=$?\n"
               ]
             ]
@@ -343,40 +229,18 @@
     "PubServerBENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "WebSubnetB"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "WebSubnetB" ] },
         "GroupSet": [
-          {
-            "Ref": "PubSG"
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Ref": "PubSG" },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "pub2",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -391,28 +255,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "PubAMI"
-        },
+        "ImageId": { "Ref": "PubAMI" },
         "InstanceType": "c3.4xlarge",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "PubServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "PubServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "PubServerBENI"
-            }
+            "NetworkInterfaceId": { "Ref": "PubServerBENI" }
           }
         ],
         "EbsOptimized": true,
@@ -432,19 +284,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "pub2",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -466,71 +308,35 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "pub1",
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingSuffix"
-                        ]
-                      }
+                      { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                     ]
                   ]
                 },
                 ":",
-                {
-                  "Fn::GetAtt": [
-                    "PubServerAENI",
-                    "PrimaryPrivateIpAddress"
-                  ]
-                },
+                { "Fn::GetAtt": [ "PubServerAENI", "PrimaryPrivateIpAddress" ] },
                 " -i 2 -o 2",
                 " -b ",
                 {
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "backup",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=PubServerB --exit-code=$?\n"
               ]
             ]
@@ -543,24 +349,9 @@
       "Properties": {
         "LoadBalancerName": "Pub",
         "Subnets": [
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "PublicSubnetA"
-            ]
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "PublicSubnetB"
-            ]
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "PublicSubnetC"
-            ]
-          }
+          { "Fn::GetAtt": [ "Environment", "PublicSubnetA" ] },
+          { "Fn::GetAtt": [ "Environment", "PublicSubnetB" ] },
+          { "Fn::GetAtt": [ "Environment", "PublicSubnetC" ] }
         ],
         "ConnectionDrainingPolicy": {
           "Enabled": true,
@@ -568,9 +359,7 @@
         },
         "CrossZone": true,
         "SecurityGroups": [
-          {
-            "Ref": "PubIncomingSG"
-          }
+          { "Ref": "PubIncomingSG" }
         ],
         "HealthCheck": {
           "Target": "HTTP:80/",
@@ -594,13 +383,9 @@
                 "",
                 [
                   "arn:aws:iam::",
-                  {
-                    "Ref": "AWS::AccountId"
-                  },
+                  { "Ref": "AWS::AccountId" },
                   ":server-certificate/",
-                  {
-                    "Ref": "Certificate"
-                  }
+                  { "Ref": "Certificate" }
                 ]
               ]
             },
@@ -609,24 +394,15 @@
           }
         ],
         "Instances": [
-          {
-            "Ref": "PubServerA"
-          },
-          {
-            "Ref": "PubServerB"
-          }
+          { "Ref": "PubServerA" },
+          { "Ref": "PubServerB" }
         ]
       }
     }
   },
   "Outputs": {
     "PubELBName": {
-      "Value": {
-        "Fn::GetAtt": [
-          "PubELB",
-          "DNSName"
-        ]
-      }
+      "Value": { "Fn::GetAtt": [ "PubELB", "DNSName" ] }
     }
   }
 }

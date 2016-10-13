@@ -11,10 +11,7 @@
     },
     "TerminationProtection": {
       "Type": "String",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
+      "AllowedValues": [ "true", "false" ],
       "Default": "false"
     }
   },
@@ -34,62 +31,31 @@
             "",
             [
               "arn:aws:lambda:",
-              {
-                "Ref": "AWS::Region"
-              },
+              { "Ref": "AWS::Region" },
               ":",
-              {
-                "Ref": "AWS::AccountId"
-              },
+              { "Ref": "AWS::AccountId" },
               ":function:StackInfo"
             ]
           ]
         },
-        "StackName": {
-          "Ref": "TargetEnvironment"
-        }
+        "StackName": { "Ref": "TargetEnvironment" }
       }
     },
     "SystemsServerENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AppSubnetA"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "AppSubnetA" ] },
         "GroupSet": [
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "CoreSG"
-            ]
-          },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Fn::GetAtt": [ "Environment", "CoreSG" ] },
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
             "",
             [
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingPrefix"
-                ]
-              },
+              { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
               "systems1",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -104,28 +70,16 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "SystemsAMI"
-        },
+        "ImageId": { "Ref": "SystemsAMI" },
         "InstanceType": "t2.medium",
-        "IamInstanceProfile": {
-          "Fn::FindInMap": [
-            "Constants",
-            "InstanceProfiles",
-            "SystemsServer"
-          ]
-        },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "IamInstanceProfile": { "Fn::FindInMap": [ "Constants", "InstanceProfiles", "SystemsServer" ] },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "SystemsServerENI"
-            }
+            "NetworkInterfaceId": { "Ref": "SystemsServerENI" }
           }
         ],
         "BlockDeviceMappings": [
@@ -144,19 +98,9 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "systems1",
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingSuffix"
-                    ]
-                  }
+                  { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
                 ]
               ]
             }
@@ -182,42 +126,21 @@
                   "Fn::Join": [
                     "-",
                     [
-                      {
-                        "Fn::GetAtt": [
-                          "Environment",
-                          "NamingPrefix"
-                        ]
-                      },
+                      { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                       "files",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
                 " -h ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingPrefix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                 " -e ",
-                {
-                  "Fn::GetAtt": [
-                    "Environment",
-                    "NamingSuffix"
-                  ]
-                },
+                { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=SystemsServer --exit-code=$?\n"
               ]
             ]

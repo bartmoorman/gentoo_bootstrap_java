@@ -1,0 +1,459 @@
+#!/bin/bash
+read -p "AWS Region: (ex. us-east-1) " region
+echo AWS Region is $region
+read -p "Stack Name: (ex. na1usc1) " stackname
+echo Stack Name is $stackname
+read -p "CIDR 2nd Octet: (ex. 100) " cidr2ndoctet
+echo CIDR 2nd Octet is $cdir2ndoctet
+read -p "AMI: (ex. ami-eb4133fc) " ami
+echo AMI is $ami
+read -p "ns1 EIP: (ex. eipalloc-7042224f) " ns1eip
+echo ns1 EIP is $ns1eip
+read -p "ns2 EIP: (ex. eipalloc-d94929e6) " ns2eip
+echo ns2 EIP is $ns2eip
+read -p "NAT GW A EIP: (ex. eipalloc-77543448) " natgwaeip
+echo NAT GW A EIP is $natgwaeip
+read -p "NAT GW B EIP: (ex. eipalloc-1a503025) " natgwbeip
+echo NAT GW B EIP is $natgwbeip
+read -p "NAT GW C EIP: (ex. eipalloc-b050308f) " natgwceip
+echo NAT GW C EIP is $natgwceip
+read -p "monitor1 EIP: (ex. eipalloc-5256226d) " monitor1eip
+echo monitor1 EIP is $monitor1eip
+read -p "SSL Certificate Name: (ex. InsideSales) " sslcertname
+echo SSL Certificate Name is $sslcertname
+read -p "Number of DB Clusters: (ex. 5) " numdbclusters
+echo Number of DB Clusters is $numdbclusters
+
+waitforsinglestack() {
+	local stackname=$1
+
+	sleep=60
+	counter=0
+	timeout=3600
+
+	echo -n $(date) "Waiting for ${stackname} to finish..."
+
+	start=$(date +%s)
+
+	while [ true ]; do
+		if [ "${counter}" -ge "${timeout}" ]; then
+			echo 'timeout! ;('
+			exit 1
+		fi
+
+		stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}" 2> /dev/null)
+
+		if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+			echo -n '.'
+		elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+			echo 'failed! ;('
+			exit 1
+		elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+			echo 'deleted! ;('
+			exit 1
+		elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+			break
+		fi
+
+		sleep ${sleep}
+		counter=$(bc <<< "${counter} + ${sleep}")
+	done
+
+	finish=$(date +%s)
+
+	echo 'finished! ;)' $(bc <<< "$finish - $start") 'seconds'
+}
+
+waitformultiplestacks() {
+	local stacks=($@)
+
+	sleep=60
+	counter=0
+	timeout=3600
+
+	echo -n $(date) "Waiting for ${#stacks[@]} stack(s) to finish..."
+
+	start=$(date +%s)
+
+	while [ "${#stacks[@]}" -gt 0 ]; do
+		if [ "${counter}" -ge "${timeout}" ]; then
+			echo 'timeout! ;('
+			exit 1
+		fi
+
+		for stack in "${!stacks[@]}"; do
+			stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stacks[stack]}" 2> /dev/null)
+
+			if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+				echo -n '.'
+			elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+				echo "failed (${stacks[stack]})! ;("
+				exit 1
+			elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+				echo "deleted (${stacks[stack]})! ;("
+				exit 1
+			elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+				echo -n "${stacks[stack]} finished! ;)" $(bc <<< "$(date +%s) - $start") 'seconds...'
+				unset stacks[stack]
+			fi
+
+			sleep 1
+		done
+
+		sleep ${sleep}
+		counter=$(bc <<< "${counter} + ${sleep}")
+	done
+
+	finish=$(date +%s)
+
+	echo 'finished! ;)' $(bc <<< "$finish - $start") 'seconds'
+}
+
+stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}" 2> /dev/null)
+
+if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname} is in progress! Monitoring it. :)"
+	sleep 1
+	waitforsinglestack "${stackname}"
+	sleep 1
+elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+	echo $(date) "${stackname} has already failed! :("
+	exit 1
+elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname} is being deleted! ;("
+	exit 1
+elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+	echo $(date) "${stackname} is already running! Skipping. :)"
+else
+	echo -n $(date) "${stackname} is starting..."
+
+	aws \
+	--output 'text' \
+	--region "${region}" \
+	cloudformation \
+	create-stack \
+	--stack-name "${stackname}" \
+	--template-body 'file://../../cloudformation/VPC.template' \
+	--parameters \
+	"ParameterKey=CIDR2ndOctet,ParameterValue=${cidr2ndoctet}" \
+	"ParameterKey=DNSAMI,ParameterValue=${ami}" \
+	'ParameterKey=DNSInstanceType,ParameterValue=t2.medium' \
+	"ParameterKey=DNSServerAExistingEIP,ParameterValue=${ns1eip}" \
+	"ParameterKey=DNSServerBExistingEIP,ParameterValue=${ns2eip}" \
+	"ParameterKey=NATGatewayAExistingEIP,ParameterValue=${natgwaeip}" \
+	"ParameterKey=NATGatewayBExistingEIP,ParameterValue=${natgwbeip}" \
+	"ParameterKey=NATGatewayCExistingEIP,ParameterValue=${natgwceip}" \
+	'ParameterKey=Environment,ParameterValue=Production' \
+	'ParameterKey=TerminationProtection,ParameterValue=false' \
+	--on-failure 'DO_NOTHING' > /dev/null
+
+	if [ $? -eq 0 ]; then
+		echo 'done! Monitoring it. :)'
+		sleep 1
+		waitforsinglestack "${stackname}"
+		sleep 1
+	else
+		echo 'failed. :('
+		exit 1
+	fi
+fi
+
+stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}systems" 2> /dev/null)
+
+if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}systems is in progress! Monitoring it. :)"
+	sleep 1
+	waitforsinglestack "${stackname}systems"
+	sleep 1
+elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+	echo $(date) "${stackname}systems has already failed! :("
+	exit 1
+elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}systems is being deleted! ;("
+	exit 1
+elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+	echo $(date) "${stackname}systems is already running! Skipping. :)"
+else
+	echo -n $(date) "${stackname}systems is starting..."
+
+	aws \
+	--output 'text' \
+	--region "${region}" \
+	cloudformation \
+	create-stack \
+	--stack-name "${stackname}systems" \
+	--template-body 'file://../../cloudformation/systems.template' \
+	--parameters \
+	"ParameterKey=SystemsAMI,ParameterValue=${ami}" \
+	"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
+	'ParameterKey=TerminationProtection,ParameterValue=false' \
+	--on-failure 'DO_NOTHING' > /dev/null
+
+	if [ $? -eq 0 ]; then
+		echo 'done! Monitoring it. :)'
+		sleep 1
+		waitforsinglestack "${stackname}systems"
+		sleep 1
+	else
+		echo 'failed! :('
+		exit 1
+	fi
+fi
+
+stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}core" 2> /dev/null)
+
+if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}core is in progress! Monitoring it. :)"
+	stacks+=("${stackname}core")
+	sleep 1
+elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+	echo $(date) "${stackname}core has already failed! :("
+	exit 1
+elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}core is being deleted! ;("
+	exit 1
+elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+	echo $(date) "${stackname}core is already running! Skipping. :)"
+else
+	echo -n $(date) "${stackname}core is starting..."
+
+	aws \
+	--output 'text' \
+	--region "${region}" \
+	cloudformation \
+	create-stack \
+	--stack-name "${stackname}core" \
+	--template-body 'file://../../cloudformation/core.template' \
+	--parameters \
+	'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+	"ParameterKey=DeployAMI,ParameterValue=${ami}" \
+	"ParameterKey=MonitorAMI,ParameterValue=${ami}" \
+	"ParameterKey=MonitorServerExistingEIP,ParameterValue=${monitor1eip}" \
+	"ParameterKey=StatsAMI,ParameterValue=${ami}" \
+	"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
+	'ParameterKey=TerminationProtection,ParameterValue=false' \
+	--on-failure 'DO_NOTHING' > /dev/null
+
+	if [ $? -eq 0 ]; then
+		echo 'done! Monitoring it. :)'
+		stacks+=("${stackname}core")
+		sleep 10
+	else
+		echo 'failed! :('
+		exit 1
+	fi
+fi
+
+stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}pub" 2> /dev/null)
+
+if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}pub is in progress! Monitoring it. :)"
+	stacks+=("${stackname}pub")
+	sleep 1
+elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+	echo $(date) "${stackname}pub has already failed! :("
+	exit 1
+elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}pub is being deleted! ;("
+	exit 1
+elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+	echo $(date) "${stackname}pub is already running! Skipping. :)"
+else
+	echo -n $(date) "${stackname}pub is starting..."
+
+	aws \
+	--output 'text' \
+	--region "${region}" \
+	cloudformation \
+	create-stack \
+	--stack-name "${stackname}pub" \
+	--template-body 'file://../../cloudformation/pub.template' \
+	--parameters \
+	"ParameterKey=Certificate,ParameterValue=${sslcertname}" \
+	"ParameterKey=PubAMI,ParameterValue=${ami}" \
+	"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
+	'ParameterKey=TerminationProtection,ParameterValue=false' \
+	--on-failure 'DO_NOTHING' > /dev/null
+
+	if [ $? -eq 0 ]; then
+		echo 'done! Monitoring it. :)'
+		stacks+=("${stackname}pub")
+		sleep 10
+	else
+		echo 'failed! :('
+		exit 1
+	fi
+fi
+
+stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}dialer" 2> /dev/null)
+
+if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}dialer is in progress! Monitoring it. :)"
+	stacks+=("${stackname}dialer")
+	sleep 1
+elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+	echo $(date) "${stackname}dialer has already failed! :("
+	exit 1
+elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}dialer is being deleted! ;("
+	exit 1
+elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+	echo $(date) "${stackname}dialer is already running! Skipping. :)"
+else
+	echo -n $(date) "${stackname}dialer is starting..."
+
+	aws \
+	--output 'text' \
+	--region "${region}" \
+	cloudformation \
+	create-stack \
+	--stack-name "${stackname}dialer" \
+	--template-body 'file://../../cloudformation/dialer.template' \
+	--parameters \
+	"ParameterKey=EhAMI,ParameterValue=${ami}" \
+	"ParameterKey=InboundAMI,ParameterValue=${ami}" \
+	"ParameterKey=MqAMI,ParameterValue=${ami}" \
+	"ParameterKey=SipAMI,ParameterValue=${ami}" \
+	"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
+	'ParameterKey=TerminationProtection,ParameterValue=false' \
+	--on-failure 'DO_NOTHING' > /dev/null
+
+	if [ $? -eq 0 ]; then
+		echo 'done! Monitoring it. :)'
+		stacks+=("${stackname}dialer")
+		sleep 10
+	else
+		echo 'failed! :('
+		exit 1
+	fi
+fi
+
+stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}application" 2> /dev/null)
+
+if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}application is in progress! Monitoring it. :)"
+	stacks+=("${stackname}application")
+	sleep 1
+elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+	echo $(date) "${stackname}application has already failed! :("
+	exit 1
+elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}application is being deleted! ;("
+	exit 1
+elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+	echo $(date) "${stackname}application is already running! Skipping. :)"
+else
+	echo -n $(date) "${stackname}application is starting..."
+
+	aws \
+	--output 'text' \
+	--region "${region}" \
+	cloudformation \
+	create-stack \
+	--stack-name "${stackname}application" \
+	--template-body 'file://../../cloudformation/application.template' \
+	--parameters \
+	"ParameterKey=Certificate,ParameterValue=${sslcertname}" \
+	"ParameterKey=JpAMI,ParameterValue=${ami}" \
+	"ParameterKey=SocketAMI,ParameterValue=${ami}" \
+	"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
+	'ParameterKey=TerminationProtection,ParameterValue=false' \
+	"ParameterKey=WebAMI,ParameterValue=${ami}" \
+	"ParameterKey=WorkerAMI,ParameterValue=${ami}" \
+	--on-failure 'DO_NOTHING' > /dev/null
+
+	if [ $? -eq 0 ]; then
+		echo 'done! Monitoring it. :)'
+		stacks+=("${stackname}application")
+		sleep 10
+	else
+		echo 'failed! :('
+		exit 1
+	fi
+fi
+
+stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}mdb1" 2> /dev/null)
+
+if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}mdb1 is in progress! Monitoring it. :)"
+	stacks+=("${stackname}mdb1")
+	sleep 1
+elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+	echo $(date) "${stackname}mdb1 has already failed! :("
+	exit 1
+elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+	echo $(date) "${stackname}mdb1 is being deleted! ;("
+	exit 1
+elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+	echo $(date) "${stackname}mdb1 is already running! Skipping. :)"
+else
+	echo -n $(date) "${stackname}mdb1 is starting..."
+
+	aws \
+	--output 'text' \
+	--region "${region}" \
+	cloudformation \
+	create-stack \
+	--stack-name "${stackname}mdb1" \
+	--template-body 'file://../../cloudformation/mdb.template' \
+	--parameters \
+	"ParameterKey=DatabaseAMI,ParameterValue=${ami}" \
+	'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+	"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
+	'ParameterKey=TerminationProtection,ParameterValue=false' \
+	--on-failure 'DO_NOTHING' > /dev/null
+
+	if [ $? -eq 0 ]; then
+		echo 'done! Monitoring it. :)'
+		stacks+=("${stackname}mdb1")
+		sleep 10
+	else
+		echo 'failed! :('
+		exit 1
+	fi
+fi
+
+for cluster in $(seq $numdbclusters); do
+	stack_status=$(aws --output 'text' --region "${region}" --query 'Stacks[].StackStatus' cloudformation describe-stacks --stack-name "${stackname}db${cluster}" 2> /dev/null)
+
+	if [ "${stack_status}" == "CREATE_IN_PROGRESS" ]; then
+		echo $(date) "${stackname}db${cluster} is in progress! Monitoring it. :)"
+		stacks+=("${stackname}db${cluster}")
+		sleep 1
+	elif [ "${stack_status}" == "CREATE_FAILED" ]; then
+		echo $(date) "${stackname}db${cluster} has already failed! :("
+		exit 1
+	elif [ "${stack_status}" == "DELETE_IN_PROGRESS" ]; then
+		echo $(date) "${stackname}db${cluster} is being deleted! ;("
+		exit 1
+	elif [ "${stack_status}" == "CREATE_COMPLETE" ]; then
+		echo $(date) "${stackname}db${cluster} is already running! Skipping. :)"
+	else
+		echo -n $(date) "${stackname}db${cluster} is starting..."
+
+		aws \
+		--output 'text' \
+		--region "${region}" \
+		cloudformation \
+		create-stack \
+		--stack-name "${stackname}db${cluster}" \
+		--template-body 'file://../../cloudformation/db.template' \
+		--parameters \
+		"ParameterKey=DatabaseAMI,ParameterValue=${ami}" \
+		'ParameterKey=DataVolumeEncryption,ParameterValue=true' \
+		"ParameterKey=TargetEnvironment,ParameterValue=${stackname}" \
+		'ParameterKey=TerminationProtection,ParameterValue=false' \
+		--on-failure 'DO_NOTHING' > /dev/null
+
+		if [ $? -eq 0 ]; then
+			echo 'done! Monitoring it. :)'
+			stacks+=("${stackname}db${cluster}")
+			sleep 10
+		else
+			echo 'failed! :('
+			exit 1
+		fi
+	fi
+done
+
+waitformultiplestacks "${stacks[@]}"
