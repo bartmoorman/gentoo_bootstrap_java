@@ -4,7 +4,7 @@ echo AWS Region is $region
 read -p "Stack Name: (ex. na1usc1) " stackname
 echo Stack Name is $stackname
 read -p "CIDR 2nd Octet: (ex. 100) " cidr2ndoctet
-echo CIDR 2nd Octet is $cdir2ndoctet
+echo CIDR 2nd Octet is $cidr2ndoctet
 read -p "AMI: (ex. ami-eb4133fc) " ami
 echo AMI is $ami
 read -p "ns1 EIP: (ex. eipalloc-7042224f) " ns1eip

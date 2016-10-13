@@ -93,8 +93,6 @@ mkdir -p "/${dirname}"
 filename="etc/portage/package.keywords/mongodb"
 echo "--- ${filename} (replace)"
 cat <<'EOF'>"/${filename}"
-dev-db/mongodb
-app-admin/mongo-tools
 dev-util/boost-build
 dev-libs/boost
 EOF
