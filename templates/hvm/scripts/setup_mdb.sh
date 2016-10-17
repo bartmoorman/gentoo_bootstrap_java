@@ -110,6 +110,10 @@ emerge -uDN @system @world || emerge --resume || exit 1
 
 revdep-rebuild || exit 1
 
+/etc/init.d/lvm start || exit 1
+
+rc-update add lvm boot
+
 filename="etc/fstab"
 echo "--- ${filename} (append)"
 cat <<EOF>>"/${filename}"
