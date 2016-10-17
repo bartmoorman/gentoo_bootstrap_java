@@ -67,7 +67,7 @@
             "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -75,7 +75,7 @@
                 " ",
                 [
                   { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
-				  "Dialer"
+                  "Dialer"
                 ]
               ]
             }
@@ -96,7 +96,7 @@
             "CidrIp": "0.0.0.0/0"
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -104,7 +104,7 @@
                 " ",
                 [
                   { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
-				  "Inbound ELB"
+                  "Inbound ELB"
                 ]
               ]
             }

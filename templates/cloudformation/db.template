@@ -42,20 +42,14 @@
             "",
             [
               "arn:aws:lambda:",
-              {
-                "Ref": "AWS::Region"
-              },
+              { "Ref": "AWS::Region" },
               ":",
-              {
-                "Ref": "AWS::AccountId"
-              },
+              { "Ref": "AWS::AccountId" },
               ":function:StackInfo"
             ]
           ]
         },
-        "StackName": {
-          "Ref": "TargetEnvironment"
-        }
+        "StackName": { "Ref": "TargetEnvironment" }
       }
     },
     "DatabaseSG": {
@@ -69,19 +63,8 @@
         },
         "GroupDescription": "MySQL",
         "SecurityGroupIngress": [
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "3306",
-            "ToPort": "3306",
-            "CidrIp": {
-              "Fn::GetAtt": [
-                "Environment",
-                "VPCCIDR"
-              ]
-            }
-          },
-		  {
-            "IpProtocol": "-1",
+        {
+          "IpProtocol": "-1",
             "CidrIp": {
               "Fn::GetAtt": [
                 "Environment",
@@ -90,7 +73,7 @@
             }
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -103,24 +86,12 @@
                       "NamingPrefix"
                     ]
                   },
-				  "MySQL"
+                  "MySQL"
                 ]
               ]
             }
           }
         ]
-      }
-    },
-    "DBSGToItself": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "-1",
-        "SourceSecurityGroupId": {
-          "Ref": "DatabaseSG"
-        },
-        "GroupId": {
-          "Ref": "DatabaseSG"
-        }
       }
     },
     "DBServerAENI": {
@@ -133,9 +104,7 @@
           ]
         },
         "GroupSet": [
-          {
-            "Ref": "DatabaseSG"
-          },
+          { "Ref": "DatabaseSG" },
           {
             "Fn::GetAtt": [
               "Environment",
@@ -147,9 +116,7 @@
           "Fn::Join": [
             "",
             [
-              {
-                "Ref": "AWS::StackName"
-              },
+              { "Ref": "AWS::StackName" },
               "_0",
               {
                 "Fn::GetAtt": [
@@ -174,9 +141,7 @@
         },
         "Size": "450",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -184,9 +149,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_0",
                   {
                     "Fn::GetAtt": [
@@ -214,9 +177,7 @@
         },
         "Size": "450",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -224,9 +185,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_0",
                   {
                     "Fn::GetAtt": [
@@ -254,9 +213,7 @@
         },
         "Size": "150",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -264,9 +221,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_0",
                   {
                     "Fn::GetAtt": [
@@ -291,9 +246,7 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "DatabaseAMI"
-        },
+        "ImageId": { "Ref": "DatabaseAMI" },
         "InstanceType": "r3.2xlarge",
         "IamInstanceProfile": {
           "Fn::FindInMap": [
@@ -302,38 +255,28 @@
             "DatabaseServer"
           ]
         },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "DBServerAENI"
-            }
+            "NetworkInterfaceId": { "Ref": "DBServerAENI" }
           }
         ],
         "EbsOptimized": true,
         "Volumes": [
           {
             "Device": "xvdf",
-            "VolumeId": {
-              "Ref": "DBServerAVolume1"
-            }
+            "VolumeId": { "Ref": "DBServerAVolume1" }
           },
           {
             "Device": "xvdg",
-            "VolumeId": {
-              "Ref": "DBServerAVolume2"
-            }
+            "VolumeId": { "Ref": "DBServerAVolume2" }
           },
           {
             "Device": "xvdh",
-            "VolumeId": {
-              "Ref": "DBServerAVolume3"
-            }
+            "VolumeId": { "Ref": "DBServerAVolume3" }
           }
         ],
         "Tags": [
@@ -343,9 +286,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_0",
                   {
                     "Fn::GetAtt": [
@@ -374,9 +315,7 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Ref": "AWS::StackName"
-                      },
+                      { "Ref": "AWS::StackName" },
                       "_1",
                       {
                         "Fn::GetAtt": [
@@ -407,9 +346,7 @@
                         ]
                       },
                       "backup",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
@@ -429,13 +366,9 @@
                 },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=DBServerA --exit-code=$?\n"
               ]
             ]
@@ -453,9 +386,7 @@
           ]
         },
         "GroupSet": [
-          {
-            "Ref": "DatabaseSG"
-          },
+          { "Ref": "DatabaseSG" },
           {
             "Fn::GetAtt": [
               "Environment",
@@ -467,9 +398,7 @@
           "Fn::Join": [
             "",
             [
-              {
-                "Ref": "AWS::StackName"
-              },
+              { "Ref": "AWS::StackName" },
               "_1",
               {
                 "Fn::GetAtt": [
@@ -494,9 +423,7 @@
         },
         "Size": "450",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -504,9 +431,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_1",
                   {
                     "Fn::GetAtt": [
@@ -534,9 +459,7 @@
         },
         "Size": "450",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -544,9 +467,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_1",
                   {
                     "Fn::GetAtt": [
@@ -574,9 +495,7 @@
         },
         "Size": "150",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -584,9 +503,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_1",
                   {
                     "Fn::GetAtt": [
@@ -611,9 +528,7 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "DatabaseAMI"
-        },
+        "ImageId": { "Ref": "DatabaseAMI" },
         "InstanceType": "r3.2xlarge",
         "IamInstanceProfile": {
           "Fn::FindInMap": [
@@ -622,38 +537,28 @@
             "DatabaseServer"
           ]
         },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "DBServerBENI"
-            }
+            "NetworkInterfaceId": { "Ref": "DBServerBENI" }
           }
         ],
         "EbsOptimized": true,
         "Volumes": [
           {
             "Device": "xvdf",
-            "VolumeId": {
-              "Ref": "DBServerBVolume1"
-            }
+            "VolumeId": { "Ref": "DBServerBVolume1" }
           },
           {
             "Device": "xvdg",
-            "VolumeId": {
-              "Ref": "DBServerBVolume2"
-            }
+            "VolumeId": { "Ref": "DBServerBVolume2" }
           },
           {
             "Device": "xvdh",
-            "VolumeId": {
-              "Ref": "DBServerBVolume3"
-            }
+            "VolumeId": { "Ref": "DBServerBVolume3" }
           }
         ],
         "Tags": [
@@ -663,9 +568,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_1",
                   {
                     "Fn::GetAtt": [
@@ -694,9 +597,7 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Ref": "AWS::StackName"
-                      },
+                      { "Ref": "AWS::StackName" },
                       "_0",
                       {
                         "Fn::GetAtt": [
@@ -727,9 +628,7 @@
                         ]
                       },
                       "backup",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
@@ -749,13 +648,9 @@
                 },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=DBServerB --exit-code=$?\n"
               ]
             ]
@@ -773,9 +668,7 @@
           ]
         },
         "GroupSet": [
-          {
-            "Ref": "DatabaseSG"
-          },
+          { "Ref": "DatabaseSG" },
           {
             "Fn::GetAtt": [
               "Environment",
@@ -787,9 +680,7 @@
           "Fn::Join": [
             "",
             [
-              {
-                "Ref": "AWS::StackName"
-              },
+              { "Ref": "AWS::StackName" },
               "_2",
               {
                 "Fn::GetAtt": [
@@ -814,9 +705,7 @@
         },
         "Size": "450",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -824,9 +713,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_2",
                   {
                     "Fn::GetAtt": [
@@ -854,9 +741,7 @@
         },
         "Size": "450",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -864,9 +749,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_2",
                   {
                     "Fn::GetAtt": [
@@ -894,9 +777,7 @@
         },
         "Size": "150",
         "VolumeType": "gp2",
-        "Encrypted": {
-          "Ref": "DataVolumeEncryption"
-        },
+        "Encrypted": { "Ref": "DataVolumeEncryption" },
         "Tags": [
           {
             "Key": "Name",
@@ -904,9 +785,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_2",
                   {
                     "Fn::GetAtt": [
@@ -931,9 +810,7 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Ref": "DatabaseAMI"
-        },
+        "ImageId": { "Ref": "DatabaseAMI" },
         "InstanceType": "r3.2xlarge",
         "IamInstanceProfile": {
           "Fn::FindInMap": [
@@ -942,38 +819,28 @@
             "DatabaseServer"
           ]
         },
-        "DisableApiTermination": {
-          "Ref": "TerminationProtection"
-        },
+        "DisableApiTermination": { "Ref": "TerminationProtection" },
         "Monitoring": true,
         "NetworkInterfaces": [
           {
             "DeviceIndex": "0",
             "DeleteOnTermination": false,
-            "NetworkInterfaceId": {
-              "Ref": "DBServerCENI"
-            }
+            "NetworkInterfaceId": { "Ref": "DBServerCENI" }
           }
         ],
         "EbsOptimized": true,
         "Volumes": [
           {
             "Device": "xvdf",
-            "VolumeId": {
-              "Ref": "DBServerCVolume1"
-            }
+            "VolumeId": { "Ref": "DBServerCVolume1" }
           },
           {
             "Device": "xvdg",
-            "VolumeId": {
-              "Ref": "DBServerCVolume2"
-            }
+            "VolumeId": { "Ref": "DBServerCVolume2" }
           },
           {
             "Device": "xvdh",
-            "VolumeId": {
-              "Ref": "DBServerCVolume3"
-            }
+            "VolumeId": { "Ref": "DBServerCVolume3" }
           }
         ],
         "Tags": [
@@ -983,9 +850,7 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "AWS::StackName"
-                  },
+                  { "Ref": "AWS::StackName" },
                   "_2",
                   {
                     "Fn::GetAtt": [
@@ -1014,9 +879,7 @@
                   "Fn::Join": [
                     "",
                     [
-                      {
-                        "Ref": "AWS::StackName"
-                      },
+                      { "Ref": "AWS::StackName" },
                       "_1",
                       {
                         "Fn::GetAtt": [
@@ -1047,9 +910,7 @@
                         ]
                       },
                       "backup",
-                      {
-                        "Ref": "AWS::AccountId"
-                      }
+                      { "Ref": "AWS::AccountId" }
                     ]
                   ]
                 },
@@ -1069,13 +930,9 @@
                 },
                 "\n",
                 "cfn-signal --region=",
-                {
-                  "Ref": "AWS::Region"
-                },
+                { "Ref": "AWS::Region" },
                 " --stack=",
-                {
-                  "Ref": "AWS::StackName"
-                },
+                { "Ref": "AWS::StackName" },
                 " --resource=DBServerC --exit-code=$?\n"
               ]
             ]

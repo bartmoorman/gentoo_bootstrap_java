@@ -72,7 +72,7 @@
             "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -80,7 +80,7 @@
                 " ",
                 [
                   { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
-				  "Application"
+                  "Application"
                 ]
               ]
             }
@@ -107,7 +107,7 @@
             "CidrIp": "0.0.0.0/0"
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -115,7 +115,7 @@
                 " ",
                 [
                   { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
-				  "Web ELB"
+                  "Web ELB"
                 ]
               ]
             }
@@ -142,7 +142,7 @@
             "CidrIp": "0.0.0.0/0"
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -150,7 +150,7 @@
                 " ",
                 [
                   { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
-				  "Socket ELB"
+                  "Socket ELB"
                 ]
               ]
             }

@@ -57,7 +57,7 @@
             "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -65,7 +65,7 @@
                 " ",
                 [
                   { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
-				  "Pub"
+                  "Pub"
                 ]
               ]
             }
@@ -92,7 +92,7 @@
             "CidrIp": "0.0.0.0/0"
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -100,7 +100,7 @@
                 " ",
                 [
                   { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
-				  "Pub ELB"
+                  "Pub ELB"
                 ]
               ]
             }

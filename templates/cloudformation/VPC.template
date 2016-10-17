@@ -10,11 +10,11 @@
     "Environment": {
       "Type": "String",
       "AllowedValues": [ "Beta", "Alpha", "Production" ],
-	  "Default": "Production"
+      "Default": "Production"
     },
     "DNSAMI": {
       "Type": "String",
-	  "Description": "Amazon Machine Image ID",
+      "Description": "Amazon Machine Image ID",
       "Default": "ami-eb4133fc"
     },
     "DNSInstanceType": {
@@ -25,27 +25,27 @@
     "DNSServerAExistingEIP": {
       "Type": "String",
       "Description": "Allocation ID of the elastic IP address for the primary DNS server.",
-	  "Default": "eipalloc-7042224f"
+      "Default": "eipalloc-7042224f"
     },
     "DNSServerBExistingEIP": {
       "Type": "String",
       "Description": "Allocation ID of the elastic IP address for the secondary DNS server.",
-	  "Default": "eipalloc-d94929e6"
+      "Default": "eipalloc-d94929e6"
     },
     "NATGatewayAExistingEIP": {
       "Type": "String",
       "Description": "Allocation ID of the elastic IP address for the primary NAT gateway.",
-	  "Default": "eipalloc-77543448"
+      "Default": "eipalloc-77543448"
     },
     "NATGatewayBExistingEIP": {
       "Type": "String",
       "Description": "Allocation ID of the elastic IP address for the secondary NAT gateway.",
-	  "Default": "eipalloc-1a503025"
+      "Default": "eipalloc-1a503025"
     },
     "NATGatewayCExistingEIP": {
       "Type": "String",
       "Description": "Allocation ID of the elastic IP address for the tertiary NAT gateway.",
-	  "Default": "eipalloc-b050308f"
+      "Default": "eipalloc-b050308f"
     },
     "TerminationProtection": {
       "Type": "String",
@@ -216,7 +216,7 @@
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": { "Ref": "VPC" },
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -224,7 +224,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Public"
+                  "Public"
                 ]
               ]
             }
@@ -271,7 +271,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Public A"
+                  "Public A"
                 ]
               ]
             }
@@ -310,7 +310,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Public B"
+                  "Public B"
                 ]
               ]
             }
@@ -349,7 +349,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Public C"
+                  "Public C"
                 ]
               ]
             }
@@ -382,7 +382,7 @@
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": { "Ref": "VPC" },
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -390,7 +390,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Private A"
+                  "Private A"
                 ]
               ]
             }
@@ -402,7 +402,7 @@
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": { "Ref": "VPC" },
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -410,7 +410,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Private B"
+                  "Private B"
                 ]
               ]
             }
@@ -422,7 +422,7 @@
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": { "Ref": "VPC" },
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -430,7 +430,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Private C"
+                  "Private C"
                 ]
               ]
             }
@@ -469,7 +469,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Web A"
+                  "Web A"
                 ]
               ]
             }
@@ -508,7 +508,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Web B"
+                  "Web B"
                 ]
               ]
             }
@@ -547,7 +547,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Web C"
+                  "Web C"
                 ]
               ]
             }
@@ -607,7 +607,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "App A"
+                  "App A"
                 ]
               ]
             }
@@ -646,7 +646,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "App B"
+                  "App B"
                 ]
               ]
             }
@@ -685,7 +685,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "App C"
+                  "App C"
                 ]
               ]
             }
@@ -745,7 +745,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "DB A"
+                  "DB A"
                 ]
               ]
             }
@@ -784,7 +784,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "DB B"
+                  "DB B"
                 ]
               ]
             }
@@ -823,7 +823,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "DB C"
+                  "DB C"
                 ]
               ]
             }
@@ -865,7 +865,7 @@
             "CidrIp": { "Fn::FindInMap": [ "NetworkConfig", "Onpremise", "RemoteAccessFrom" ] }
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -873,7 +873,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Remote Access"
+                  "Remote Access"
                 ]
               ]
             }
@@ -952,7 +952,7 @@
             "CidrIp": "0.0.0.0/0"
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -960,7 +960,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "DNS"
+                  "DNS"
                 ]
               ]
             }
@@ -1226,7 +1226,7 @@
             }
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -1234,7 +1234,7 @@
                 " ",
                 [
                   { "Ref": "AWS::StackName" },
-				  "Core"
+                  "Core"
                 ]
               ]
             }
@@ -1285,9 +1285,7 @@
           ".",
           [
             "10",
-            {
-              "Ref": "CIDR2ndOctet"
-            },
+            { "Ref": "CIDR2ndOctet" },
             "0.0/16"
           ]
         ]

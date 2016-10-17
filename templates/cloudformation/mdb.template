@@ -65,23 +65,11 @@
         "GroupDescription": "MongoDB",
         "SecurityGroupIngress": [
           {
-            "IpProtocol": "tcp",
-            "FromPort": "27017",
-            "ToPort": "27017",
-            "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "28017",
-            "ToPort": "28017",
-            "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
-          },
-		  {
             "IpProtocol": "-1",
             "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
           }
         ],
-		"Tags": [
+        "Tags": [
           {
             "Key": "Name",
             "Value": {
@@ -89,24 +77,12 @@
                 " ",
                 [
                   { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
-				  "MongoDB"
+                  "MongoDB"
                 ]
               ]
             }
           }
         ]
-      }
-    },
-    "DBSGToItself": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "-1",
-        "SourceSecurityGroupId": {
-          "Ref": "DatabaseSG"
-        },
-        "GroupId": {
-          "Ref": "DatabaseSG"
-        }
       }
     },
     "DBServerAENI": {
