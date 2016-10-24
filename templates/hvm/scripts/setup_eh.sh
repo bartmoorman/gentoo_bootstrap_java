@@ -123,7 +123,7 @@ declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 filename="opt/keys/recordings.id_rsa.priv"
 echo "--- ${filename} (replace)"
-cat <<<'EOF'>"/${filename}"
+cat <<'EOF'>"/${filename}"
 ${asterisk_ssh_key}
 EOF
 chmod 600 "/${filename}" || exit 1

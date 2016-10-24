@@ -171,7 +171,7 @@ declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 filename="home/${user}/.ssh/id_rsa"
 echo "--- ${filename} (replace)"
-cat <<<'EOF'>"/${filename}"
+cat <<'EOF'>"/${filename}"
 ${deployer_ssh_key}
 EOF
 chmod 600 "/${filename}" || exit 1

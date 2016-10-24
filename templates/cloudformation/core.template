@@ -23,18 +23,12 @@
     },
     "TerminationProtection": {
       "Type": "String",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
+      "AllowedValues": [ "true", "false" ],
       "Default": "false"
     },
     "DataVolumeEncryption": {
       "Type": "String",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
+      "AllowedValues": [ "true", "false" ],
       "Default": "true"
     }
   },

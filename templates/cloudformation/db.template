@@ -11,18 +11,12 @@
     },
     "TerminationProtection": {
       "Type": "String",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
+      "AllowedValues": [ "true", "false" ],
       "Default": "false"
     },
     "DataVolumeEncryption": {
       "Type": "String",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
+      "AllowedValues": [ "true", "false" ],
       "Default": "true"
     }
   },
@@ -55,22 +49,12 @@
     "DatabaseSG": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "VpcId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "VPC"
-          ]
-        },
+        "VpcId": { "Fn::GetAtt": [ "Environment", "VPC" ] },
         "GroupDescription": "MySQL",
         "SecurityGroupIngress": [
         {
           "IpProtocol": "-1",
-            "CidrIp": {
-              "Fn::GetAtt": [
-                "Environment",
-                "VPCCIDR"
-              ]
-            }
+            "CidrIp": { "Fn::GetAtt": [ "Environment", "VPCCIDR" ] }
           }
         ],
         "Tags": [
@@ -80,12 +64,7 @@
               "Fn::Join": [
                 " ",
                 [
-                  {
-                    "Fn::GetAtt": [
-                      "Environment",
-                      "NamingPrefix"
-                    ]
-                  },
+                  { "Fn::GetAtt": [ "Environment", "NamingPrefix" ] },
                   "MySQL"
                 ]
               ]
@@ -97,20 +76,10 @@
     "DBServerAENI": {
       "Type": "AWS::EC2::NetworkInterface",
       "Properties": {
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Environment",
-            "DbSubnetA"
-          ]
-        },
+        "SubnetId": { "Fn::GetAtt": [ "Environment", "DbSubnetA" ] },
         "GroupSet": [
           { "Ref": "DatabaseSG" },
-          {
-            "Fn::GetAtt": [
-              "Environment",
-              "RemoteAccessSG"
-            ]
-          }
+          { "Fn::GetAtt": [ "Environment", "RemoteAccessSG" ] }
         ],
         "Description": {
           "Fn::Join": [
@@ -118,12 +87,7 @@
             [
               { "Ref": "AWS::StackName" },
               "_0",
-              {
-                "Fn::GetAtt": [
-                  "Environment",
-                  "NamingSuffix"
-                ]
-              }
+              { "Fn::GetAtt": [ "Environment", "NamingSuffix" ] }
             ]
           ]
         }
@@ -133,12 +97,7 @@
       "Type": "AWS::EC2::Volume",
       "DeletionPolicy": "Snapshot",
       "Properties": {
-        "AvailabilityZone": {
-          "Fn::GetAtt": [
-            "Environment",
-            "AZA"
-          ]
-        },
+        "AvailabilityZone": { "Fn::GetAtt": [ "Environment", "AZA" ] },
         "Size": "450",
         "VolumeType": "gp2",
         "Encrypted": { "Ref": "DataVolumeEncryption" },
