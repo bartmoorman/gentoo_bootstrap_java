@@ -485,19 +485,7 @@ type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
 declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
-user="cplummer"
-app="mysql"
-type="hash"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
 user="ecall"
-app="mysql"
-type="hash"
-echo "-- ${user} ${app}_${type} (decrypt)"
-declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
-
-user="jstubbs"
 app="mysql"
 type="hash"
 echo "-- ${user} ${app}_${type} (decrypt)"
@@ -541,9 +529,7 @@ declare "${user}_${app}_${type}=$(decrypt_user_text "${app}_${type}" "${user}")"
 
 sed -i -r \
 -e "s|%BMOORMAN_HASH%|${bmoorman_mysql_hash}|" \
--e "s|%CPLUMMER_HASH%|${cplummer_mysql_hash}|" \
 -e "s|%ECALL_HASH%|${ecall_mysql_hash}|" \
--e "s|%JSTUBBS_HASH%|${jstubbs_mysql_hash}|" \
 -e "s|%TPURDY_HASH%|${tpurdy_mysql_hash}|" \
 -e "s|%NPETERSON_HASH%|${npeterson_mysql_hash}|" \
 -e "s|%REPLICATION_AUTH%|${replication_mysql_auth}|" \

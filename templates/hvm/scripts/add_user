@@ -1,0 +1,41 @@
+#!/bin/bash
+userToAdd="$1"
+keyLoc="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts/keys"
+
+if [ $EUID -ne 0 ]; then
+	echo "You must use sudo to run this script:"
+	echo "sudo $0 $@"
+	exit
+elif [ -z "$userToAdd" ]; then
+	echo "You must specify a user:"
+	echo "sudo $0 username"
+	exit
+fi
+
+if ! getent passwd "$userToAdd" > /dev/null; then
+	echo -n "Adding user '${userToAdd}'..."
+	useradd -s /bin/bash -m "$userToAdd"
+	echo "done"
+
+	echo -en "\tCreating .ssh dir..."
+	install -o "$userToAdd" -g "$userToAdd" -m 0700 -d "/home/${userToAdd}/.ssh"
+	echo "done"
+
+	if [ -x "$(which wget)" ]; then
+		util='wget'
+		cmd='wget -qO'
+	elif [ -x "$(which curl)" ]; then
+		util='curl'
+		cmd='curl -so'
+	else
+		echo "No suitable download utility found. This is fatal. Exiting"
+		exit
+	fi
+
+	echo -en "\tDownloading public key using ${util}..."
+	$cmd "/home/${userToAdd}/.ssh/authorized_keys" "${keyLoc}/${userToAdd}"
+	echo "done"
+else
+	echo "User '${userToAdd}' already exists. This is fatal. Exiting."
+	exit
+fi

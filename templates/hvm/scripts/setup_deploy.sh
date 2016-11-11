@@ -148,7 +148,7 @@ sed -i -r \
 
 rc-update add gmond default
 
-for i in canderson mkendzior nthompson tdavis; do
+for i in canderson cisom mkendzior zstoddard; do
 	echo "--- ${i} (add)"
 	useradd -g users -m ${i} || exit 1
 
@@ -159,7 +159,7 @@ for i in canderson mkendzior nthompson tdavis; do
 	filename="etc/sudoers.d/devops"
 	echo "--- ${filename} (append)"
 	cat <<EOF>>"/${filename}"
-${i} ALL=(deployer) NOPASSWD: /usr/local/bin/release, /usr/local/bin/composer, /usr/bin/git
+${i} ALL=(deployer) NOPASSWD: /usr/local/bin/*, /usr/bin/git, /usr/bin/rsync, /home/deployer/git/*/minion, sudoedit /home/deployer/git/*/*
 EOF
 done
 

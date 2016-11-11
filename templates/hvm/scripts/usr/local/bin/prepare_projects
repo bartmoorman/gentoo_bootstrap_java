@@ -22,13 +22,24 @@ name="$(hostname)"
 iam_role="$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)"
 scripts="https://raw.githubusercontent.com/iVirus/gentoo_bootstrap_java/master/templates/hvm/scripts"
 
-for i in dops/devops cfg/instance-config; do
+dirname="home/deployer/stash"
+echo "--- ${dirname} (create)"
+sudo -u deployer mkdir -p "/${dirname}" || exit 1
+
+dops_repos=("dops/devops")
+dops_repos+=("cfg/instance-config")
+
+for i in "${dops_repos[@]}"; do
 	dirname="home/deployer/stash/${i}"
 	echo "--- ${i} (clone)"
 	sudo -u deployer git clone "ssh://git@stash.is.com:7999/${i}.git" "/${dirname}" || exit 1
 done
 
-for i in release:release release.inc:release.inc release.ini:${hostname_prefix::3}.release.ini; do
+dops_files=("release:release")
+dops_files+=("release.inc:release.inc")
+dops_files+=("release.ini:${hostname_prefix::3}.release.ini")
+
+for i in "${dops_files[@]}"; do
 	filename="home/deployer/stash/dops/devops/scripts/deploy/${i#*:}"
 	linkname="usr/local/bin/${i%:*}"
 	echo "--- ${linkname} (replace)"
@@ -40,7 +51,24 @@ dirname="home/deployer/git"
 echo "--- ${dirname} (create)"
 sudo -u deployer mkdir -p "/${dirname}" || exit 1
 
-for i in accounting:atom/accounting arkapi:si/arkapi atom:atom/sysadmin billing:atom/billing cdn:cdn/cdn commsworkers:com/commsworkers dialerapp:pdms/dialer-app idm:plat/identity-management-app issocketserver:ps/issocketserver issocketserver_ps_dashboards:ps/issocketserver issocketserver_ps_leaderboards:ps/issocketserver issocketserver_ps_notifications:ps/issocketserver issocketserver_ps_standings:ps/issocketserver iswsi:com/iswebserviceintegration mac:plat/mac nvapi:nv/neuralvisionapi sta:cor/sales-team-automation websocket:ps/psnotificationserver; do
+repos=("accounting:atom/accounting")
+repos+=("arkapi:si/arkapi")
+repos+=("atom:atom/sysadmin")
+repos+=("billing:atom/billing")
+repos+=("cdn:cdn/cdn")
+repos+=("commsworkers:com/commsworkers")
+repos+=("dialerapp:pdms/dialer-app")
+repos+=("idm:plat/identity-management-app")
+repos+=("iscms:atom/iscms")
+repos+=("issocketserver:ps/issocketserver")
+repos+=("iswsi:com/iswebserviceintegration")
+repos+=("mac:plat/mac")
+repos+=("nvapi:nv/neuralvisionapi")
+repos+=("ra:ra/responseaudit")
+repos+=("sta:cor/sales-team-automation")
+repos+=("websocket:ps/psnotificationserver")
+
+for i in "${repos[@]}"; do
 	dirname="home/deployer/stash/${i#*:}"
 	echo "--- ${i#*:} (clone)"
 	sudo -u deployer git clone "ssh://git@stash.is.com:7999/${i#*:}.git" "/${dirname}" || exit 1
@@ -90,9 +118,21 @@ type="secret"
 echo "-- ${user} ${type} (decrypt)"
 declare "${user}_${type}=$(decrypt_user_text "${type}" "${user}")"
 
-for i in accounting:.domainconfig arkapi:.domainconfig atom:.domainconfig commsworkers:.domainconfig dialerapp:.domainconfig idm:.domainconfig iswsi:.domainconfig mac:.domainconfig nvapi:.domainconfig sta:.domainconfig websocket:.domainconfig; do
+files=("accounting:.domainconfig")
+files+=("arkapi:.domainconfig")
+files+=("atom:.domainconfig")
+files+=("commsworkers:.domainconfig")
+files+=("dialerapp:.domainconfig")
+files+=("idm:.domainconfig")
+files+=("idm:.domainconfig")
+files+=("mac:.domainconfig")
+files+=("nvapi:.domainconfig")
+files+=("sta:.domainconfig")
+files+=("websocket:.domainconfig")
+
+for i in "${files[@]}"; do
 	filename="home/deployer/stash/cfg/instance-config/${hostname_prefix::3}/${i%:*}${i#*:}"
-	inkname="home/deployer/git/${i%:*}/${i#*:}"
+	linkname="home/deployer/git/${i%:*}/${i#*:}"
 	echo "--- ${linkname} (replace)"
 	sudo -u deployer cp "/${filename}" "/${linkname}" || exit 1
 
