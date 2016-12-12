@@ -19,7 +19,7 @@ if ! getent group "$groupToAdd" > /dev/null; then
 	echo "done"
 
 	echo -en "\tGranting sudo access..."
-	cat << 'EOF' >> "/etc/sudoers.d/_${groupToAdd}"
+	cat << EOF >> "/etc/sudoers.d/_${groupToAdd}"
 %${groupToAdd} ALL=(ALL) NOPASSWD: ALL
 EOF
 	echo "done"
