@@ -22,6 +22,7 @@ if ! getent group "$groupToAdd" > /dev/null; then
 	cat << EOF >> "/etc/sudoers.d/_${groupToAdd}"
 %${groupToAdd} ALL=(ALL) NOPASSWD: ALL
 EOF
+	chmod 0440 "/etc/sudoers.d/_${groupToAdd}"
 	echo "done"
 else
 	echo "Group '${groupToAdd}' already exists. Non-fatal. Continuing."
