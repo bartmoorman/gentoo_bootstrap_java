@@ -7,23 +7,29 @@ if [ $EUID -ne 0 ]; then
 	echo "You must use sudo to run this script:"
 	echo "sudo $0 $@"
 	exit
-elif [ -z "$userToAdd" -o -z "$groupToAdd" ]; then
-	echo "You must specify a user and supplementary group:"
-	echo "sudo $0 username group"
+elif [ -z "$userToAdd" ]; then
+	echo "You must specify a user:"
+	echo "sudo $0 username [group]"
 	exit
 fi
 
-if ! getent group "$groupToAdd" > /dev/null; then
-	echo -n "Adding group '${groupToAdd}'..."
-	groupadd "$groupToAdd"
-	echo "done"
-else
-	echo "Group '${groupToAdd}' already exists. Non-fatal. Continuing."
+if [ -n "$groupToAdd" ]; then
+	if ! getent group "$groupToAdd" > /dev/null; then
+		echo -n "Adding group '${groupToAdd}'..."
+		groupadd "$groupToAdd"
+		echo "done"
+	else
+		echo "Group '${groupToAdd}' already exists. Non-fatal. Continuing."
+	fi
 fi
 
 if ! getent passwd "$userToAdd" > /dev/null; then
 	echo -n "Adding user '${userToAdd}'..."
-	useradd -G "$groupToAdd" -s /bin/bash -m "$userToAdd"
+	if [ -n "$groupToAdd" ]; then
+		useradd -G "$groupToAdd" -s /bin/bash -m "$userToAdd"
+	else
+		useradd -s /bin/bash -m "$userToAdd"
+	fi
 	echo "done"
 
 	echo -en "\tCreating .ssh dir..."
