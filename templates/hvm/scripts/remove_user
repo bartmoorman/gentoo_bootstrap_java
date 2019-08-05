@@ -1,0 +1,25 @@
+#!/bin/bash
+userToRemove="$1"
+
+if [ $EUID -ne 0 ]; then
+	echo "You must use sudo to run this script:"
+	echo "sudo $0 $@"
+	exit
+elif [ -z "$userToRemove" ]; then
+	echo "You must specify a user:"
+	echo "sudo $0 username"
+	exit
+fi
+
+ent=$(getent passwd "${userToRemove}")
+
+if [ -n "${ent}" ]; then
+  home=$(cut -d: -f6 <<< ${ent})
+  echo "Creating backup of ${home}"
+  tar zcf ${home}.tar.gz -C $(dirname ${home}) $(basename ${home})
+	echo "Removing ${userToRemove}"
+	userdel -rf ${username}
+else
+	echo "User '${userToRemove}' does not exist. This is fatal. Exiting."
+	exit
+fi
