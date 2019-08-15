@@ -14,11 +14,11 @@ fi
 ent=$(getent passwd "${userToRemove}")
 
 if [ -n "${ent}" ]; then
-  home=$(cut -d: -f6 <<< ${ent})
-  echo "Creating backup of ${home}"
-  tar zcf ${home}.tar.gz -C $(dirname ${home}) $(basename ${home})
+	home=$(cut -d: -f6 <<< ${ent})
+	echo "Creating backup of ${home}"
+	tar zcf ${home}.tar.gz -C $(dirname ${home}) $(basename ${home})
 	echo "Removing ${userToRemove}"
-	userdel -rf ${username}
+	userdel -rf ${userToRemove}
 else
 	echo "User '${userToRemove}' does not exist. This is fatal. Exiting."
 	exit
