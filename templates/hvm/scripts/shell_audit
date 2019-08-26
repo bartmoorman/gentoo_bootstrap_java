@@ -1,0 +1,55 @@
+#!/bin/bash
+preFilePaths=('/etc/shadow' '/etc/passwd' '/etc/group' '/etc/ssh/sshd_config' '/etc/sudoers')
+homeFiles=('.ssh/authorized_keys')
+
+while getopts ':f:' opt; do
+  case "${opt}" in
+    f)
+      outputFilePath="${OPTARG}"
+      ;;
+  esac
+done
+
+if [ "${EUID}" -ne 0 ]; then
+  echo 'You must use sudo to run this script:'
+  echo "sudo $0 $@"
+  exit
+elif [ ! "${outputFilePath+x}" ]; then
+  echo "Usage: $0 -f outputFilePath"
+  exit
+fi
+
+tmpPath=$(mktemp -d)
+
+for postFilePath in "${preFilePaths[@]}"; do
+  echo -n "--- ${postFilePath} - "
+  if [ -s "${postFilePath}" ]; then
+    if sed -re 's|^([^:]+):\$[^:]+:|\1:****password_hash_ommitted****:|' "${postFilePath}" 2> /dev/null > "${tmpPath}/${postFilePath//\//_}"; then
+      echo 'captured'
+    else
+      echo 'failed'
+    fi
+  else
+    echo 'empty'
+  fi
+done
+
+for homePath in $(cut -d: -f6 /etc/passwd | sort | uniq); do
+  for homeFile in "${homeFiles[@]}"; do
+    homeFilePath="${homePath}/${homeFile}"
+    echo -n "--- ${homeFilePath} - "
+    if [ -s "${homeFilePath}" ]; then
+      if cat "${homeFilePath}" 2> /dev/null > "${tmpPath}/${homeFilePath//\//_}"; then
+        echo 'captured'
+      else
+        echo 'failed'
+      fi
+    else
+      echo 'empty'
+    fi
+  done
+done
+
+tar -C "${tmpPath}" -czf "${outputFilePath}" .
+
+rm -r "${tmpPath}"
